@@ -169,13 +169,13 @@ get_function_xrefs
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `GHIDRA_INSTALL_DIR` | Path to Ghidra installation | Auto-detected from common locations |
-| `GHIDRA_MCP_PROJECT_DIR` | Where Ghidra projects are stored | `./projects` |
-| `GHIDRA_MCP_BINARIES_DIR` | Where input binaries are stored | `./binaries` |
-| `GHIDRA_MCP_EXPORTS_DIR` | Where exports are written | `./exports` |
-| `GHIDRA_MCP_LOG_DIR` | Where logs are written | `./logs` |
-| `GHIDRA_MCP_TIMEOUT` | Analysis timeout in seconds | `300` |
-| `GHIDRA_MCP_DECOMPILE_TIMEOUT` | Decompile timeout in seconds | `180` |
-| `GHIDRA_MCP_MAX_MEMORY` | JVM max memory | `4G` |
+| `KAWAIIDRA_PROJECT_DIR` | Where Ghidra projects are stored | `./projects` |
+| `KAWAIIDRA_BINARIES_DIR` | Where input binaries are stored | `./binaries` |
+| `KAWAIIDRA_EXPORTS_DIR` | Where exports are written | `./exports` |
+| `KAWAIIDRA_LOG_DIR` | Where logs are written | `./logs` |
+| `KAWAIIDRA_TIMEOUT` | Analysis timeout in seconds | `300` |
+| `KAWAIIDRA_DECOMPILE_TIMEOUT` | Decompile timeout in seconds | `180` |
+| `KAWAIIDRA_MAX_MEMORY` | JVM max memory | `4G` |
 
 ## Directory Structure
 
@@ -186,7 +186,7 @@ kawaiidra-mcp/
 ├── requirements.txt    # Python dependencies
 ├── run_server.py       # Server entry point
 ├── src/
-│   └── ghidra_mcp/
+│   └── kawaiidra_mcp/
 │       ├── server.py   # MCP server implementation
 │       ├── config.py   # Configuration management
 │       └── scripts/    # Ghidra headless scripts
@@ -237,17 +237,17 @@ pip install mcp
 Increase timeout with environment variable:
 ```bash
 # Windows
-set GHIDRA_MCP_TIMEOUT=600
+set KAWAIIDRA_TIMEOUT=600
 
 # Linux/macOS
-export GHIDRA_MCP_TIMEOUT=600
+export KAWAIIDRA_TIMEOUT=600
 ```
 
 ### Large Binary Memory Issues
 
 Increase JVM memory:
 ```bash
-set GHIDRA_MCP_MAX_MEMORY=8G
+set KAWAIIDRA_MAX_MEMORY=8G
 ```
 
 ### Function Not Found
