@@ -65,7 +65,7 @@ The JPype bridge keeps a JVM running in-process, eliminating the ~5-15 second st
 ## Requirements
 
 - **Python 3.10+**
-- **Ghidra 11.0+** (tested with 11.x and 12.0)
+- **Ghidra 11.0+** (tested with 11.x and 12.0, fully compatible with Ghidra 12.0)
 - **MCP Python package**: `pip install mcp`
 
 ### For Maximum Performance (Recommended)
@@ -195,6 +195,17 @@ Or add to your Claude Code config:
 | `cache_stats` | View cache hit rate and performance statistics |
 | `cache_clear` | Clear cached results |
 | `bridge_status` | Check if fast JPype bridge mode is active |
+| `generate_report` | Generate comprehensive binary analysis report |
+| `list_exports` | List exported functions and symbols |
+| `list_imports` | List imported functions from external libraries |
+| `list_data_items` | List defined data labels and values |
+| `list_namespaces` | List all namespaces and classes |
+| `rename_function` | Rename a function in the analysis |
+| `rename_data` | Rename a data label at an address |
+| `rename_variable` | Rename a local variable within a function |
+| `set_comment` | Add comments at specific addresses |
+| `set_function_prototype` | Set a function's signature |
+| `set_local_variable_type` | Set the type of a local variable |
 
 ### Advanced Analysis Tools (LLM-Optimized)
 
@@ -329,6 +340,16 @@ find_similar_functions
   threshold: 0.7
 ```
 
+### Generate Comprehensive Report
+
+```
+generate_report
+  binary_name: "target.exe"
+  depth: "full"
+```
+
+Depth options: `quick` (metadata only), `standard` (+ functions/strings), `full` (+ decompilation), `exhaustive` (everything)
+
 ### Detect Kernel Protections (iOS)
 
 ```
@@ -418,6 +439,27 @@ analyze_mach_ports
 | `KAWAIIDRA_BRIDGE_CACHE_PROGRAMS` | Keep programs loaded in memory | `true` |
 | `KAWAIIDRA_BRIDGE_MAX_PROGRAMS` | Max programs to cache | `5` |
 
+## Testing
+
+Kawaiidra includes a comprehensive test suite with 166 tests covering all major modules:
+
+```bash
+# Run all tests
+uv run pytest tests/ -v
+
+# Run specific test file
+uv run pytest tests/test_cache.py -v
+```
+
+| Test File | Tests | Coverage |
+|-----------|-------|----------|
+| `test_cache.py` | 57 | Cache operations, TTL, LRU eviction |
+| `test_index_parsing.py` | 30 | Ghidra index parsing, regex patterns |
+| `test_config.py` | 26 | Configuration, env vars, path detection |
+| `test_mcp_tools.py` | 22 | Tool definitions, schemas, utilities |
+| `test_mcp_handlers.py` | 22 | MCP handler integration |
+| `test_bridge.py` | 17 | Bridge availability, backend operations |
+
 ## Directory Structure
 
 ```
@@ -436,6 +478,7 @@ kawaiidra-mcp/
 │       │   ├── jpype_bridge.py  # JVM lifecycle & Ghidra API
 │       │   └── backend.py       # High-level backend abstraction
 │       └── scripts/    # Ghidra headless scripts (fallback)
+├── tests/              # Unit test suite (166 tests)
 ├── projects/           # Ghidra project storage (gitignored)
 ├── binaries/           # Input binaries (gitignored)
 ├── exports/            # Exported analysis (gitignored)
