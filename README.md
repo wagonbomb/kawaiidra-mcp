@@ -42,6 +42,13 @@ A general-purpose **Ghidra MCP server** that brings the power of Ghidra's headle
 - **Kernel symbols**: Find and analyze XNU kernel symbols
 - **Mach port analysis**: Analyze IPC and port operations
 
+### Android & Mobile Analysis Tools
+- **Crypto constants**: Find AES S-boxes, CRC tables, and crypto magic numbers
+- **JNI methods**: Analyze JNI_OnLoad, Java_* exports, and RegisterNatives calls
+- **API endpoints**: Extract URLs, hostnames, IP addresses, and API paths
+- **Hardcoded secrets**: Find API keys, tokens, passwords, and credentials
+- **Binary comparison**: Diff two binaries to find added/removed/modified functions
+
 ## Requirements
 
 - **Python 3.10+**
@@ -170,6 +177,16 @@ Or add to your Claude Code config:
 | `detect_entitlement_checks` | Detect entitlement validation and AMFI checks |
 | `find_kernel_symbols` | Find kernel symbols with pattern matching |
 | `analyze_mach_ports` | Analyze Mach port operations and IPC patterns |
+
+### Android & Mobile Analysis Tools
+
+| Tool | Description |
+|------|-------------|
+| `find_crypto_constants` | Find AES S-boxes, CRC tables, and crypto magic numbers |
+| `analyze_jni_methods` | Find JNI methods (JNI_OnLoad, Java_*, RegisterNatives) |
+| `extract_api_endpoints` | Extract URLs, hostnames, IP addresses, and API paths |
+| `find_hardcoded_secrets` | Find API keys, tokens, passwords, and credentials |
+| `compare_binaries` | Compare two binaries to find added/removed/modified functions |
 
 ## Tool Examples
 
@@ -334,6 +351,47 @@ analyze_mach_ports
   include_dangerous: true
 ```
 
+### Find Crypto Constants
+
+```
+find_crypto_constants
+  binary_name: "libcrypto.so"
+  include_context: true
+```
+
+### Analyze JNI Methods
+
+```
+analyze_jni_methods
+  binary_name: "libnative.so"
+  include_signatures: true
+```
+
+### Extract API Endpoints
+
+```
+extract_api_endpoints
+  binary_name: "app.so"
+  include_params: true
+```
+
+### Find Hardcoded Secrets
+
+```
+find_hardcoded_secrets
+  binary_name: "libnative.so"
+  sensitivity: "high"
+```
+
+### Compare Binaries
+
+```
+compare_binaries
+  binary_name_a: "app_v1.so"
+  binary_name_b: "app_v2.so"
+  include_similarity: true
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -427,6 +485,18 @@ set KAWAIIDRA_MAX_MEMORY=8G
 - Ensure the binary has been analyzed first with `analyze_binary`
 - Try using the function's address instead of name (e.g., `0x401000`)
 - Check if the function is in a different binary in the project
+
+## Analysis Reports
+
+Binary analysis reports generated using Kawaiidra MCP are stored in the [`md/`](md/) folder.
+
+### Available Reports
+
+| Target | Version | Report |
+|--------|---------|--------|
+| GE Cync Smart Home | 6.20.0 | [Full Analysis](md/analysis/ge-cync-analysis.md) |
+
+See [md/README.md](md/README.md) for the complete index.
 
 ## Why "Kawaiidra"?
 
