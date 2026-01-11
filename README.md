@@ -49,6 +49,12 @@ A general-purpose **Ghidra MCP server** that brings the power of Ghidra's headle
 - **Hardcoded secrets**: Find API keys, tokens, passwords, and credentials
 - **Binary comparison**: Diff two binaries to find added/removed/modified functions
 
+### GUI Mode & Context Tracking
+- **Dual-mode support**: Works in both headless and GUI-connected modes
+- **Context tracking**: Automatically tracks current address/function from tool operations
+- **GUI integration**: Connect to running Ghidra GUI via ghidra_bridge for real-time selection
+- **Cursor-aware analysis**: Get/set current address and function for workflow continuity
+
 ## Performance
 
 Kawaiidra supports two execution modes:
@@ -251,6 +257,17 @@ Or add to your Claude Code config:
 | `extract_api_endpoints` | Extract URLs, hostnames, IP addresses, and API paths |
 | `find_hardcoded_secrets` | Find API keys, tokens, passwords, and credentials |
 | `compare_binaries` | Compare two binaries to find added/removed/modified functions |
+
+### GUI/Context Tools
+
+| Tool | Description |
+|------|-------------|
+| `get_current_address` | Get current address (from GUI cursor or context tracker) |
+| `get_current_function` | Get current function (from GUI cursor or context tracker) |
+| `set_current_address` | Set current address context for headless workflows |
+| `set_current_function` | Set current function context for headless workflows |
+| `get_current_selection` | Get selection range from Ghidra GUI (GUI mode only) |
+| `gui_status` | Check GUI mode connection status and context tracker state |
 
 ## Tool Examples
 
@@ -466,6 +483,42 @@ compare_binaries
   include_similarity: true
 ```
 
+### Get Current Address (Context-Aware)
+
+```
+get_current_address
+```
+
+Returns the current address from:
+- Ghidra GUI (if GUI mode enabled and connected)
+- Context tracker (last decompiled/analyzed address)
+
+### Get Current Function
+
+```
+get_current_function
+```
+
+Returns the current function from:
+- Ghidra GUI cursor position
+- Context tracker (last decompiled function)
+
+### Set Current Address (Headless Workflow)
+
+```
+set_current_address
+  address: "0x401000"
+  binary_name: "target.exe"
+```
+
+### Check GUI Status
+
+```
+gui_status
+```
+
+Shows GUI mode configuration, connection status, and context tracker state.
+
 ## Configuration
 
 ### Environment Variables
@@ -496,6 +549,51 @@ compare_binaries
 | `KAWAIIDRA_USE_BRIDGE` | Enable fast JPype bridge | `true` |
 | `KAWAIIDRA_BRIDGE_CACHE_PROGRAMS` | Keep programs loaded in memory | `true` |
 | `KAWAIIDRA_BRIDGE_MAX_PROGRAMS` | Max programs to cache | `5` |
+
+### GUI Mode Settings
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `KAWAIIDRA_GUI_MODE` | Enable GUI mode (connect to running Ghidra) | `false` |
+| `KAWAIIDRA_GUI_HOST` | Host for ghidra_bridge connection | `127.0.0.1` |
+| `KAWAIIDRA_GUI_PORT` | Port for ghidra_bridge connection | `4768` |
+| `KAWAIIDRA_GUI_TIMEOUT` | Timeout for GUI bridge operations (seconds) | `10` |
+
+#### Enabling GUI Mode
+
+GUI mode allows Kawaiidra to connect to a running Ghidra GUI instance, enabling real-time access to cursor position and selection. This is useful for interactive analysis workflows.
+
+**Setup Steps:**
+
+1. **Enable GUI mode:**
+   ```bash
+   # Windows
+   set KAWAIIDRA_GUI_MODE=true
+
+   # Linux/macOS
+   export KAWAIIDRA_GUI_MODE=true
+   ```
+
+2. **Install ghidra_bridge (optional dependency):**
+   ```bash
+   pip install ghidra_bridge
+   ```
+
+3. **Install the bridge server in Ghidra:**
+   ```bash
+   python -m ghidra_bridge.install_server ~/ghidra_scripts
+   ```
+
+4. **Start the bridge server in Ghidra:**
+   - In Ghidra: `Tools > Ghidra Bridge > Run in Background`
+   - Or run the script manually from Script Manager
+
+5. **Verify connection:**
+   ```
+   gui_status
+   ```
+
+**Note:** Even without GUI mode enabled, context tracking works in headless mode. The `get_current_address` and `get_current_function` tools automatically track context from your tool operations (e.g., last decompiled function becomes the current function).
 
 ## Testing
 

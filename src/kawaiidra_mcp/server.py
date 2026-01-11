@@ -36,6 +36,32 @@ except ImportError:
     def get_backend():
         return None
 
+# Import GUI context manager for headless/GUI mode support
+try:
+    from .bridge.gui_context import (
+        get_context_tracker,
+        get_gui_bridge,
+        get_current_address as _get_current_address,
+        get_current_function as _get_current_function,
+        update_context_from_decompile,
+        update_context_from_analysis,
+    )
+    _gui_context_available = True
+except ImportError:
+    _gui_context_available = False
+    def get_context_tracker():
+        return None
+    def get_gui_bridge():
+        return None
+    def _get_current_address():
+        return {"address": None, "source": "none", "message": "GUI context module not available"}
+    def _get_current_function():
+        return {"name": None, "source": "none", "message": "GUI context module not available"}
+    def update_context_from_decompile(*args, **kwargs):
+        pass
+    def update_context_from_analysis(*args, **kwargs):
+        pass
+
 
 # Initialize MCP server
 server = Server("kawaiidra")
@@ -1449,6 +1475,111 @@ TOOLS = [
             "required": ["binary_name_a", "binary_name_b"]
         }
     ),
+    # =========================================================================
+    # GUI/Context Tools - Work in both headless and GUI modes
+    # =========================================================================
+    types.Tool(
+        name="get_current_address",
+        description="Get the current address. In GUI mode, returns the user's selected address in Ghidra. In headless mode, returns the last address from context (e.g., last decompiled function). Useful for cursor-aware analysis workflows.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Binary to get context for (optional, uses last analyzed if not specified)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": []
+        }
+    ),
+    types.Tool(
+        name="get_current_function",
+        description="Get the current function. In GUI mode, returns the function at user's cursor position in Ghidra. In headless mode, returns the last function from context (e.g., last decompiled). Useful for cursor-aware analysis workflows.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Binary to get context for (optional, uses last analyzed if not specified)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": []
+        }
+    ),
+    types.Tool(
+        name="set_current_address",
+        description="Set the current address context for subsequent operations. This is useful in headless mode to establish a working context. Address should be in hex format (e.g., '0x401000').",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string",
+                    "description": "Address to set as current (hex format, e.g., '0x401000')"
+                },
+                "binary_name": {
+                    "type": "string",
+                    "description": "Binary name for context (optional)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Project name for context (optional)"
+                }
+            },
+            "required": ["address"]
+        }
+    ),
+    types.Tool(
+        name="set_current_function",
+        description="Set the current function context for subsequent operations. This is useful in headless mode to establish a working context. Can specify by name or address.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "function_name": {
+                    "type": "string",
+                    "description": "Function name or address to set as current"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Function entry address (optional, looked up if not provided)"
+                },
+                "binary_name": {
+                    "type": "string",
+                    "description": "Binary name for context (optional)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Project name for context (optional)"
+                }
+            },
+            "required": ["function_name"]
+        }
+    ),
+    types.Tool(
+        name="get_current_selection",
+        description="Get the current selection range from Ghidra GUI. Only available in GUI mode when connected to a running Ghidra instance. Returns start/end addresses of the selected region.",
+        inputSchema={
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    ),
+    types.Tool(
+        name="gui_status",
+        description="Get the status of GUI mode connection. Shows whether GUI mode is enabled, if ghidra_bridge is available, and connection status to running Ghidra instance.",
+        inputSchema={
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    ),
 ]
 
 
@@ -1577,6 +1708,19 @@ async def handle_call_tool(
             return await handle_find_hardcoded_secrets(arguments)
         elif name == "compare_binaries":
             return await handle_compare_binaries(arguments)
+        # GUI/Context Tools
+        elif name == "get_current_address":
+            return handle_get_current_address(arguments)
+        elif name == "get_current_function":
+            return handle_get_current_function(arguments)
+        elif name == "set_current_address":
+            return handle_set_current_address(arguments)
+        elif name == "set_current_function":
+            return handle_set_current_function(arguments)
+        elif name == "get_current_selection":
+            return handle_get_current_selection(arguments)
+        elif name == "gui_status":
+            return handle_gui_status(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -7688,6 +7832,255 @@ print("=== MCP_RESULT_END ===")
             text += f"  ... and {len(modified) - 50} more\n"
 
     return [types.TextContent(type="text", text=text)]
+
+
+# ============================================================================
+# GUI/Context Tool Handlers
+# ============================================================================
+
+def handle_get_current_address(args: dict) -> Sequence[types.TextContent]:
+    """Get the current address from GUI or context tracker."""
+    result = _get_current_address()
+
+    if result.get("address"):
+        text = f"# Current Address\n\n"
+        text += f"**Address**: `{result['address']}`\n"
+
+        if result.get("offset"):
+            text += f"**Offset**: {result['offset']}\n"
+        if result.get("binary"):
+            text += f"**Binary**: {result['binary']}\n"
+        if result.get("project"):
+            text += f"**Project**: {result['project']}\n"
+
+        text += f"\n**Source**: {result.get('source', 'unknown')}"
+
+        if result.get("source") == "gui":
+            text += " (from Ghidra GUI)"
+        elif result.get("source") == "context_tracker":
+            text += " (from last tool operation)"
+
+        return [types.TextContent(type="text", text=text)]
+    else:
+        msg = result.get("message", "No current address set.")
+        text = f"# Current Address\n\n{msg}\n\n"
+        text += "**Tip**: Use one of these approaches:\n"
+        text += "- Analyze a binary first with `analyze_binary`\n"
+        text += "- Decompile a function with `get_function_decompile`\n"
+        text += "- Set an address manually with `set_current_address`\n"
+        text += "- Enable GUI mode and select an address in Ghidra"
+        return [types.TextContent(type="text", text=text)]
+
+
+def handle_get_current_function(args: dict) -> Sequence[types.TextContent]:
+    """Get the current function from GUI or context tracker."""
+    result = _get_current_function()
+
+    if result.get("name"):
+        text = f"# Current Function\n\n"
+        text += f"**Name**: `{result['name']}`\n"
+
+        if result.get("address"):
+            text += f"**Address**: `{result['address']}`\n"
+        if result.get("signature"):
+            text += f"**Signature**: `{result['signature']}`\n"
+        if result.get("binary"):
+            text += f"**Binary**: {result['binary']}\n"
+        if result.get("project"):
+            text += f"**Project**: {result['project']}\n"
+
+        text += f"\n**Source**: {result.get('source', 'unknown')}"
+
+        if result.get("source") == "gui":
+            text += " (from Ghidra GUI cursor position)"
+        elif result.get("source") == "context_tracker":
+            text += " (from last tool operation)"
+
+        return [types.TextContent(type="text", text=text)]
+    else:
+        msg = result.get("message", "No current function set.")
+        text = f"# Current Function\n\n{msg}\n\n"
+        text += "**Tip**: Use one of these approaches:\n"
+        text += "- Decompile a function with `get_function_decompile`\n"
+        text += "- Set a function manually with `set_current_function`\n"
+        text += "- Enable GUI mode and click on a function in Ghidra"
+        return [types.TextContent(type="text", text=text)]
+
+
+def handle_set_current_address(args: dict) -> Sequence[types.TextContent]:
+    """Set the current address context."""
+    address = args.get("address")
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name")
+
+    if not address:
+        return [types.TextContent(
+            type="text",
+            text="Error: 'address' parameter is required. Provide address in hex format (e.g., '0x401000')."
+        )]
+
+    # Validate address format
+    if not address.startswith("0x") and not address.startswith("0X"):
+        # Try to convert if it's a plain number
+        try:
+            int(address, 16)
+            address = f"0x{address}"
+        except ValueError:
+            return [types.TextContent(
+                type="text",
+                text=f"Error: Invalid address format '{address}'. Use hex format (e.g., '0x401000')."
+            )]
+
+    tracker = get_context_tracker()
+    if tracker:
+        tracker.set_address(address)
+        if binary_name:
+            tracker.set_binary(binary_name, project_name or "default")
+        tracker.record_tool_call()
+
+    text = f"# Address Context Set\n\n"
+    text += f"**Current Address**: `{address}`\n"
+    if binary_name:
+        text += f"**Binary**: {binary_name}\n"
+    if project_name:
+        text += f"**Project**: {project_name}\n"
+    text += "\nThis address will be used as context for subsequent operations."
+
+    return [types.TextContent(type="text", text=text)]
+
+
+def handle_set_current_function(args: dict) -> Sequence[types.TextContent]:
+    """Set the current function context."""
+    function_name = args.get("function_name")
+    address = args.get("address")
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name")
+
+    if not function_name:
+        return [types.TextContent(
+            type="text",
+            text="Error: 'function_name' parameter is required."
+        )]
+
+    tracker = get_context_tracker()
+    if tracker:
+        tracker.set_function(function_name, address)
+        if binary_name:
+            tracker.set_binary(binary_name, project_name or "default")
+        tracker.record_tool_call()
+
+    text = f"# Function Context Set\n\n"
+    text += f"**Current Function**: `{function_name}`\n"
+    if address:
+        text += f"**Address**: `{address}`\n"
+    if binary_name:
+        text += f"**Binary**: {binary_name}\n"
+    if project_name:
+        text += f"**Project**: {project_name}\n"
+    text += "\nThis function will be used as context for subsequent operations."
+
+    return [types.TextContent(type="text", text=text)]
+
+
+def handle_get_current_selection(args: dict) -> Sequence[types.TextContent]:
+    """Get the current selection from Ghidra GUI."""
+    if not config.gui_mode:
+        return [types.TextContent(
+            type="text",
+            text="# Current Selection\n\n"
+                 "**GUI mode is not enabled.**\n\n"
+                 "To use this feature:\n"
+                 "1. Set `KAWAIIDRA_GUI_MODE=true`\n"
+                 "2. Install ghidra_bridge: `pip install ghidra_bridge`\n"
+                 "3. Run ghidra_bridge_server in Ghidra: Tools > Ghidra Bridge > Run in Background"
+        )]
+
+    bridge = get_gui_bridge()
+    if not bridge:
+        return [types.TextContent(
+            type="text",
+            text="Error: GUI bridge not available."
+        )]
+
+    result = bridge.get_current_selection()
+
+    if result is None:
+        return [types.TextContent(
+            type="text",
+            text="# Current Selection\n\n"
+                 "**Could not connect to Ghidra GUI.**\n\n"
+                 "Ensure ghidra_bridge_server is running in Ghidra."
+        )]
+
+    if result.get("has_selection") is False:
+        return [types.TextContent(
+            type="text",
+            text="# Current Selection\n\nNo selection in Ghidra."
+        )]
+
+    text = f"# Current Selection\n\n"
+    text += f"**Start Address**: `{result.get('start')}`\n"
+    text += f"**End Address**: `{result.get('end')}`\n"
+    text += f"**Address Ranges**: {result.get('num_ranges', 1)}\n"
+
+    return [types.TextContent(type="text", text=text)]
+
+
+def handle_gui_status(args: dict) -> Sequence[types.TextContent]:
+    """Get GUI mode status information."""
+    text = "# GUI Mode Status\n\n"
+
+    # Config status
+    text += "## Configuration\n"
+    text += f"- **GUI Mode Enabled**: {'Yes' if config.gui_mode else 'No'}\n"
+    if config.gui_mode:
+        text += f"- **Bridge Host**: {config.gui_bridge_host}\n"
+        text += f"- **Bridge Port**: {config.gui_bridge_port}\n"
+        text += f"- **Timeout**: {config.gui_bridge_timeout}s\n"
+
+    # Bridge status
+    bridge = get_gui_bridge()
+    if bridge:
+        status = bridge.get_status()
+        text += "\n## Bridge Status\n"
+        text += f"- **ghidra_bridge Available**: {'Yes' if status.get('ghidra_bridge_available') else 'No'}\n"
+        text += f"- **Connected to Ghidra**: {'Yes' if status.get('connected') else 'No'}\n"
+        if status.get("error"):
+            text += f"- **Last Error**: {status['error']}\n"
+    else:
+        text += "\n## Bridge Status\n"
+        text += "- GUI context module not loaded\n"
+
+    # Context tracker status
+    tracker = get_context_tracker()
+    if tracker:
+        ctx = tracker.context
+        text += "\n## Context Tracker (Headless Mode Fallback)\n"
+        text += f"- **Current Binary**: {ctx.binary_name or '(not set)'}\n"
+        text += f"- **Current Project**: {ctx.project_name or '(not set)'}\n"
+        text += f"- **Current Address**: {ctx.current_address or '(not set)'}\n"
+        text += f"- **Current Function**: {ctx.current_function_name or '(not set)'}\n"
+        text += f"- **Entry Point**: {ctx.entry_point or '(not set)'}\n"
+        text += f"- **Tool Calls Tracked**: {ctx.tool_calls}\n"
+        text += f"- **Context Updates**: {ctx.context_updates}\n"
+
+    # Help
+    text += "\n## Setup Instructions\n"
+    if not config.gui_mode:
+        text += "To enable GUI mode:\n"
+        text += "1. Set environment variable: `KAWAIIDRA_GUI_MODE=true`\n"
+        text += "2. Install ghidra_bridge: `pip install ghidra_bridge`\n"
+        text += "3. In Ghidra, install the server script:\n"
+        text += "   `python -m ghidra_bridge.install_server ~/ghidra_scripts`\n"
+        text += "4. In Ghidra, run the server: Tools > Ghidra Bridge > Run in Background\n"
+    else:
+        text += "GUI mode is enabled. If not connected:\n"
+        text += "1. Ensure ghidra_bridge is installed: `pip install ghidra_bridge`\n"
+        text += "2. Ensure ghidra_bridge_server is running in Ghidra\n"
+        text += "3. Check that host/port match your configuration\n"
+
+    return [types.TextContent(type="text", text=text)]
+
 
 # ============================================================================
 # Main Entry Point

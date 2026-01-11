@@ -4,3 +4,7 @@ mcp>=1.0.0
 # JPype bridge for direct JVM access (massive performance improvement)
 # Requires: Java JDK 17+ installed
 JPype1>=1.5.0
+
+# Optional: GUI mode - connect to running Ghidra GUI
+# Enables real-time cursor position and selection access
+# ghidra_bridge>=0.0.6

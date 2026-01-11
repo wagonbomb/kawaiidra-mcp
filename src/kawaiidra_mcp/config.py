@@ -89,6 +89,16 @@ class Config:
         # Max programs to keep in memory (LRU eviction)
         self.bridge_max_cached_programs = int(os.environ.get("KAWAIIDRA_BRIDGE_MAX_PROGRAMS", "5"))
 
+        # GUI Mode settings
+        # Enable GUI mode to connect to a running Ghidra instance via ghidra_bridge
+        # Requires: pip install ghidra_bridge AND running ghidra_bridge_server in Ghidra
+        self.gui_mode = os.environ.get("KAWAIIDRA_GUI_MODE", "false").lower() == "true"
+        # Host and port for ghidra_bridge connection (default: localhost:4768)
+        self.gui_bridge_host = os.environ.get("KAWAIIDRA_GUI_HOST", "127.0.0.1")
+        self.gui_bridge_port = int(os.environ.get("KAWAIIDRA_GUI_PORT", "4768"))
+        # Timeout for GUI bridge operations in seconds
+        self.gui_bridge_timeout = int(os.environ.get("KAWAIIDRA_GUI_TIMEOUT", "10"))
+
     def _detect_ghidra_installation(self) -> Optional[Path]:
         """Auto-detect Ghidra installation in common locations.
 
