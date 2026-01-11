@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ghidra": {
+      "command": "python",
+      "args": ["run_server.py"],
+      "env": {
+        "GHIDRA_INSTALL_DIR": "${GHIDRA_INSTALL_DIR}"
+      }
+    }
+  }
+}
