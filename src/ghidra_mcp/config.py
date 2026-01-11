@@ -17,8 +17,17 @@ class Config:
         self._project_root = self._package_root.parent.parent
 
         # Ghidra installation path
-        default_ghidra = Path(r"C:\path\to\ghidra")
-        self.ghidra_home = Path(os.environ.get("GHIDRA_INSTALL_DIR", str(default_ghidra)))
+        ghidra_env = os.environ.get("GHIDRA_INSTALL_DIR")
+        if not ghidra_env:
+            raise ValueError(
+                "GHIDRA_INSTALL_DIR environment variable not set. "
+                "Please set it to your Ghidra installation directory.\n"
+                "Examples:\n"
+                "  Windows: C:\\ghidra_11.2_PUBLIC\n"
+                "  Linux:   /opt/ghidra\n"
+                "  macOS:   /Applications/ghidra"
+            )
+        self.ghidra_home = Path(ghidra_env)
 
         # Project directories
         self.project_dir = Path(os.environ.get(
