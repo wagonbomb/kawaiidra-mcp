@@ -28,24 +28,54 @@ A general-purpose **Ghidra MCP server** that brings the power of Ghidra's headle
 
 ## Quick Start
 
-### 1. Install Dependencies
+### 1. Install Ghidra
+
+**Option A: Homebrew (macOS/Linux) - Recommended**
+```bash
+# macOS
+brew install ghidra
+
+# Linux (Homebrew)
+brew install ghidra
+```
+
+**Option B: Manual Installation**
+Download Ghidra from [ghidra-sre.org](https://ghidra-sre.org/) and extract it.
+
+### 2. Install Dependencies
 
 ```bash
 cd kawaiidra-mcp
 pip install -r requirements.txt
 ```
 
-### 2. Set Ghidra Installation Path
+### 3. Configure Ghidra Path (Optional)
 
+The server auto-detects Ghidra installations in common locations. If auto-detection fails or you want to use a specific version, set `GHIDRA_INSTALL_DIR`:
+
+**Homebrew installations (usually auto-detected):**
 ```bash
-# Windows
-set GHIDRA_INSTALL_DIR=C:\path\to\ghidra_12.0_PUBLIC
+# macOS (Apple Silicon)
+export GHIDRA_INSTALL_DIR=/opt/homebrew
 
-# Linux/macOS
-export GHIDRA_INSTALL_DIR=/path/to/ghidra_12.0_PUBLIC
+# macOS (Intel)
+export GHIDRA_INSTALL_DIR=/usr/local
+
+# Linux
+export GHIDRA_INSTALL_DIR=/home/linuxbrew/.linuxbrew
 ```
 
-### 3. Use with Claude Code
+**Manual installations:**
+```bash
+# Windows
+set GHIDRA_INSTALL_DIR=C:\ghidra_11.2_PUBLIC
+
+# Linux/macOS
+export GHIDRA_INSTALL_DIR=/opt/ghidra
+export GHIDRA_INSTALL_DIR=/Applications/ghidra_11.2_PUBLIC
+```
+
+### 4. Use with Claude Code
 
 Open the `kawaiidra-mcp` folder in Claude Code. The MCP server will automatically load from `.mcp.json`.
 
@@ -66,7 +96,7 @@ Or add to your Claude Code config:
 }
 ```
 
-### 4. Analyze a Binary
+### 5. Analyze a Binary
 
 1. Place your binary in the `binaries/` folder, or use an absolute path
 2. Use the `analyze_binary` tool to import and analyze
@@ -138,7 +168,7 @@ get_function_xrefs
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `GHIDRA_INSTALL_DIR` | Path to Ghidra installation | (required) |
+| `GHIDRA_INSTALL_DIR` | Path to Ghidra installation | Auto-detected from common locations |
 | `GHIDRA_MCP_PROJECT_DIR` | Where Ghidra projects are stored | `./projects` |
 | `GHIDRA_MCP_BINARIES_DIR` | Where input binaries are stored | `./binaries` |
 | `GHIDRA_MCP_EXPORTS_DIR` | Where exports are written | `./exports` |
