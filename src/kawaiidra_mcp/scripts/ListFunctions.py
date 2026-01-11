@@ -5,7 +5,7 @@ import json
 results = []
 fm = currentProgram.getFunctionManager()
 count = 0
-limit = 50
+limit = not_an_int
 
 for func in fm.getFunctions(True):
     if count >= limit:

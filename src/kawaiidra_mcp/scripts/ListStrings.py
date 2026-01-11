@@ -2,8 +2,8 @@
 # @runtime Jython
 import json
 
-min_len = 8
-limit = 200
+min_len = 4
+limit = 20
 results = []
 data_mgr = currentProgram.getListing()
 count = 0

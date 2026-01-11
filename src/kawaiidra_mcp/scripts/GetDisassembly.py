@@ -13,11 +13,11 @@ def find_function(name):
     except:
         return None
 
-func = find_function("0x1401A4540")
+func = find_function("ISWATER")
 
 if not func:
     print("=== MCP_RESULT_JSON ===")
-    print(json.dumps({"success": False, "error": "Function not found: 0x1401A4540"}))
+    print(json.dumps({"success": False, "error": "Function not found: ISWATER"}))
     print("=== MCP_RESULT_END ===")
 else:
     listing = currentProgram.getListing()

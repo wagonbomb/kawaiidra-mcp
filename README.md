@@ -49,11 +49,35 @@ A general-purpose **Ghidra MCP server** that brings the power of Ghidra's headle
 - **Hardcoded secrets**: Find API keys, tokens, passwords, and credentials
 - **Binary comparison**: Diff two binaries to find added/removed/modified functions
 
+## Performance
+
+Kawaiidra supports two execution modes:
+
+| Mode | Speed | Setup |
+|------|-------|-------|
+| **JPype Bridge** (default) | ~1-50ms per call | Requires Java JDK 17+ |
+| Subprocess (fallback) | ~5-15s per call | Works out of the box |
+
+The JPype bridge keeps a JVM running in-process, eliminating the ~5-15 second startup overhead of spawning `analyzeHeadless` for each operation. **This is 100-1000x faster for sequential operations.**
+
+```
+┌────────────────────────────────────────────────────┐
+│  10 function decompilations:                       │
+│                                                    │
+│  Subprocess mode:  ~2-3 minutes                    │
+│  JPype Bridge:     ~0.5 seconds                    │
+└────────────────────────────────────────────────────┘
+```
+
 ## Requirements
 
 - **Python 3.10+**
-- **Ghidra 11.0+** (tested with 11.x and 12.0)
+- **Ghidra 11.0+** (tested with 11.x and 12.0, fully compatible with Ghidra 12.0)
 - **MCP Python package**: `pip install mcp`
+
+### For Maximum Performance (Recommended)
+- **Java JDK 17+** (for JPype bridge)
+- **JPype1**: `pip install JPype1`
 
 ## Quick Start
 
@@ -77,6 +101,32 @@ Download Ghidra from [ghidra-sre.org](https://ghidra-sre.org/) and extract it.
 cd kawaiidra-mcp
 pip install -r requirements.txt
 ```
+
+### 2b. Enable Fast Mode (Recommended)
+
+For 100-1000x faster operations, install JPype and ensure Java is available:
+
+```bash
+# Install JPype
+pip install JPype1
+
+# Verify Java JDK 17+ is installed
+java -version
+```
+
+**Installing Java if needed:**
+```bash
+# macOS
+brew install openjdk@17
+
+# Ubuntu/Debian
+sudo apt install openjdk-17-jdk
+
+# Windows (winget)
+winget install EclipseAdoptium.Temurin.17.JDK
+```
+
+The bridge auto-enables when both JPype and Java are available. Use the `bridge_status` tool to verify.
 
 ### 3. Configure Ghidra Path (Optional)
 
@@ -149,6 +199,20 @@ Or add to your Claude Code config:
 | `get_binary_info` | Get binary metadata (arch, format, etc.) |
 | `get_memory_map` | Get memory segments/sections |
 | `export_analysis` | Export analysis to JSON file |
+| `cache_stats` | View cache hit rate and performance statistics |
+| `cache_clear` | Clear cached results |
+| `bridge_status` | Check if fast JPype bridge mode is active |
+| `generate_report` | Generate comprehensive binary analysis report |
+| `list_exports` | List exported functions and symbols |
+| `list_imports` | List imported functions from external libraries |
+| `list_data_items` | List defined data labels and values |
+| `list_namespaces` | List all namespaces and classes |
+| `rename_function` | Rename a function in the analysis |
+| `rename_data` | Rename a data label at an address |
+| `rename_variable` | Rename a local variable within a function |
+| `set_comment` | Add comments at specific addresses |
+| `set_function_prototype` | Set a function's signature |
+| `set_local_variable_type` | Set the type of a local variable |
 
 ### Advanced Analysis Tools (LLM-Optimized)
 
@@ -293,6 +357,16 @@ find_similar_functions
   threshold: 0.7
 ```
 
+### Generate Comprehensive Report
+
+```
+generate_report
+  binary_name: "target.exe"
+  depth: "full"
+```
+
+Depth options: `quick` (metadata only), `standard` (+ functions/strings), `full` (+ decompilation), `exhaustive` (everything)
+
 ### Detect Kernel Protections (iOS)
 
 ```
@@ -398,7 +472,7 @@ compare_binaries
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `GHIDRA_INSTALL_DIR` | Path to Ghidra installation | Auto-detected from common locations |
+| `GHIDRA_INSTALL_DIR` | Path to Ghidra installation | Auto-detected |
 | `KAWAIIDRA_PROJECT_DIR` | Where Ghidra projects are stored | `./projects` |
 | `KAWAIIDRA_BINARIES_DIR` | Where input binaries are stored | `./binaries` |
 | `KAWAIIDRA_EXPORTS_DIR` | Where exports are written | `./exports` |
@@ -406,6 +480,43 @@ compare_binaries
 | `KAWAIIDRA_TIMEOUT` | Analysis timeout in seconds | `300` |
 | `KAWAIIDRA_DECOMPILE_TIMEOUT` | Decompile timeout in seconds | `180` |
 | `KAWAIIDRA_MAX_MEMORY` | JVM max memory | `4G` |
+
+### Cache Settings
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `KAWAIIDRA_CACHE_ENABLED` | Enable result caching | `true` |
+| `KAWAIIDRA_CACHE_DIR` | Cache storage location | `~/.kawaiidra/cache` |
+| `KAWAIIDRA_CACHE_MAX_SIZE_MB` | Maximum cache size | `500` |
+
+### JPype Bridge Settings (Performance)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `KAWAIIDRA_USE_BRIDGE` | Enable fast JPype bridge | `true` |
+| `KAWAIIDRA_BRIDGE_CACHE_PROGRAMS` | Keep programs loaded in memory | `true` |
+| `KAWAIIDRA_BRIDGE_MAX_PROGRAMS` | Max programs to cache | `5` |
+
+## Testing
+
+Kawaiidra includes a comprehensive test suite with 166 tests covering all major modules:
+
+```bash
+# Run all tests
+uv run pytest tests/ -v
+
+# Run specific test file
+uv run pytest tests/test_cache.py -v
+```
+
+| Test File | Tests | Coverage |
+|-----------|-------|----------|
+| `test_cache.py` | 57 | Cache operations, TTL, LRU eviction |
+| `test_index_parsing.py` | 30 | Ghidra index parsing, regex patterns |
+| `test_config.py` | 26 | Configuration, env vars, path detection |
+| `test_mcp_tools.py` | 22 | Tool definitions, schemas, utilities |
+| `test_mcp_handlers.py` | 22 | MCP handler integration |
+| `test_bridge.py` | 17 | Bridge availability, backend operations |
 
 ## Directory Structure
 
@@ -419,7 +530,13 @@ kawaiidra-mcp/
 │   └── kawaiidra_mcp/
 │       ├── server.py   # MCP server implementation
 │       ├── config.py   # Configuration management
-│       └── scripts/    # Ghidra headless scripts
+│       ├── cache.py    # Result caching system
+│       ├── bridge/     # JPype bridge for fast execution
+│       │   ├── __init__.py
+│       │   ├── jpype_bridge.py  # JVM lifecycle & Ghidra API
+│       │   └── backend.py       # High-level backend abstraction
+│       └── scripts/    # Ghidra headless scripts (fallback)
+├── tests/              # Unit test suite (166 tests)
 ├── projects/           # Ghidra project storage (gitignored)
 ├── binaries/           # Input binaries (gitignored)
 ├── exports/            # Exported analysis (gitignored)
@@ -485,6 +602,48 @@ set KAWAIIDRA_MAX_MEMORY=8G
 - Ensure the binary has been analyzed first with `analyze_binary`
 - Try using the function's address instead of name (e.g., `0x401000`)
 - Check if the function is in a different binary in the project
+
+### JPype Bridge Not Starting
+
+Check bridge status:
+```
+bridge_status
+```
+
+If bridge shows as unavailable:
+
+1. **Install JPype:**
+   ```bash
+   pip install JPype1
+   ```
+
+2. **Install Java JDK 17+:**
+   ```bash
+   # macOS
+   brew install openjdk@17
+
+   # Ubuntu/Debian
+   sudo apt install openjdk-17-jdk
+   ```
+
+3. **Verify Java is in PATH:**
+   ```bash
+   java -version
+   ```
+
+4. **Check JAVA_HOME (if needed):**
+   ```bash
+   export JAVA_HOME=/path/to/jdk
+   ```
+
+The server automatically falls back to subprocess mode if JPype is unavailable.
+
+### Bridge Mode Slower Than Expected
+
+- First call per binary takes 2-5s (program loading)
+- Subsequent calls should be ~1-50ms
+- Use `bridge_status` to verify bridge is active
+- Check `KAWAIIDRA_BRIDGE_CACHE_PROGRAMS=true` is set
 
 ## Analysis Reports
 

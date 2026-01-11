@@ -1,2 +1,6 @@
 # Kawaiidra MCP Server dependencies
 mcp>=1.0.0
+
+# JPype bridge for direct JVM access (massive performance improvement)
+# Requires: Java JDK 17+ installed
+JPype1>=1.5.0
