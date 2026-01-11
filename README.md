@@ -12,6 +12,7 @@ A general-purpose **Ghidra MCP server** that brings the power of Ghidra's headle
 
 ## Features
 
+### Core Features
 - **Analyze any binary**: PE (Windows), ELF (Linux), Mach-O (macOS), and raw firmware
 - **Decompile functions**: Get C code from compiled binaries
 - **Disassembly**: View assembly listings
@@ -19,6 +20,27 @@ A general-purpose **Ghidra MCP server** that brings the power of Ghidra's headle
 - **String analysis**: Search and list strings in binaries
 - **Export results**: Save analysis to JSON for further processing
 - **Multi-project support**: Organize analyses into separate Ghidra projects
+
+### Advanced Analysis (LLM-Optimized)
+- **Call graphs**: Extract hierarchical function relationships
+- **Library detection**: Identify OpenSSL, zlib, Qt, Windows API, and more
+- **Semantic search**: Find code by behavior (file I/O, network, crypto, memory ops)
+- **Context extraction**: Get functions with all dependencies for complete understanding
+- **Data structures**: Extract struct/class definitions and enums
+- **Control flow graphs**: Analyze function logic with basic blocks
+- **Vulnerability detection**: Pattern-based security analysis with CWE mapping
+- **Function similarity**: Find code reuse based on structural fingerprints
+- **Smart naming**: Suggest better symbol names based on usage patterns
+
+### iOS Security Research Tools
+- **KPP/KTRR detection**: Identify kernel patch protection mechanisms
+- **Mach trap analysis**: Analyze syscall tables and trap handlers
+- **PAC gadget finder**: Locate pointer authentication gadgets for ARM64e
+- **Sandbox analysis**: Examine sandbox operations and policy checks
+- **IOKit class finder**: Map IOKit class hierarchies and user clients
+- **Entitlement checks**: Detect entitlement validation code paths
+- **Kernel symbols**: Find and analyze XNU kernel symbols
+- **Mach port analysis**: Analyze IPC and port operations
 
 ## Requirements
 
@@ -104,6 +126,8 @@ Or add to your Claude Code config:
 
 ## Available Tools
 
+### Core Analysis Tools
+
 | Tool | Description |
 |------|-------------|
 | `analyze_binary` | Import and analyze a binary file |
@@ -118,6 +142,34 @@ Or add to your Claude Code config:
 | `get_binary_info` | Get binary metadata (arch, format, etc.) |
 | `get_memory_map` | Get memory segments/sections |
 | `export_analysis` | Export analysis to JSON file |
+
+### Advanced Analysis Tools (LLM-Optimized)
+
+| Tool | Description |
+|------|-------------|
+| `get_call_graph` | Extract call hierarchy showing function relationships |
+| `detect_libraries` | Identify standard libraries, frameworks, and third-party code |
+| `semantic_code_search` | Search for code by behavior (file I/O, network, crypto, etc.) |
+| `get_function_with_context` | Get function with all dependencies for complete LLM understanding |
+| `get_data_structures` | Extract struct/class definitions and data types |
+| `get_control_flow_graph` | Extract CFG with basic blocks for logic flow analysis |
+| `detect_vulnerabilities` | Detect security vulnerabilities using pattern analysis |
+| `find_similar_functions` | Find functions similar to a reference based on structure |
+| `get_annotated_disassembly` | Get richly annotated disassembly with xrefs and comments |
+| `suggest_symbol_names` | Suggest better variable/function names based on usage |
+
+### iOS Security Research Tools
+
+| Tool | Description |
+|------|-------------|
+| `detect_kpp_ktrr` | Detect KPP, KTRR, PPL, and AMFI kernel protections |
+| `analyze_mach_traps` | Analyze Mach trap table and syscall handlers |
+| `find_pac_gadgets` | Find PAC signing/authentication gadgets for ARM64e |
+| `analyze_sandbox_ops` | Analyze sandbox operations and policy enforcement |
+| `find_iokit_classes` | Find IOKit classes, vtables, and user clients |
+| `detect_entitlement_checks` | Detect entitlement validation and AMFI checks |
+| `find_kernel_symbols` | Find kernel symbols with pattern matching |
+| `analyze_mach_ports` | Analyze Mach port operations and IPC patterns |
 
 ## Tool Examples
 
@@ -160,6 +212,126 @@ get_function_xrefs
   binary_name: "target.exe"
   function_name: "main"
   direction: "from"
+```
+
+### Get Call Graph
+
+```
+get_call_graph
+  binary_name: "target.exe"
+  function_name: "main"
+  depth: 3
+  direction: "callees"
+```
+
+### Detect Libraries
+
+```
+detect_libraries
+  binary_name: "target.exe"
+  detailed: true
+```
+
+### Search for Crypto Code
+
+```
+semantic_code_search
+  binary_name: "target.exe"
+  pattern: "crypto"
+```
+
+### Get Function with Full Context
+
+```
+get_function_with_context
+  binary_name: "target.exe"
+  function_name: "process_data"
+  include_callees: true
+  include_data_types: true
+```
+
+### Detect Vulnerabilities
+
+```
+detect_vulnerabilities
+  binary_name: "target.exe"
+  severity: "high"
+```
+
+### Get Control Flow Graph
+
+```
+get_control_flow_graph
+  binary_name: "target.exe"
+  function_name: "main"
+  include_instructions: true
+```
+
+### Find Similar Functions
+
+```
+find_similar_functions
+  binary_name: "target.exe"
+  function_name: "encrypt_block"
+  threshold: 0.7
+```
+
+### Detect Kernel Protections (iOS)
+
+```
+detect_kpp_ktrr
+  binary_name: "kernelcache"
+```
+
+### Analyze Mach Traps (iOS/macOS)
+
+```
+analyze_mach_traps
+  binary_name: "kernelcache"
+  include_handlers: true
+```
+
+### Find PAC Gadgets (ARM64e)
+
+```
+find_pac_gadgets
+  binary_name: "kernelcache"
+  gadget_type: "signing"
+  max_results: 50
+```
+
+### Find IOKit Classes
+
+```
+find_iokit_classes
+  binary_name: "IOKit.kext"
+  include_vtables: true
+  include_user_clients: true
+```
+
+### Detect Entitlement Checks
+
+```
+detect_entitlement_checks
+  binary_name: "amfid"
+  include_context: true
+```
+
+### Find Kernel Symbols
+
+```
+find_kernel_symbols
+  binary_name: "kernelcache"
+  pattern: "proc_"
+  symbol_type: "function"
+```
+
+### Analyze Mach Ports
+
+```
+analyze_mach_ports
+  binary_name: "launchd"
+  include_dangerous: true
 ```
 
 ## Configuration
