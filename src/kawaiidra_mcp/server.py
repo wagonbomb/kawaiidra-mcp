@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Ghidra MCP Server - General-purpose binary analysis via Model Context Protocol.
+Kawaiidra MCP Server - General-purpose binary analysis via Model Context Protocol.
 
 Provides tools for analyzing executables, libraries, and firmware files using
 Ghidra's headless analyzer and decompiler.
@@ -34,7 +34,7 @@ server = Server("kawaiidra")
 def log(message: str) -> None:
     """Log message to file."""
     try:
-        log_file = config.log_dir / "ghidra_mcp.log"
+        log_file = config.log_dir / "kawaiidra.log"
         log_file.parent.mkdir(parents=True, exist_ok=True)
         with log_file.open("a", encoding="utf-8") as f:
             f.write(f"{message}\n")
@@ -1310,7 +1310,7 @@ async def main():
     # Ensure directories exist
     config.ensure_directories()
 
-    log(f"Starting Ghidra MCP Server")
+    log(f"Starting Kawaiidra MCP Server")
     log(f"Ghidra home: {config.ghidra_home}")
     log(f"Project dir: {config.project_dir}")
 

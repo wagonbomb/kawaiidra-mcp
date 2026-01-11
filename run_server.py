@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wrapper script to run the Ghidra MCP server."""
+"""Wrapper script to run the Kawaiidra MCP server."""
 import sys
 import asyncio
 from pathlib import Path
@@ -13,7 +13,7 @@ src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
 # Run the server
-from ghidra_mcp.server import main
+from kawaiidra_mcp.server import main
 
 if __name__ == "__main__":
     asyncio.run(main())
