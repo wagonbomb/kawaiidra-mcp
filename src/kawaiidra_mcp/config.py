@@ -1,4 +1,4 @@
-"""Configuration management for Ghidra MCP Server."""
+"""Configuration management for Kawaiidra MCP Server."""
 
 import os
 import sys
@@ -7,7 +7,7 @@ from typing import Optional
 
 
 class Config:
-    """Configuration for Ghidra MCP Server.
+    """Configuration for Kawaiidra MCP Server.
 
     Configuration is read from environment variables with sensible defaults.
     """
@@ -44,36 +44,36 @@ class Config:
 
         # Project directories
         self.project_dir = Path(os.environ.get(
-            "GHIDRA_MCP_PROJECT_DIR",
+            "KAWAIIDRA_PROJECT_DIR",
             str(self._project_root / "projects")
         ))
         self.binaries_dir = Path(os.environ.get(
-            "GHIDRA_MCP_BINARIES_DIR",
+            "KAWAIIDRA_BINARIES_DIR",
             str(self._project_root / "binaries")
         ))
         self.exports_dir = Path(os.environ.get(
-            "GHIDRA_MCP_EXPORTS_DIR",
+            "KAWAIIDRA_EXPORTS_DIR",
             str(self._project_root / "exports")
         ))
         self.log_dir = Path(os.environ.get(
-            "GHIDRA_MCP_LOG_DIR",
+            "KAWAIIDRA_LOG_DIR",
             str(self._project_root / "logs")
         ))
         self.scripts_dir = self._package_root / "scripts"
 
         # Timeouts
-        self.analysis_timeout = int(os.environ.get("GHIDRA_MCP_TIMEOUT", "300"))
-        self.decompile_timeout = int(os.environ.get("GHIDRA_MCP_DECOMPILE_TIMEOUT", "180"))
+        self.analysis_timeout = int(os.environ.get("KAWAIIDRA_TIMEOUT", "300"))
+        self.decompile_timeout = int(os.environ.get("KAWAIIDRA_DECOMPILE_TIMEOUT", "180"))
 
         # Performance
-        max_cpu = os.environ.get("GHIDRA_MCP_MAX_CPU")
+        max_cpu = os.environ.get("KAWAIIDRA_MAX_CPU")
         self.max_cpu: Optional[int] = int(max_cpu) if max_cpu else None
 
         # Memory settings (for JVM)
-        self.max_memory = os.environ.get("GHIDRA_MCP_MAX_MEMORY", "4G")
+        self.max_memory = os.environ.get("KAWAIIDRA_MAX_MEMORY", "4G")
 
         # Default project name
-        self.default_project = os.environ.get("GHIDRA_MCP_DEFAULT_PROJECT", "default")
+        self.default_project = os.environ.get("KAWAIIDRA_DEFAULT_PROJECT", "default")
 
     def _detect_ghidra_installation(self) -> Optional[Path]:
         """Auto-detect Ghidra installation in common locations."""

@@ -1,2 +1,2 @@
-# Ghidra MCP Server dependencies
+# Kawaiidra MCP Server dependencies
 mcp>=1.0.0

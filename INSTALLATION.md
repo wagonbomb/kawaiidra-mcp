@@ -165,7 +165,7 @@ Test that Kawaiidra MCP can find Ghidra:
 
 ```bash
 cd kawaiidra-mcp
-python -c "from src.ghidra_mcp.config import config; print(f'Found: {config.analyze_headless}')"
+python -c "from src.kawaiidra_mcp.config import config; print(f'Found: {config.analyze_headless}')"
 ```
 
 Expected output:
