@@ -1325,6 +1325,130 @@ TOOLS = [
             "required": []
         }
     ),
+
+    # ========================================================================
+    # Android/Mobile & General RE Tools
+    # ========================================================================
+    types.Tool(
+        name="find_crypto_constants",
+        description="Find cryptographic constants like AES S-boxes, CRC tables, and magic numbers. Useful for identifying crypto implementations.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                },
+                "include_crc": {
+                    "type": "boolean",
+                    "description": "Include CRC table detection (default: true)"
+                },
+                "include_aes": {
+                    "type": "boolean",
+                    "description": "Include AES S-box detection (default: true)"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="analyze_jni_methods",
+        description="Find JNI methods in Android native libraries. Locates JNI_OnLoad, RegisterNatives calls, and Java_* exported functions.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                },
+                "include_decompile": {
+                    "type": "boolean",
+                    "description": "Include decompiled code for JNI_OnLoad (default: false)"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="extract_api_endpoints",
+        description="Extract API endpoints, URLs, hostnames, and paths from binary strings. Useful for finding cloud services and backends.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                },
+                "include_paths": {
+                    "type": "boolean",
+                    "description": "Include URL paths like /api/v1/... (default: true)"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="find_hardcoded_secrets",
+        description="Find potential hardcoded secrets: API keys, tokens, passwords, private keys, and credentials in strings.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                },
+                "sensitivity": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high"],
+                    "description": "Detection sensitivity - higher means more results but more false positives (default: 'medium')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="compare_binaries",
+        description="Compare two analyzed binaries to find added, removed, and modified functions. Useful for diffing versions or patches.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name_a": {
+                    "type": "string",
+                    "description": "Name of the first binary (base/old version)"
+                },
+                "binary_name_b": {
+                    "type": "string",
+                    "description": "Name of the second binary (new version)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                },
+                "match_by": {
+                    "type": "string",
+                    "enum": ["name", "address", "both"],
+                    "description": "How to match functions between binaries (default: 'name')"
+                }
+            },
+            "required": ["binary_name_a", "binary_name_b"]
+        }
+    ),
 ]
 
 
@@ -1442,6 +1566,17 @@ async def handle_call_tool(
         # Bridge Status
         elif name == "bridge_status":
             return handle_bridge_status(arguments)
+        # Android/Mobile Tools
+        elif name == "find_crypto_constants":
+            return await handle_find_crypto_constants(arguments)
+        elif name == "analyze_jni_methods":
+            return await handle_analyze_jni_methods(arguments)
+        elif name == "extract_api_endpoints":
+            return await handle_extract_api_endpoints(arguments)
+        elif name == "find_hardcoded_secrets":
+            return await handle_find_hardcoded_secrets(arguments)
+        elif name == "compare_binaries":
+            return await handle_compare_binaries(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -6679,6 +6814,880 @@ def handle_bridge_status(args: dict) -> Sequence[types.TextContent]:
 
     return [types.TextContent(type="text", text="\n".join(output))]
 
+
+async def handle_find_crypto_constants(args: dict) -> Sequence[types.TextContent]:
+    """Find cryptographic constants like AES S-boxes and CRC tables."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    include_crc = args.get("include_crc", True)
+    include_aes = args.get("include_aes", True)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+import struct
+
+# Known crypto constants
+AES_SBOX_START = [0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76]
+AES_INV_SBOX_START = [0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb]
+CRC32_TABLE_START = [0x00000000, 0x77073096, 0xee0e612c, 0x990951ba]
+CRC16_TABLE_START = [0x0000, 0xc0c1, 0xc181, 0x0140]
+
+# Magic numbers for various algorithms
+MAGIC_NUMBERS = {{
+    0x67452301: "MD5/SHA1 init A",
+    0xefcdab89: "MD5/SHA1 init B",
+    0x98badcfe: "MD5/SHA1 init C",
+    0x10325476: "MD5/SHA1 init D",
+    0xc3d2e1f0: "SHA1 init E",
+    0x6a09e667: "SHA256 init",
+    0xbb67ae85: "SHA256 init",
+    0x3c6ef372: "SHA256 init",
+    0xa54ff53a: "SHA256 init",
+    0x5be0cd19: "SHA256 init",
+    0x428a2f98: "SHA256 K constant",
+    0x71374491: "SHA256 K constant",
+    0x27b70a85: "ChaCha20 constant",
+    0x61707865: "ChaCha20 'expa'",
+    0x3320646e: "ChaCha20 'nd 3'",
+    0x79622d32: "ChaCha20 '2-by'",
+    0x6b206574: "ChaCha20 'tek '",
+}}
+
+results = {{
+    "aes_sbox": [],
+    "aes_inv_sbox": [],
+    "crc_tables": [],
+    "magic_numbers": [],
+    "potential_keys": []
+}}
+
+memory = currentProgram.getMemory()
+listing = currentProgram.getListing()
+
+# Search for AES S-box
+if {str(include_aes).lower()}:
+    for block in memory.getBlocks():
+        if not block.isInitialized():
+            continue
+        try:
+            addr = block.getStart()
+            end = block.getEnd()
+            while addr and addr.compareTo(end) < 0:
+                # Check for AES S-box
+                bytes_match = True
+                for i, expected in enumerate(AES_SBOX_START):
+                    try:
+                        b = memory.getByte(addr.add(i)) & 0xFF
+                        if b != expected:
+                            bytes_match = False
+                            break
+                    except:
+                        bytes_match = False
+                        break
+
+                if bytes_match:
+                    results["aes_sbox"].append({{
+                        "address": str(addr),
+                        "type": "AES S-box (256 bytes)"
+                    }})
+                    addr = addr.add(256)
+                    continue
+
+                # Check for inverse S-box
+                bytes_match = True
+                for i, expected in enumerate(AES_INV_SBOX_START):
+                    try:
+                        b = memory.getByte(addr.add(i)) & 0xFF
+                        if b != expected:
+                            bytes_match = False
+                            break
+                    except:
+                        bytes_match = False
+                        break
+
+                if bytes_match:
+                    results["aes_inv_sbox"].append({{
+                        "address": str(addr),
+                        "type": "AES Inverse S-box (256 bytes)"
+                    }})
+                    addr = addr.add(256)
+                    continue
+
+                addr = addr.add(1)
+        except:
+            continue
+
+# Search for CRC tables
+if {str(include_crc).lower()}:
+    for block in memory.getBlocks():
+        if not block.isInitialized():
+            continue
+        try:
+            addr = block.getStart()
+            end = block.getEnd()
+            while addr and addr.compareTo(end) < 0:
+                # Check for CRC32 table
+                try:
+                    val0 = memory.getInt(addr) & 0xFFFFFFFF
+                    val1 = memory.getInt(addr.add(4)) & 0xFFFFFFFF
+                    if val0 == 0x00000000 and val1 == 0x77073096:
+                        results["crc_tables"].append({{
+                            "address": str(addr),
+                            "type": "CRC32 table (1024 bytes)",
+                            "polynomial": "0x04C11DB7 (standard)"
+                        }})
+                        addr = addr.add(1024)
+                        continue
+                except:
+                    pass
+
+                # Check for CRC8 table (256 bytes of single bytes)
+                try:
+                    b0 = memory.getByte(addr) & 0xFF
+                    b1 = memory.getByte(addr.add(1)) & 0xFF
+                    # Common CRC8 tables start with 0x00
+                    if b0 == 0x00 and b1 != 0x00:
+                        # Verify it looks like a lookup table
+                        unique_vals = set()
+                        is_table = True
+                        for i in range(min(32, 256)):
+                            try:
+                                unique_vals.add(memory.getByte(addr.add(i)) & 0xFF)
+                            except:
+                                is_table = False
+                                break
+                        if is_table and len(unique_vals) > 20:
+                            results["crc_tables"].append({{
+                                "address": str(addr),
+                                "type": "Potential CRC8/lookup table (256 bytes)"
+                            }})
+                            addr = addr.add(256)
+                            continue
+                except:
+                    pass
+
+                addr = addr.add(4)
+        except:
+            continue
+
+# Search for magic numbers in data
+for block in memory.getBlocks():
+    if not block.isInitialized():
+        continue
+    try:
+        addr = block.getStart()
+        end = block.getEnd()
+        while addr and addr.compareTo(end) < 0:
+            try:
+                val = memory.getInt(addr) & 0xFFFFFFFF
+                if val in MAGIC_NUMBERS:
+                    results["magic_numbers"].append({{
+                        "address": str(addr),
+                        "value": hex(val),
+                        "meaning": MAGIC_NUMBERS[val]
+                    }})
+            except:
+                pass
+            addr = addr.add(4)
+    except:
+        continue
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "results": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("FindCryptoConstants.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "FindCryptoConstants.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        data = result.get("results", {})
+        text = f"# Crypto Constants in {binary_name}\n\n"
+
+        total = 0
+
+        if data.get("aes_sbox"):
+            text += f"## AES S-boxes ({len(data['aes_sbox'])})\n"
+            for item in data["aes_sbox"]:
+                text += f"  {item['address']}: {item['type']}\n"
+            total += len(data["aes_sbox"])
+
+        if data.get("aes_inv_sbox"):
+            text += f"\n## AES Inverse S-boxes ({len(data['aes_inv_sbox'])})\n"
+            for item in data["aes_inv_sbox"]:
+                text += f"  {item['address']}: {item['type']}\n"
+            total += len(data["aes_inv_sbox"])
+
+        if data.get("crc_tables"):
+            text += f"\n## CRC Tables ({len(data['crc_tables'])})\n"
+            for item in data["crc_tables"]:
+                text += f"  {item['address']}: {item['type']}\n"
+            total += len(data["crc_tables"])
+
+        if data.get("magic_numbers"):
+            text += f"\n## Crypto Magic Numbers ({len(data['magic_numbers'])})\n"
+            for item in data["magic_numbers"][:50]:
+                text += f"  {item['address']}: {item['value']} ({item['meaning']})\n"
+            total += len(data["magic_numbers"])
+
+        if total == 0:
+            text += "No crypto constants found.\n"
+
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_analyze_jni_methods(args: dict) -> Sequence[types.TextContent]:
+    """Find JNI methods in Android native libraries."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    include_decompile = args.get("include_decompile", False)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.app.decompiler import DecompInterface
+from ghidra.util.task import ConsoleTaskMonitor
+
+results = {{
+    "jni_onload": None,
+    "jni_onunload": None,
+    "java_methods": [],
+    "register_natives_calls": [],
+    "jni_env_calls": []
+}}
+
+func_mgr = currentProgram.getFunctionManager()
+symbol_table = currentProgram.getSymbolTable()
+
+# Find JNI_OnLoad and JNI_OnUnload
+for func in func_mgr.getFunctions(True):
+    name = func.getName()
+    if name == "JNI_OnLoad":
+        results["jni_onload"] = {{
+            "address": str(func.getEntryPoint()),
+            "signature": str(func.getSignature())
+        }}
+
+        # Optionally decompile JNI_OnLoad
+        if {str(include_decompile).lower()}:
+            try:
+                decompiler = DecompInterface()
+                decompiler.openProgram(currentProgram)
+                decomp_results = decompiler.decompileFunction(func, 30, ConsoleTaskMonitor())
+                if decomp_results.decompileCompleted():
+                    results["jni_onload"]["code"] = decomp_results.getDecompiledFunction().getC()
+            except:
+                pass
+
+    elif name == "JNI_OnUnload":
+        results["jni_onunload"] = {{
+            "address": str(func.getEntryPoint()),
+            "signature": str(func.getSignature())
+        }}
+
+    # Find Java_* methods (JNI native method exports)
+    elif name.startswith("Java_"):
+        # Parse the Java method signature from the name
+        parts = name.split("_")
+        if len(parts) >= 3:
+            # Format: Java_package_class_method
+            java_class = "_".join(parts[1:-1]).replace("_", ".")
+            java_method = parts[-1]
+            results["java_methods"].append({{
+                "address": str(func.getEntryPoint()),
+                "native_name": name,
+                "java_class": java_class,
+                "java_method": java_method,
+                "signature": str(func.getSignature()),
+                "size": func.getBody().getNumAddresses()
+            }})
+
+# Find RegisterNatives calls (dynamic JNI registration)
+for func in func_mgr.getFunctions(True):
+    name = func.getName().lower()
+    if "registernatives" in name or "register_natives" in name:
+        results["register_natives_calls"].append({{
+            "address": str(func.getEntryPoint()),
+            "name": func.getName()
+        }})
+
+# Find common JNI environment function references
+jni_functions = [
+    "FindClass", "GetMethodID", "GetStaticMethodID", "GetFieldID",
+    "CallVoidMethod", "CallObjectMethod", "CallIntMethod", "CallBooleanMethod",
+    "NewStringUTF", "GetStringUTFChars", "ReleaseStringUTFChars",
+    "NewByteArray", "GetByteArrayElements", "ReleaseByteArrayElements",
+    "GetEnv", "AttachCurrentThread", "DetachCurrentThread"
+]
+
+for jni_func in jni_functions:
+    for symbol in symbol_table.getSymbols(jni_func):
+        results["jni_env_calls"].append({{
+            "name": jni_func,
+            "address": str(symbol.getAddress())
+        }})
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "results": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("AnalyzeJNI.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "AnalyzeJNI.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        data = result.get("results", {})
+        text = f"# JNI Analysis: {binary_name}\n\n"
+
+        # JNI_OnLoad
+        if data.get("jni_onload"):
+            jni = data["jni_onload"]
+            text += f"## JNI_OnLoad\n"
+            text += f"  Address: {jni['address']}\n"
+            text += f"  Signature: {jni['signature']}\n"
+            if jni.get("code"):
+                text += f"\n```c\n{jni['code']}\n```\n"
+            text += "\n"
+
+        # JNI_OnUnload
+        if data.get("jni_onunload"):
+            jni = data["jni_onunload"]
+            text += f"## JNI_OnUnload\n"
+            text += f"  Address: {jni['address']}\n\n"
+
+        # Java_* methods
+        java_methods = data.get("java_methods", [])
+        if java_methods:
+            text += f"## Native Methods ({len(java_methods)})\n\n"
+            text += "| Address | Java Class | Method | Size |\n"
+            text += "|---------|------------|--------|------|\n"
+            for m in java_methods[:50]:
+                text += f"| {m['address']} | {m['java_class']} | {m['java_method']} | {m['size']} |\n"
+            text += "\n"
+
+        # RegisterNatives
+        reg_natives = data.get("register_natives_calls", [])
+        if reg_natives:
+            text += f"## Dynamic Registration (RegisterNatives)\n"
+            for r in reg_natives:
+                text += f"  {r['address']}: {r['name']}\n"
+            text += "\n"
+
+        # JNI env calls
+        jni_calls = data.get("jni_env_calls", [])
+        if jni_calls:
+            text += f"## JNI Environment Calls ({len(jni_calls)})\n"
+            by_name = {}
+            for c in jni_calls:
+                if c['name'] not in by_name:
+                    by_name[c['name']] = []
+                by_name[c['name']].append(c['address'])
+            for name, addrs in sorted(by_name.items()):
+                text += f"  {name}: {len(addrs)} references\n"
+
+        if not java_methods and not data.get("jni_onload"):
+            text += "No JNI methods found. This may not be an Android native library.\n"
+
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_extract_api_endpoints(args: dict) -> Sequence[types.TextContent]:
+    """Extract API endpoints and URLs from strings."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    include_paths = args.get("include_paths", True)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+import re
+
+results = {{
+    "urls": [],
+    "hostnames": [],
+    "ip_addresses": [],
+    "paths": []
+}}
+
+# Patterns
+url_pattern = re.compile(r'https?://[a-zA-Z0-9][a-zA-Z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+', re.IGNORECASE)
+hostname_pattern = re.compile(r'(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{{0,61}}[a-zA-Z0-9])?\.)+[a-zA-Z]{{2,}}')
+ip_pattern = re.compile(r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.)+(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)')
+path_pattern = re.compile(r'/(?:api|v[0-9]+|rest|graphql|ws|wss)/[a-zA-Z0-9/_\-]+')
+
+seen_urls = set()
+seen_hosts = set()
+seen_ips = set()
+seen_paths = set()
+
+data_mgr = currentProgram.getListing()
+
+for data in data_mgr.getDefinedData(True):
+    if data.hasStringValue():
+        val = str(data.getValue())
+        addr = str(data.getAddress())
+
+        # Find URLs
+        for match in url_pattern.finditer(val):
+            url = match.group(0)
+            if url not in seen_urls:
+                seen_urls.add(url)
+                results["urls"].append({{
+                    "address": addr,
+                    "url": url
+                }})
+
+        # Find hostnames (not already in URLs)
+        for match in hostname_pattern.finditer(val):
+            hostname = match.group(0).lower()
+            # Filter out common false positives
+            if hostname not in seen_hosts and not hostname.endswith(('.so', '.dll', '.exe', '.png', '.jpg', '.xml', '.json')):
+                if '.' in hostname and len(hostname) > 4:
+                    seen_hosts.add(hostname)
+                    results["hostnames"].append({{
+                        "address": addr,
+                        "hostname": hostname
+                    }})
+
+        # Find IP addresses
+        for match in ip_pattern.finditer(val):
+            ip = match.group(0)
+            if ip not in seen_ips and not ip.startswith('0.') and not ip.startswith('255.'):
+                seen_ips.add(ip)
+                results["ip_addresses"].append({{
+                    "address": addr,
+                    "ip": ip
+                }})
+
+        # Find API paths
+        if {str(include_paths).lower()}:
+            for match in path_pattern.finditer(val):
+                path = match.group(0)
+                if path not in seen_paths:
+                    seen_paths.add(path)
+                    results["paths"].append({{
+                        "address": addr,
+                        "path": path
+                    }})
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "results": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ExtractEndpoints.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ExtractEndpoints.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        data = result.get("results", {})
+        text = f"# API Endpoints: {binary_name}\n\n"
+
+        urls = data.get("urls", [])
+        if urls:
+            text += f"## URLs ({len(urls)})\n"
+            for u in urls[:100]:
+                text += f"  {u['address']}: {u['url']}\n"
+            text += "\n"
+
+        hosts = data.get("hostnames", [])
+        if hosts:
+            text += f"## Hostnames ({len(hosts)})\n"
+            for h in hosts[:50]:
+                text += f"  {h['address']}: {h['hostname']}\n"
+            text += "\n"
+
+        ips = data.get("ip_addresses", [])
+        if ips:
+            text += f"## IP Addresses ({len(ips)})\n"
+            for ip in ips[:30]:
+                text += f"  {ip['address']}: {ip['ip']}\n"
+            text += "\n"
+
+        paths = data.get("paths", [])
+        if paths:
+            text += f"## API Paths ({len(paths)})\n"
+            for p in paths[:50]:
+                text += f"  {p['address']}: {p['path']}\n"
+
+        total = len(urls) + len(hosts) + len(ips) + len(paths)
+        if total == 0:
+            text += "No API endpoints found.\n"
+
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_find_hardcoded_secrets(args: dict) -> Sequence[types.TextContent]:
+    """Find potential hardcoded secrets in strings."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    sensitivity = args.get("sensitivity", "medium")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+import re
+
+sensitivity = "{sensitivity}"
+
+results = {{
+    "api_keys": [],
+    "passwords": [],
+    "tokens": [],
+    "private_keys": [],
+    "credentials": [],
+    "base64_secrets": []
+}}
+
+# Patterns for different secret types
+patterns = {{
+    "aws_key": re.compile(r'AKIA[0-9A-Z]{{16}}'),
+    "aws_secret": re.compile(r'[0-9a-zA-Z/+]{{40}}'),
+    "google_api": re.compile(r'AIza[0-9A-Za-z\-_]{{35}}'),
+    "firebase": re.compile(r'AAAA[A-Za-z0-9_-]{{7}}:[A-Za-z0-9_-]{{140}}'),
+    "github_token": re.compile(r'gh[pousr]_[A-Za-z0-9_]{{36,}}'),
+    "jwt": re.compile(r'eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'),
+    "private_key": re.compile(r'-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'),
+    "password_field": re.compile(r'(?:password|passwd|pwd|secret|api_key|apikey|auth_token|access_token)["\']?\s*[:=]\s*["\']([^"\'\\s]{{8,}})["\']', re.IGNORECASE),
+    "bearer_token": re.compile(r'[Bb]earer\s+[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+'),
+    "basic_auth": re.compile(r'[Bb]asic\s+[A-Za-z0-9+/=]{{20,}}'),
+    "hex_key": re.compile(r'["\'][0-9a-fA-F]{{32,64}}["\']'),
+}}
+
+# Additional patterns for medium/high sensitivity
+if sensitivity in ["medium", "high"]:
+    patterns["base64_long"] = re.compile(r'[A-Za-z0-9+/]{{40,}}={0,2}')
+    patterns["connection_string"] = re.compile(r'(?:mongodb|mysql|postgres|redis|amqp)://[^\\s"\']+')
+
+if sensitivity == "high":
+    patterns["potential_secret"] = re.compile(r'(?:secret|key|token|password|credential|auth)[_-]?[A-Za-z0-9]{{0,20}}["\']?\s*[:=]\s*["\']?[^\\s"\'{{}}]{{6,}}', re.IGNORECASE)
+
+data_mgr = currentProgram.getListing()
+seen = set()
+
+for data in data_mgr.getDefinedData(True):
+    if data.hasStringValue():
+        val = str(data.getValue())
+        addr = str(data.getAddress())
+
+        # Skip short strings
+        if len(val) < 8:
+            continue
+
+        # Check each pattern
+        for pattern_name, pattern in patterns.items():
+            for match in pattern.finditer(val):
+                secret = match.group(0)
+                if secret in seen:
+                    continue
+                seen.add(secret)
+
+                entry = {{
+                    "address": addr,
+                    "pattern": pattern_name,
+                    "value": secret[:100] + ("..." if len(secret) > 100 else ""),
+                    "context": val[:200] if len(val) > len(secret) else ""
+                }}
+
+                # Categorize
+                if pattern_name in ["aws_key", "aws_secret", "google_api", "firebase"]:
+                    results["api_keys"].append(entry)
+                elif pattern_name in ["password_field"]:
+                    results["passwords"].append(entry)
+                elif pattern_name in ["jwt", "bearer_token", "github_token", "basic_auth"]:
+                    results["tokens"].append(entry)
+                elif pattern_name == "private_key":
+                    results["private_keys"].append(entry)
+                elif pattern_name in ["connection_string", "hex_key"]:
+                    results["credentials"].append(entry)
+                elif pattern_name in ["base64_long", "potential_secret"]:
+                    results["base64_secrets"].append(entry)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "results": results, "sensitivity": sensitivity}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("FindSecrets.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "FindSecrets.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        data = result.get("results", {})
+        sens = result.get("sensitivity", "medium")
+        text = f"# Hardcoded Secrets: {binary_name}\n"
+        text += f"**Sensitivity**: {sens}\n\n"
+
+        total = 0
+
+        api_keys = data.get("api_keys", [])
+        if api_keys:
+            text += f"## API Keys ({len(api_keys)})\n"
+            for s in api_keys[:20]:
+                text += f"  {s['address']}: [{s['pattern']}] {s['value']}\n"
+            total += len(api_keys)
+            text += "\n"
+
+        passwords = data.get("passwords", [])
+        if passwords:
+            text += f"## Passwords ({len(passwords)})\n"
+            for s in passwords[:20]:
+                text += f"  {s['address']}: {s['value']}\n"
+            total += len(passwords)
+            text += "\n"
+
+        tokens = data.get("tokens", [])
+        if tokens:
+            text += f"## Tokens ({len(tokens)})\n"
+            for s in tokens[:20]:
+                text += f"  {s['address']}: [{s['pattern']}] {s['value']}\n"
+            total += len(tokens)
+            text += "\n"
+
+        private_keys = data.get("private_keys", [])
+        if private_keys:
+            text += f"## Private Keys ({len(private_keys)})\n"
+            for s in private_keys[:10]:
+                text += f"  {s['address']}: {s['value']}\n"
+            total += len(private_keys)
+            text += "\n"
+
+        credentials = data.get("credentials", [])
+        if credentials:
+            text += f"## Credentials/Connection Strings ({len(credentials)})\n"
+            for s in credentials[:20]:
+                text += f"  {s['address']}: [{s['pattern']}] {s['value']}\n"
+            total += len(credentials)
+            text += "\n"
+
+        base64 = data.get("base64_secrets", [])
+        if base64:
+            text += f"## Potential Base64 Secrets ({len(base64)})\n"
+            for s in base64[:20]:
+                text += f"  {s['address']}: {s['value']}\n"
+            total += len(base64)
+
+        if total == 0:
+            text += "No hardcoded secrets detected.\n"
+        else:
+            text += f"\n**Total findings: {total}**\n"
+            text += "\nNote: Review findings manually to confirm they are actual secrets.\n"
+
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_compare_binaries(args: dict) -> Sequence[types.TextContent]:
+    """Compare two binaries to find differences."""
+    binary_name_a = args.get("binary_name_a")
+    binary_name_b = args.get("binary_name_b")
+    project_name = args.get("project_name", config.default_project)
+    match_by = args.get("match_by", "name")
+
+    # First, get functions from binary A
+    script_a = '''# @category MCP
+# @runtime Jython
+import json
+
+functions = {}
+func_mgr = currentProgram.getFunctionManager()
+
+for func in func_mgr.getFunctions(True):
+    name = func.getName()
+    addr = str(func.getEntryPoint())
+    size = func.getBody().getNumAddresses()
+
+    # Get function hash based on bytes
+    body = func.getBody()
+    byte_hash = 0
+    memory = currentProgram.getMemory()
+    try:
+        for i in range(min(size, 64)):
+            b = memory.getByte(body.getMinAddress().add(i)) & 0xFF
+            byte_hash = (byte_hash * 31 + b) & 0xFFFFFFFF
+    except:
+        pass
+
+    functions[name] = {
+        "address": addr,
+        "size": size,
+        "hash": byte_hash
+    }
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({"success": True, "functions": functions, "count": len(functions)}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetFunctions_A.py", script_a)
+
+    project_path = config.get_project_path(project_name)
+
+    # Get binary A functions
+    stdout_a, stderr_a, code_a = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name_a,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetFunctions_A.py"
+    ], timeout=config.decompile_timeout)
+
+    result_a = parse_ghidra_json_output(stdout_a)
+    if not result_a.get("success"):
+        return [types.TextContent(type="text", text=f"Error analyzing {binary_name_a}: {result_a.get('error')}")]
+
+    # Get binary B functions
+    stdout_b, stderr_b, code_b = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name_b,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetFunctions_A.py"  # Reuse same script
+    ], timeout=config.decompile_timeout)
+
+    result_b = parse_ghidra_json_output(stdout_b)
+    if not result_b.get("success"):
+        return [types.TextContent(type="text", text=f"Error analyzing {binary_name_b}: {result_b.get('error')}")]
+
+    # Compare
+    funcs_a = result_a.get("functions", {})
+    funcs_b = result_b.get("functions", {})
+
+    names_a = set(funcs_a.keys())
+    names_b = set(funcs_b.keys())
+
+    added = names_b - names_a
+    removed = names_a - names_b
+    common = names_a & names_b
+
+    modified = []
+    unchanged = []
+
+    for name in common:
+        fa = funcs_a[name]
+        fb = funcs_b[name]
+
+        if match_by == "name":
+            # Compare by hash and size
+            if fa["hash"] != fb["hash"] or fa["size"] != fb["size"]:
+                modified.append({
+                    "name": name,
+                    "old_addr": fa["address"],
+                    "new_addr": fb["address"],
+                    "old_size": fa["size"],
+                    "new_size": fb["size"],
+                    "size_delta": fb["size"] - fa["size"]
+                })
+            else:
+                unchanged.append(name)
+        else:
+            # Match by address or both
+            if fa["address"] == fb["address"]:
+                if fa["hash"] != fb["hash"]:
+                    modified.append({
+                        "name": name,
+                        "old_addr": fa["address"],
+                        "new_addr": fb["address"],
+                        "old_size": fa["size"],
+                        "new_size": fb["size"],
+                        "size_delta": fb["size"] - fa["size"]
+                    })
+                else:
+                    unchanged.append(name)
+
+    text = f"# Binary Comparison\n\n"
+    text += f"**Base**: {binary_name_a} ({len(funcs_a)} functions)\n"
+    text += f"**New**: {binary_name_b} ({len(funcs_b)} functions)\n"
+    text += f"**Match by**: {match_by}\n\n"
+
+    text += f"## Summary\n"
+    text += f"- Added: {len(added)} functions\n"
+    text += f"- Removed: {len(removed)} functions\n"
+    text += f"- Modified: {len(modified)} functions\n"
+    text += f"- Unchanged: {len(unchanged)} functions\n\n"
+
+    if added:
+        text += f"## Added Functions ({len(added)})\n"
+        for name in sorted(list(added))[:50]:
+            fb = funcs_b[name]
+            text += f"  + {fb['address']}: {name} ({fb['size']} bytes)\n"
+        if len(added) > 50:
+            text += f"  ... and {len(added) - 50} more\n"
+        text += "\n"
+
+    if removed:
+        text += f"## Removed Functions ({len(removed)})\n"
+        for name in sorted(list(removed))[:50]:
+            fa = funcs_a[name]
+            text += f"  - {fa['address']}: {name} ({fa['size']} bytes)\n"
+        if len(removed) > 50:
+            text += f"  ... and {len(removed) - 50} more\n"
+        text += "\n"
+
+    if modified:
+        text += f"## Modified Functions ({len(modified)})\n"
+        # Sort by size delta
+        modified.sort(key=lambda x: abs(x["size_delta"]), reverse=True)
+        for m in modified[:50]:
+            delta = m["size_delta"]
+            delta_str = f"+{delta}" if delta > 0 else str(delta)
+            text += f"  * {m['name']}: {m['old_size']} -> {m['new_size']} bytes ({delta_str})\n"
+        if len(modified) > 50:
+            text += f"  ... and {len(modified) - 50} more\n"
+
+    return [types.TextContent(type="text", text=text)]
 
 # ============================================================================
 # Main Entry Point
