@@ -25,6 +25,16 @@ except ImportError:
     sys.exit(1)
 
 from .config import config
+from .cache import get_cache, clear_cache, get_cache_stats
+
+# Import bridge backend for fast operations
+try:
+    from .bridge.backend import get_backend
+    _backend_available = True
+except ImportError:
+    _backend_available = False
+    def get_backend():
+        return None
 
 
 # Initialize MCP server
@@ -904,6 +914,363 @@ TOOLS = [
             "required": ["binary_name"]
         }
     ),
+
+    # =========================================================================
+    # Missing Tools from LaurieWired + Modification Tools
+    # =========================================================================
+    types.Tool(
+        name="list_exports",
+        description="List exported functions and symbols from the binary.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Pagination offset (default: 0)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum results to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="list_imports",
+        description="List imported functions and symbols from external libraries.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Pagination offset (default: 0)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum results to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="list_data_items",
+        description="List defined data labels and their values.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Pagination offset (default: 0)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum results to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="list_namespaces",
+        description="List all namespaces and classes in the binary.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Pagination offset (default: 0)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum results to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="rename_function",
+        description="Rename a function in the binary analysis.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "old_name": {
+                    "type": "string",
+                    "description": "Current function name or address (e.g., 'FUN_00401000' or '0x401000')"
+                },
+                "new_name": {
+                    "type": "string",
+                    "description": "New name for the function"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "old_name", "new_name"]
+        }
+    ),
+    types.Tool(
+        name="rename_data",
+        description="Rename a data label at a specified address.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address of the data label (e.g., '0x401000')"
+                },
+                "new_name": {
+                    "type": "string",
+                    "description": "New name for the data label"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address", "new_name"]
+        }
+    ),
+    types.Tool(
+        name="rename_variable",
+        description="Rename a local variable within a function.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Name or address of the function containing the variable"
+                },
+                "old_name": {
+                    "type": "string",
+                    "description": "Current variable name"
+                },
+                "new_name": {
+                    "type": "string",
+                    "description": "New name for the variable"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name", "old_name", "new_name"]
+        }
+    ),
+    types.Tool(
+        name="set_comment",
+        description="Set a comment at a specified address (EOL, PRE, POST, or PLATE comment).",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address to add comment (e.g., '0x401000')"
+                },
+                "comment": {
+                    "type": "string",
+                    "description": "Comment text to set"
+                },
+                "comment_type": {
+                    "type": "string",
+                    "enum": ["EOL", "PRE", "POST", "PLATE"],
+                    "description": "Type of comment (default: 'EOL')"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address", "comment"]
+        }
+    ),
+    types.Tool(
+        name="set_function_prototype",
+        description="Set a function's prototype/signature.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Name or address of the function"
+                },
+                "prototype": {
+                    "type": "string",
+                    "description": "New prototype (e.g., 'int myFunc(char *buf, int size)')"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name", "prototype"]
+        }
+    ),
+    types.Tool(
+        name="set_local_variable_type",
+        description="Set the type of a local variable within a function.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Name or address of the function"
+                },
+                "variable_name": {
+                    "type": "string",
+                    "description": "Name of the variable to retype"
+                },
+                "new_type": {
+                    "type": "string",
+                    "description": "New type for the variable (e.g., 'char *', 'int', 'struct MyStruct')"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name", "variable_name", "new_type"]
+        }
+    ),
+
+    # =========================================================================
+    # Exhaustive Report Generator
+    # =========================================================================
+    types.Tool(
+        name="generate_report",
+        description="Generate an exhaustive, ground-truth binary analysis report. Extracts all available information in a single pass: metadata, symbols, functions, strings, vulnerabilities, behavioral patterns, and platform-specific analysis. Output is a comprehensive markdown report.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "depth": {
+                    "type": "string",
+                    "enum": ["quick", "standard", "full", "exhaustive"],
+                    "description": "Analysis depth: quick (metadata+stats), standard (+ functions/strings), full (+ decompilation of key funcs), exhaustive (everything including behavioral analysis). Default: standard"
+                },
+                "include_decompilation": {
+                    "type": "boolean",
+                    "description": "Include decompiled code for top functions (default: true for full/exhaustive)"
+                },
+                "max_functions_decompile": {
+                    "type": "integer",
+                    "description": "Max functions to decompile (default: 20 for full, 50 for exhaustive)"
+                },
+                "output_format": {
+                    "type": "string",
+                    "enum": ["markdown", "json"],
+                    "description": "Output format (default: markdown)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+
+    # =========================================================================
+    # Cache Management Tools
+    # =========================================================================
+    types.Tool(
+        name="cache_stats",
+        description="Get cache statistics including hit rate, size, and entry count. Use this to monitor cache performance.",
+        inputSchema={
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    ),
+    types.Tool(
+        name="cache_clear",
+        description="Clear cached analysis results. Can clear all cache or filter by binary/project.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Clear cache only for this binary (optional)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Clear cache only for this project (optional)"
+                }
+            },
+            "required": []
+        }
+    ),
+    types.Tool(
+        name="bridge_status",
+        description="Get JPype bridge status. Shows if the fast bridge mode is active (100-1000x faster than subprocess) or if falling back to subprocess mode.",
+        inputSchema={
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    ),
 ]
 
 
@@ -989,6 +1356,38 @@ async def handle_call_tool(
             return await handle_find_kernel_symbols(arguments)
         elif name == "analyze_mach_ports":
             return await handle_analyze_mach_ports(arguments)
+        # LaurieWired-compatible tools + Modification tools
+        elif name == "list_exports":
+            return await handle_list_exports(arguments)
+        elif name == "list_imports":
+            return await handle_list_imports(arguments)
+        elif name == "list_data_items":
+            return await handle_list_data_items(arguments)
+        elif name == "list_namespaces":
+            return await handle_list_namespaces(arguments)
+        elif name == "rename_function":
+            return await handle_rename_function(arguments)
+        elif name == "rename_data":
+            return await handle_rename_data(arguments)
+        elif name == "rename_variable":
+            return await handle_rename_variable(arguments)
+        elif name == "set_comment":
+            return await handle_set_comment(arguments)
+        elif name == "set_function_prototype":
+            return await handle_set_function_prototype(arguments)
+        elif name == "set_local_variable_type":
+            return await handle_set_local_variable_type(arguments)
+        # Exhaustive Report Generator
+        elif name == "generate_report":
+            return await handle_generate_report(arguments)
+        # Cache Management
+        elif name == "cache_stats":
+            return await handle_cache_stats(arguments)
+        elif name == "cache_clear":
+            return await handle_cache_clear(arguments)
+        # Bridge Status
+        elif name == "bridge_status":
+            return handle_bridge_status(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -1085,6 +1484,38 @@ async def handle_list_functions(args: dict) -> Sequence[types.TextContent]:
     project_name = args.get("project_name", config.default_project)
     limit = args.get("limit", 100)
 
+    # Check cache first
+    cache = get_cache()
+    cache_params = {"limit": limit}
+    cached = cache.get("list_functions", binary_name, project_name, cache_params,
+                       project_dir=config.get_project_path(project_name))
+    if cached is not None:
+        funcs = cached.get("functions", [])
+        total = cached.get("total", len(funcs))
+        text = f"Functions in {binary_name} ({len(funcs)}/{total} shown) [CACHED]:\n\n"
+        for f in funcs:
+            text += f"  {f['address']}: {f['name']} ({f.get('size', 0)} bytes)\n"
+        return [types.TextContent(type="text", text=text)]
+
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.list_functions(binary_name, project_name, limit)
+        if result is not None and result.get("success"):
+            funcs = result.get("functions", [])
+            total = result.get("total", len(funcs))
+
+            # Cache the result
+            cache.set("list_functions", binary_name, project_name, cache_params,
+                      {"functions": funcs, "total": total},
+                      project_dir=config.get_project_path(project_name))
+
+            text = f"Functions in {binary_name} ({len(funcs)}/{total} shown) [BRIDGE]:\n\n"
+            for f in funcs:
+                text += f"  {f['address']}: {f['name']} ({f.get('size', 0)} bytes)\n"
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -1126,6 +1557,12 @@ print("=== MCP_RESULT_END ===")
     if result.get("success"):
         funcs = result.get("functions", [])
         total = result.get("total", len(funcs))
+
+        # Cache the result
+        cache.set("list_functions", binary_name, project_name, cache_params,
+                  {"functions": funcs, "total": total},
+                  project_dir=config.get_project_path(project_name))
+
         text = f"Functions in {binary_name} ({len(funcs)}/{total} shown):\n\n"
         for f in funcs:
             text += f"  {f['address']}: {f['name']} ({f['size']} bytes)\n"
@@ -1203,6 +1640,37 @@ async def handle_get_function_decompile(args: dict) -> Sequence[types.TextConten
     function_name = args.get("function_name")
     project_name = args.get("project_name", config.default_project)
 
+    # Check cache first
+    cache = get_cache()
+    cache_params = {"function_name": function_name}
+    cached = cache.get("get_function_decompile", binary_name, project_name, cache_params,
+                       project_dir=config.get_project_path(project_name))
+    if cached is not None:
+        text = f"Decompiled {cached['function']} @ {cached['address']} [CACHED]:\n\n"
+        text += f"Signature: {cached['signature']}\n\n"
+        text += f"```c\n{cached['code']}\n```"
+        return [types.TextContent(type="text", text=text)]
+
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.decompile(binary_name, project_name, function_name)
+        if result is not None:
+            if result.get("success"):
+                # Cache the result
+                cache.set("get_function_decompile", binary_name, project_name, cache_params,
+                          {"function": result['function_name'], "address": result['address'],
+                           "signature": result['signature'], "code": result['code']},
+                          project_dir=config.get_project_path(project_name))
+
+                text = f"Decompiled {result['function_name']} @ {result['address']} [BRIDGE]:\n\n"
+                text += f"Signature: {result['signature']}\n\n"
+                text += f"```c\n{result['code']}\n```"
+                return [types.TextContent(type="text", text=text)]
+            else:
+                return [types.TextContent(type="text", text=f"Decompilation failed: {result.get('error', 'Unknown error')}")]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 from ghidra.app.decompiler import DecompInterface
@@ -1268,6 +1736,12 @@ else:
     result = parse_ghidra_json_output(stdout)
 
     if result.get("success"):
+        # Cache the result
+        cache.set("get_function_decompile", binary_name, project_name, cache_params,
+                  {"function": result['function'], "address": result['address'],
+                   "signature": result['signature'], "code": result['code']},
+                  project_dir=config.get_project_path(project_name))
+
         text = f"Decompiled {result['function']} @ {result['address']}:\n\n"
         text += f"Signature: {result['signature']}\n\n"
         text += f"```c\n{result['code']}\n```"
@@ -1520,6 +1994,18 @@ async def handle_list_strings(args: dict) -> Sequence[types.TextContent]:
     limit = args.get("limit", 200)
     project_name = args.get("project_name", config.default_project)
 
+    # Check cache first
+    cache = get_cache()
+    cache_params = {"min_length": min_length, "limit": limit}
+    cached = cache.get("list_strings", binary_name, project_name, cache_params,
+                       project_dir=config.get_project_path(project_name))
+    if cached is not None:
+        strings = cached.get("strings", [])
+        text = f"Strings in {binary_name} ({len(strings)} shown) [CACHED]:\n\n"
+        for s in strings:
+            text += f"  {s['address']}: {s['value']}\n"
+        return [types.TextContent(type="text", text=text)]
+
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -1564,6 +2050,12 @@ print("=== MCP_RESULT_END ===")
 
     if result.get("success"):
         strings = result.get("strings", [])
+
+        # Cache the result
+        cache.set("list_strings", binary_name, project_name, cache_params,
+                  {"strings": strings},
+                  project_dir=config.get_project_path(project_name))
+
         text = f"Strings in {binary_name} ({len(strings)} shown):\n\n"
         for s in strings:
             text += f"  {s['address']}: {s['value']}\n"
@@ -4572,6 +5064,1522 @@ print("=== MCP_RESULT_END ===")
         return [types.TextContent(type="text", text=text)]
     else:
         return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+# ============================================================================
+# LaurieWired-compatible Tools + Modification Tools
+# ============================================================================
+
+async def handle_list_exports(args: dict) -> Sequence[types.TextContent]:
+    """List exported functions and symbols."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    offset = args.get("offset", 0)
+    limit = args.get("limit", 100)
+
+    script = f'''
+import json
+from ghidra.program.model.symbol import SymbolType
+
+result = {{"success": True, "exports": [], "total": 0}}
+
+try:
+    symbol_table = currentProgram.getSymbolTable()
+    exports = []
+    count = 0
+
+    for symbol in symbol_table.getAllSymbols(True):
+        # Check if symbol is exported (external entry point or has GLOBAL scope)
+        if symbol.isExternalEntryPoint() or (symbol.getSymbolType() == SymbolType.FUNCTION and symbol.isGlobal()):
+            if count >= {offset} and len(exports) < {limit}:
+                exports.append({{
+                    "name": symbol.getName(),
+                    "address": str(symbol.getAddress()),
+                    "type": str(symbol.getSymbolType()),
+                    "namespace": str(symbol.getParentNamespace().getName())
+                }})
+            count += 1
+
+    result["exports"] = exports
+    result["total"] = count
+except Exception as e:
+    result = {{"success": False, "error": str(e)}}
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        exports = result.get("exports", [])
+        total = result.get("total", 0)
+        text = f"# Exports ({len(exports)} of {total})\n\n"
+        for exp in exports:
+            text += f"- {exp['name']} @ {exp['address']} [{exp['type']}]\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_list_imports(args: dict) -> Sequence[types.TextContent]:
+    """List imported functions and symbols."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    offset = args.get("offset", 0)
+    limit = args.get("limit", 100)
+
+    script = f'''
+import json
+from ghidra.program.model.symbol import SymbolType
+
+result = {{"success": True, "imports": [], "total": 0}}
+
+try:
+    symbol_table = currentProgram.getSymbolTable()
+    ext_manager = currentProgram.getExternalManager()
+    imports = []
+    count = 0
+
+    # Get external symbols (imports)
+    for symbol in symbol_table.getExternalSymbols():
+        if count >= {offset} and len(imports) < {limit}:
+            ext_loc = symbol.getExternalLocation() if hasattr(symbol, 'getExternalLocation') else None
+            library = ""
+            if ext_loc:
+                library = str(ext_loc.getLibraryName()) if ext_loc.getLibraryName() else ""
+            imports.append({{
+                "name": symbol.getName(),
+                "address": str(symbol.getAddress()),
+                "library": library,
+                "type": str(symbol.getSymbolType())
+            }})
+        count += 1
+
+    result["imports"] = imports
+    result["total"] = count
+except Exception as e:
+    result = {{"success": False, "error": str(e)}}
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        imports = result.get("imports", [])
+        total = result.get("total", 0)
+        text = f"# Imports ({len(imports)} of {total})\n\n"
+        for imp in imports:
+            lib = f" from {imp['library']}" if imp.get('library') else ""
+            text += f"- {imp['name']}{lib} @ {imp['address']}\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_list_data_items(args: dict) -> Sequence[types.TextContent]:
+    """List defined data labels and their values."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    offset = args.get("offset", 0)
+    limit = args.get("limit", 100)
+
+    script = f'''
+import json
+
+result = {{"success": True, "data_items": [], "total": 0}}
+
+try:
+    listing = currentProgram.getListing()
+    data_items = []
+    count = 0
+
+    for data in listing.getDefinedData(True):
+        if count >= {offset} and len(data_items) < {limit}:
+            value_repr = ""
+            try:
+                val = data.getValue()
+                if val is not None:
+                    value_repr = str(val)[:100]  # Limit value string length
+            except:
+                pass
+
+            data_items.append({{
+                "address": str(data.getAddress()),
+                "label": str(data.getLabel()) if data.getLabel() else "",
+                "type": str(data.getDataType().getName()),
+                "size": data.getLength(),
+                "value": value_repr
+            }})
+        count += 1
+
+    result["data_items"] = data_items
+    result["total"] = count
+except Exception as e:
+    result = {{"success": False, "error": str(e)}}
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        items = result.get("data_items", [])
+        total = result.get("total", 0)
+        text = f"# Data Items ({len(items)} of {total})\n\n"
+        for item in items:
+            label = item['label'] if item['label'] else "(unnamed)"
+            value = f" = {item['value']}" if item['value'] else ""
+            text += f"- {label} @ {item['address']} : {item['type']} ({item['size']} bytes){value}\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_list_namespaces(args: dict) -> Sequence[types.TextContent]:
+    """List all namespaces and classes."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    offset = args.get("offset", 0)
+    limit = args.get("limit", 100)
+
+    script = f'''
+import json
+from ghidra.program.model.symbol import SymbolType
+
+result = {{"success": True, "namespaces": [], "total": 0}}
+
+try:
+    symbol_table = currentProgram.getSymbolTable()
+    namespaces = []
+    count = 0
+    seen = set()
+
+    # Get all namespaces
+    for symbol in symbol_table.getAllSymbols(True):
+        ns = symbol.getParentNamespace()
+        while ns and not ns.isGlobal():
+            ns_name = ns.getName(True)  # Full path
+            if ns_name not in seen:
+                seen.add(ns_name)
+                if count >= {offset} and len(namespaces) < {limit}:
+                    ns_type = "Class" if hasattr(ns, 'getSymbol') and ns.getSymbol() and "class" in str(ns.getSymbol().getSymbolType()).lower() else "Namespace"
+                    namespaces.append({{
+                        "name": ns.getName(),
+                        "full_path": ns_name,
+                        "type": ns_type,
+                        "symbol_count": len(list(symbol_table.getSymbols(ns)))
+                    }})
+                count += 1
+            ns = ns.getParentNamespace()
+
+    result["namespaces"] = namespaces
+    result["total"] = count
+except Exception as e:
+    result = {{"success": False, "error": str(e)}}
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        namespaces = result.get("namespaces", [])
+        total = result.get("total", 0)
+        text = f"# Namespaces ({len(namespaces)} of {total})\n\n"
+        for ns in namespaces:
+            text += f"- {ns['full_path']} [{ns['type']}] ({ns['symbol_count']} symbols)\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_rename_function(args: dict) -> Sequence[types.TextContent]:
+    """Rename a function in the binary."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    old_name = args.get("old_name")
+    new_name = args.get("new_name")
+
+    script = f'''
+import json
+from ghidra.program.model.symbol import SourceType
+
+result = {{"success": False, "message": ""}}
+
+try:
+    func = None
+    old_name = "{old_name}"
+    new_name = "{new_name}"
+
+    # Try to find by name first
+    func_manager = currentProgram.getFunctionManager()
+    for f in func_manager.getFunctions(True):
+        if f.getName() == old_name:
+            func = f
+            break
+
+    # If not found, try as address
+    if func is None and old_name.startswith("0x"):
+        addr = currentProgram.getAddressFactory().getAddress(old_name)
+        func = func_manager.getFunctionAt(addr)
+
+    if func:
+        old_func_name = func.getName()
+        func.setName(new_name, SourceType.USER_DEFINED)
+        result["success"] = True
+        result["message"] = "Renamed '{{}}' to '{{}}'".format(old_func_name, new_name)
+        result["address"] = str(func.getEntryPoint())
+    else:
+        result["message"] = "Function not found: " + old_name
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script,
+        "-save"  # Save changes
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')} @ {result.get('address', '')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_rename_data(args: dict) -> Sequence[types.TextContent]:
+    """Rename a data label at a specified address."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    address = args.get("address")
+    new_name = args.get("new_name")
+
+    script = f'''
+import json
+from ghidra.program.model.symbol import SourceType
+
+result = {{"success": False, "message": ""}}
+
+try:
+    addr_str = "{address}"
+    new_name = "{new_name}"
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["message"] = "Invalid address: " + addr_str
+    else:
+        symbol_table = currentProgram.getSymbolTable()
+
+        # Get existing symbol or create new one
+        symbol = symbol_table.getPrimarySymbol(addr)
+        if symbol:
+            old_name = symbol.getName()
+            symbol.setName(new_name, SourceType.USER_DEFINED)
+            result["success"] = True
+            result["message"] = "Renamed '{{}}' to '{{}}'".format(old_name, new_name)
+        else:
+            # Create new label
+            symbol_table.createLabel(addr, new_name, SourceType.USER_DEFINED)
+            result["success"] = True
+            result["message"] = "Created label '{{}}' at {{}}".format(new_name, addr_str)
+
+        result["address"] = addr_str
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script,
+        "-save"
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_rename_variable(args: dict) -> Sequence[types.TextContent]:
+    """Rename a local variable within a function."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    function_name = args.get("function_name")
+    old_name = args.get("old_name")
+    new_name = args.get("new_name")
+
+    script = f'''
+import json
+from ghidra.program.model.symbol import SourceType
+from ghidra.app.decompiler import DecompInterface
+
+result = {{"success": False, "message": ""}}
+
+try:
+    func_name = "{function_name}"
+    old_var_name = "{old_name}"
+    new_var_name = "{new_name}"
+
+    # Find function
+    func = None
+    func_manager = currentProgram.getFunctionManager()
+    for f in func_manager.getFunctions(True):
+        if f.getName() == func_name:
+            func = f
+            break
+
+    if func is None and func_name.startswith("0x"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        func = func_manager.getFunctionAt(addr)
+
+    if func is None:
+        result["message"] = "Function not found: " + func_name
+    else:
+        # Find and rename variable
+        found = False
+        for var in func.getAllVariables():
+            if var.getName() == old_var_name:
+                var.setName(new_var_name, SourceType.USER_DEFINED)
+                result["success"] = True
+                result["message"] = "Renamed variable '{{}}' to '{{}}' in function '{{}}'".format(old_var_name, new_var_name, func.getName())
+                found = True
+                break
+
+        if not found:
+            result["message"] = "Variable '{{}}' not found in function '{{}}'".format(old_var_name, func.getName())
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script,
+        "-save"
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_set_comment(args: dict) -> Sequence[types.TextContent]:
+    """Set a comment at a specified address."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    address = args.get("address")
+    comment = args.get("comment", "").replace('"', '\\"').replace('\n', '\\n')
+    comment_type = args.get("comment_type", "EOL")
+
+    script = f'''
+import json
+from ghidra.program.model.listing import CodeUnit
+
+result = {{"success": False, "message": ""}}
+
+try:
+    addr_str = "{address}"
+    comment_text = "{comment}"
+    comment_type = "{comment_type}"
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["message"] = "Invalid address: " + addr_str
+    else:
+        listing = currentProgram.getListing()
+        code_unit = listing.getCodeUnitAt(addr)
+
+        if code_unit is None:
+            result["message"] = "No code unit at address: " + addr_str
+        else:
+            # Map comment type
+            type_map = {{
+                "EOL": CodeUnit.EOL_COMMENT,
+                "PRE": CodeUnit.PRE_COMMENT,
+                "POST": CodeUnit.POST_COMMENT,
+                "PLATE": CodeUnit.PLATE_COMMENT
+            }}
+            ct = type_map.get(comment_type, CodeUnit.EOL_COMMENT)
+
+            code_unit.setComment(ct, comment_text)
+            result["success"] = True
+            result["message"] = "Set {{}} comment at {{}}".format(comment_type, addr_str)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script,
+        "-save"
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_set_function_prototype(args: dict) -> Sequence[types.TextContent]:
+    """Set a function's prototype/signature."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    function_name = args.get("function_name")
+    prototype = args.get("prototype", "").replace('"', '\\"')
+
+    script = f'''
+import json
+from ghidra.app.cmd.function import ApplyFunctionSignatureCmd
+from ghidra.program.model.data import FunctionDefinitionDataType
+from ghidra.app.util.parser import FunctionSignatureParser
+from ghidra.program.model.symbol import SourceType
+
+result = {{"success": False, "message": ""}}
+
+try:
+    func_name = "{function_name}"
+    prototype_str = "{prototype}"
+
+    # Find function
+    func = None
+    func_manager = currentProgram.getFunctionManager()
+    for f in func_manager.getFunctions(True):
+        if f.getName() == func_name:
+            func = f
+            break
+
+    if func is None and func_name.startswith("0x"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        func = func_manager.getFunctionAt(addr)
+
+    if func is None:
+        result["message"] = "Function not found: " + func_name
+    else:
+        # Parse and apply signature
+        dtm = currentProgram.getDataTypeManager()
+        parser = FunctionSignatureParser(dtm, None)
+        try:
+            sig = parser.parse(func.getSignature(), prototype_str)
+            cmd = ApplyFunctionSignatureCmd(func.getEntryPoint(), sig, SourceType.USER_DEFINED)
+            cmd.applyTo(currentProgram)
+            result["success"] = True
+            result["message"] = "Applied prototype to function '{{}}': {{}}".format(func.getName(), prototype_str)
+        except Exception as parse_error:
+            result["message"] = "Failed to parse prototype: " + str(parse_error)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script,
+        "-save"
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_set_local_variable_type(args: dict) -> Sequence[types.TextContent]:
+    """Set the type of a local variable within a function."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    function_name = args.get("function_name")
+    variable_name = args.get("variable_name")
+    new_type = args.get("new_type", "").replace('"', '\\"')
+
+    script = f'''
+import json
+from ghidra.program.model.symbol import SourceType
+from ghidra.app.util.cparser.C import CParser
+
+result = {{"success": False, "message": ""}}
+
+try:
+    func_name = "{function_name}"
+    var_name = "{variable_name}"
+    type_str = "{new_type}"
+
+    # Find function
+    func = None
+    func_manager = currentProgram.getFunctionManager()
+    for f in func_manager.getFunctions(True):
+        if f.getName() == func_name:
+            func = f
+            break
+
+    if func is None and func_name.startswith("0x"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        func = func_manager.getFunctionAt(addr)
+
+    if func is None:
+        result["message"] = "Function not found: " + func_name
+    else:
+        # Parse the type
+        dtm = currentProgram.getDataTypeManager()
+
+        # Try to find existing type first
+        data_type = None
+        for dt in dtm.getAllDataTypes():
+            if dt.getName() == type_str or str(dt) == type_str:
+                data_type = dt
+                break
+
+        # If not found, try parsing as C type
+        if data_type is None:
+            try:
+                parser = CParser(dtm)
+                data_type = parser.parse(type_str + " x;").getDataTypes()[0]
+            except:
+                # Try built-in types
+                from ghidra.program.model.data import IntegerDataType, CharDataType, PointerDataType
+                builtin = {{"int": IntegerDataType.dataType, "char": CharDataType.dataType}}
+                data_type = builtin.get(type_str.replace("*", "").strip())
+                if data_type and "*" in type_str:
+                    data_type = PointerDataType(data_type)
+
+        if data_type is None:
+            result["message"] = "Could not parse type: " + type_str
+        else:
+            # Find and retype variable
+            found = False
+            for var in func.getAllVariables():
+                if var.getName() == var_name:
+                    var.setDataType(data_type, SourceType.USER_DEFINED)
+                    result["success"] = True
+                    result["message"] = "Set type of '{{}}' to '{{}}' in function '{{}}'".format(var_name, type_str, func.getName())
+                    found = True
+                    break
+
+            if not found:
+                result["message"] = "Variable '{{}}' not found in function '{{}}'".format(var_name, func.getName())
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script,
+        "-save"
+    ])
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+# ============================================================================
+# Exhaustive Report Generator
+# ============================================================================
+
+async def handle_generate_report(args: dict) -> Sequence[types.TextContent]:
+    """Generate an exhaustive, ground-truth binary analysis report."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+    depth = args.get("depth", "standard")
+    output_format = args.get("output_format", "markdown")
+    include_decompilation = args.get("include_decompilation")
+    max_functions_decompile = args.get("max_functions_decompile")
+
+    # Check cache first
+    cache = get_cache()
+    cache_params = {
+        "depth": depth,
+        "output_format": output_format,
+        "include_decompilation": include_decompilation,
+        "max_functions_decompile": max_functions_decompile
+    }
+    cached = cache.get("generate_report", binary_name, project_name, cache_params,
+                       project_dir=config.get_project_path(project_name))
+    if cached is not None:
+        cached_text = cached.get("text", "")
+        # Add cache indicator
+        if output_format == "markdown" and cached_text.startswith("#"):
+            cached_text = cached_text.replace("# Binary Analysis Report", "# Binary Analysis Report [CACHED]", 1)
+        return [types.TextContent(type="text", text=cached_text)]
+
+    # Set defaults based on depth
+    if include_decompilation is None:
+        include_decompilation = depth in ("full", "exhaustive")
+    if max_functions_decompile is None:
+        max_functions_decompile = {"quick": 0, "standard": 5, "full": 20, "exhaustive": 50}.get(depth, 5)
+
+    script = f'''
+import json
+import re
+from datetime import datetime
+from collections import defaultdict
+
+# Import Ghidra classes
+from ghidra.program.model.symbol import SymbolType, SourceType
+from ghidra.program.model.listing import CodeUnit
+from ghidra.app.decompiler import DecompInterface
+
+depth = "{depth}"
+include_decompilation = {str(include_decompilation).lower() == "true" or include_decompilation == True}
+max_functions_decompile = {max_functions_decompile}
+
+report = {{
+    "meta": {{}},
+    "binary_info": {{}},
+    "memory_layout": [],
+    "symbols": {{"exports": [], "imports": [], "namespaces": []}},
+    "functions": {{"total": 0, "list": [], "entry_points": [], "by_size": [], "most_referenced": []}},
+    "strings": {{"total": 0, "interesting": [], "urls": [], "paths": [], "ips": [], "samples": []}},
+    "data_items": [],
+    "libraries": [],
+    "behavioral": {{"file_io": [], "network": [], "crypto": [], "process": [], "memory": []}},
+    "vulnerabilities": [],
+    "decompiled_functions": [],
+    "call_graph": {{}},
+    "ios_analysis": {{}},
+    "recommendations": []
+}}
+
+try:
+    program = currentProgram
+    listing = program.getListing()
+    func_manager = program.getFunctionManager()
+    symbol_table = program.getSymbolTable()
+    memory = program.getMemory()
+    ref_manager = program.getReferenceManager()
+
+    # =========================================================================
+    # 1. METADATA
+    # =========================================================================
+    report["meta"]["generated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    report["meta"]["depth"] = depth
+    report["meta"]["analyzer"] = "Kawaiidra MCP"
+
+    # =========================================================================
+    # 2. BINARY INFO
+    # =========================================================================
+    lang = program.getLanguage()
+    report["binary_info"] = {{
+        "name": program.getName(),
+        "path": str(program.getExecutablePath()),
+        "format": str(program.getExecutableFormat()),
+        "language": str(lang.getLanguageID()),
+        "processor": str(lang.getProcessor()),
+        "endian": str(lang.isBigEndian() and "big" or "little"),
+        "address_size": lang.getLanguageDescription().getSize(),
+        "compiler": str(program.getCompiler()) if program.getCompiler() else "unknown",
+        "image_base": str(program.getImageBase()),
+        "min_address": str(program.getMinAddress()),
+        "max_address": str(program.getMaxAddress()),
+        "creation_date": str(program.getCreationDate()) if program.getCreationDate() else None,
+        "md5": str(program.getExecutableMD5()) if hasattr(program, 'getExecutableMD5') and program.getExecutableMD5() else None,
+        "sha256": str(program.getExecutableSHA256()) if hasattr(program, 'getExecutableSHA256') and program.getExecutableSHA256() else None
+    }}
+
+    # =========================================================================
+    # 3. MEMORY LAYOUT
+    # =========================================================================
+    for block in memory.getBlocks():
+        perms = ""
+        if block.isRead(): perms += "R"
+        if block.isWrite(): perms += "W"
+        if block.isExecute(): perms += "X"
+        report["memory_layout"].append({{
+            "name": block.getName(),
+            "start": str(block.getStart()),
+            "end": str(block.getEnd()),
+            "size": block.getSize(),
+            "permissions": perms,
+            "type": str(block.getType()),
+            "initialized": block.isInitialized()
+        }})
+
+    # =========================================================================
+    # 4. SYMBOLS - EXPORTS
+    # =========================================================================
+    export_count = 0
+    for symbol in symbol_table.getAllSymbols(True):
+        if symbol.isExternalEntryPoint() or (symbol.getSymbolType() == SymbolType.FUNCTION and symbol.isGlobal()):
+            if export_count < 200:  # Limit for report size
+                report["symbols"]["exports"].append({{
+                    "name": symbol.getName(),
+                    "address": str(symbol.getAddress()),
+                    "type": str(symbol.getSymbolType())
+                }})
+            export_count += 1
+
+    # =========================================================================
+    # 5. SYMBOLS - IMPORTS
+    # =========================================================================
+    import_count = 0
+    import_libs = defaultdict(list)
+    for symbol in symbol_table.getExternalSymbols():
+        try:
+            ext_loc = symbol.getExternalLocation() if hasattr(symbol, 'getExternalLocation') else None
+            lib = str(ext_loc.getLibraryName()) if ext_loc and ext_loc.getLibraryName() else "unknown"
+            import_libs[lib].append(symbol.getName())
+            if import_count < 300:
+                report["symbols"]["imports"].append({{
+                    "name": symbol.getName(),
+                    "library": lib,
+                    "address": str(symbol.getAddress())
+                }})
+            import_count += 1
+        except:
+            pass
+
+    # =========================================================================
+    # 6. NAMESPACES
+    # =========================================================================
+    seen_ns = set()
+    ns_count = 0
+    for symbol in symbol_table.getAllSymbols(True):
+        ns = symbol.getParentNamespace()
+        while ns and not ns.isGlobal():
+            ns_name = ns.getName(True)
+            if ns_name not in seen_ns:
+                seen_ns.add(ns_name)
+                if ns_count < 100:
+                    report["symbols"]["namespaces"].append({{
+                        "name": ns.getName(),
+                        "full_path": ns_name
+                    }})
+                ns_count += 1
+            ns = ns.getParentNamespace()
+
+    # =========================================================================
+    # 7. FUNCTIONS ANALYSIS
+    # =========================================================================
+    functions_data = []
+    func_refs = {{}}  # Track references to each function
+
+    for func in func_manager.getFunctions(True):
+        addr = func.getEntryPoint()
+        body = func.getBody()
+        size = body.getNumAddresses() if body else 0
+
+        # Count incoming references
+        ref_count = 0
+        for ref in ref_manager.getReferencesTo(addr):
+            ref_count += 1
+        func_refs[func.getName()] = ref_count
+
+        func_data = {{
+            "name": func.getName(),
+            "address": str(addr),
+            "size": size,
+            "param_count": func.getParameterCount(),
+            "is_thunk": func.isThunk(),
+            "is_external": func.isExternal(),
+            "calling_convention": str(func.getCallingConventionName()),
+            "ref_count": ref_count
+        }}
+
+        if func.isExternal():
+            continue
+
+        functions_data.append(func_data)
+
+        if func.getName() in ["main", "_main", "entry", "_start", "WinMain", "DllMain"]:
+            report["functions"]["entry_points"].append(func_data)
+
+    report["functions"]["total"] = len(functions_data)
+    report["functions"]["list"] = functions_data[:100]  # Top 100
+
+    # Sort by size (largest functions)
+    by_size = sorted(functions_data, key=lambda x: x["size"], reverse=True)[:20]
+    report["functions"]["by_size"] = by_size
+
+    # Sort by reference count (most called)
+    by_refs = sorted(functions_data, key=lambda x: x["ref_count"], reverse=True)[:20]
+    report["functions"]["most_referenced"] = by_refs
+
+    # =========================================================================
+    # 8. STRINGS ANALYSIS
+    # =========================================================================
+    strings_data = []
+    interesting_patterns = {{
+        "urls": re.compile(r'https?://[^\s<>"{{}}|\\\\^`\\[\\]]+', re.I),
+        "ips": re.compile(r'\\b(?:\\d{{1,3}}\\.?){{4}}\\b'),
+        "paths": re.compile(r'[A-Za-z]:\\\\[^\\s]+|/(?:usr|etc|var|home|tmp|bin|opt)/[^\\s]+'),
+        "emails": re.compile(r'[\\w.-]+@[\\w.-]+\\.\\w+'),
+        "potential_secrets": re.compile(r'(?:password|passwd|pwd|secret|key|token|api_key|apikey|auth)[\\s]*[=:][\\s]*[^\\s]+', re.I)
+    }}
+
+    string_count = 0
+    for data in listing.getDefinedData(True):
+        if data.hasStringValue():
+            try:
+                val = str(data.getValue())
+                if len(val) >= 4:
+                    str_entry = {{
+                        "address": str(data.getAddress()),
+                        "value": val[:200],  # Truncate long strings
+                        "length": len(val)
+                    }}
+
+                    # Check for interesting patterns
+                    for pattern_name, pattern in interesting_patterns.items():
+                        if pattern.search(val):
+                            if pattern_name == "urls":
+                                report["strings"]["urls"].append(val[:200])
+                            elif pattern_name == "ips":
+                                report["strings"]["ips"].append(val[:50])
+                            elif pattern_name == "paths":
+                                report["strings"]["paths"].append(val[:200])
+                            str_entry["interesting"] = True
+                            if len(report["strings"]["interesting"]) < 100:
+                                report["strings"]["interesting"].append(str_entry)
+
+                    if string_count < 200:
+                        strings_data.append(str_entry)
+                    string_count += 1
+            except:
+                pass
+
+    report["strings"]["total"] = string_count
+    report["strings"]["samples"] = strings_data[:100]
+
+    # =========================================================================
+    # 9. BEHAVIORAL ANALYSIS (for standard+ depth)
+    # =========================================================================
+    if depth in ["standard", "full", "exhaustive"]:
+        behavioral_patterns = {{
+            "file_io": ["fopen", "fread", "fwrite", "fclose", "open", "read", "write", "close",
+                       "CreateFile", "ReadFile", "WriteFile", "DeleteFile", "CopyFile"],
+            "network": ["socket", "connect", "send", "recv", "bind", "listen", "accept",
+                       "WSAStartup", "gethostbyname", "inet_addr", "getaddrinfo"],
+            "crypto": ["crypt", "encrypt", "decrypt", "hash", "md5", "sha1", "sha256", "aes",
+                      "EVP_", "SSL_", "CRYPTO_", "BCrypt"],
+            "process": ["fork", "exec", "system", "popen", "CreateProcess", "ShellExecute",
+                       "WinExec", "spawn", "posix_spawn"],
+            "memory": ["malloc", "calloc", "realloc", "free", "mmap", "VirtualAlloc",
+                      "HeapAlloc", "HeapFree"]
+        }}
+
+        for category, patterns in behavioral_patterns.items():
+            for func in func_manager.getFunctions(True):
+                func_name = func.getName().lower()
+                for pattern in patterns:
+                    if pattern.lower() in func_name:
+                        report["behavioral"][category].append({{
+                            "function": func.getName(),
+                            "address": str(func.getEntryPoint()),
+                            "pattern": pattern
+                        }})
+                        break
+
+    # =========================================================================
+    # 10. LIBRARY DETECTION
+    # =========================================================================
+    lib_signatures = {{
+        "OpenSSL": ["SSL_", "EVP_", "CRYPTO_", "BIO_", "X509_"],
+        "zlib": ["inflate", "deflate", "compress", "uncompress", "gzopen"],
+        "libcurl": ["curl_easy_", "curl_multi_", "CURLOPT_"],
+        "SQLite": ["sqlite3_open", "sqlite3_exec", "sqlite3_prepare"],
+        "Qt": ["Q_OBJECT", "QWidget", "QString", "QApplication"],
+        "Boost": ["boost::", "_ZN5boost"],
+        "Windows API": ["kernel32", "ntdll", "user32", "advapi32"],
+        "CRT": ["printf", "scanf", "malloc", "free", "strcpy", "strlen"]
+    }}
+
+    detected_libs = defaultdict(list)
+    for lib_name, signatures in lib_signatures.items():
+        for sig in signatures:
+            for symbol in symbol_table.getAllSymbols(True):
+                if sig.lower() in symbol.getName().lower():
+                    detected_libs[lib_name].append(symbol.getName())
+                    if len(detected_libs[lib_name]) >= 3:
+                        break
+            if len(detected_libs[lib_name]) >= 3:
+                break
+
+    for lib_name, matches in detected_libs.items():
+        report["libraries"].append({{
+            "name": lib_name,
+            "confidence": "high" if len(matches) >= 3 else "medium",
+            "evidence": matches[:5]
+        }})
+
+    # =========================================================================
+    # 11. VULNERABILITY DETECTION
+    # =========================================================================
+    vuln_patterns = {{
+        "buffer_overflow": {{
+            "functions": ["strcpy", "strcat", "sprintf", "gets", "scanf"],
+            "severity": "high",
+            "cwe": "CWE-120"
+        }},
+        "format_string": {{
+            "functions": ["printf", "sprintf", "fprintf", "syslog"],
+            "severity": "high",
+            "cwe": "CWE-134"
+        }},
+        "command_injection": {{
+            "functions": ["system", "popen", "exec", "ShellExecute", "WinExec"],
+            "severity": "critical",
+            "cwe": "CWE-78"
+        }},
+        "memory_corruption": {{
+            "functions": ["memcpy", "memmove", "memset"],
+            "severity": "medium",
+            "cwe": "CWE-119"
+        }},
+        "use_after_free": {{
+            "functions": ["free", "delete", "HeapFree"],
+            "severity": "high",
+            "cwe": "CWE-416"
+        }}
+    }}
+
+    for vuln_type, vuln_info in vuln_patterns.items():
+        for func in func_manager.getFunctions(True):
+            func_name = func.getName().lower()
+            for dangerous_func in vuln_info["functions"]:
+                if dangerous_func.lower() == func_name or func_name.endswith("_" + dangerous_func.lower()):
+                    # Count callers to assess risk
+                    caller_count = 0
+                    for ref in ref_manager.getReferencesTo(func.getEntryPoint()):
+                        caller_count += 1
+
+                    report["vulnerabilities"].append({{
+                        "type": vuln_type,
+                        "function": func.getName(),
+                        "address": str(func.getEntryPoint()),
+                        "severity": vuln_info["severity"],
+                        "cwe": vuln_info["cwe"],
+                        "caller_count": caller_count,
+                        "description": "Usage of potentially dangerous function"
+                    }})
+                    break
+
+    # =========================================================================
+    # 12. DECOMPILATION (for full/exhaustive depth)
+    # =========================================================================
+    if include_decompilation and max_functions_decompile > 0:
+        decomp = DecompInterface()
+        decomp.openProgram(program)
+
+        # Prioritize: entry points, most referenced, largest
+        priority_funcs = []
+        priority_funcs.extend([f["name"] for f in report["functions"]["entry_points"]])
+        priority_funcs.extend([f["name"] for f in report["functions"]["most_referenced"][:10]])
+        priority_funcs.extend([f["name"] for f in report["functions"]["by_size"][:10]])
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_priority = []
+        for f in priority_funcs:
+            if f not in seen:
+                seen.add(f)
+                unique_priority.append(f)
+
+        decompiled_count = 0
+        for func_name in unique_priority[:max_functions_decompile]:
+            func = None
+            for f in func_manager.getFunctions(True):
+                if f.getName() == func_name:
+                    func = f
+                    break
+
+            if func and not func.isExternal():
+                try:
+                    results = decomp.decompileFunction(func, 60, None)
+                    if results and results.decompileCompleted():
+                        decomp_func = results.getDecompiledFunction()
+                        if decomp_func:
+                            code = decomp_func.getC()
+                            if code:
+                                report["decompiled_functions"].append({{
+                                    "name": func_name,
+                                    "address": str(func.getEntryPoint()),
+                                    "code": code[:5000]  # Limit size
+                                }})
+                                decompiled_count += 1
+                except:
+                    pass
+
+        decomp.dispose()
+
+    # =========================================================================
+    # 13. iOS/macOS SPECIFIC ANALYSIS (for exhaustive depth)
+    # =========================================================================
+    if depth == "exhaustive":
+        arch = str(lang.getProcessor()).lower()
+        if "aarch64" in arch or "arm" in arch:
+            ios_markers = {{
+                "entitlements": ["SecTask", "entitlement", "amfi", "AppleMobileFileIntegrity"],
+                "sandbox": ["sandbox_check", "sandbox_init", "sandbox_extension"],
+                "mach_ports": ["mach_port", "mach_msg", "task_for_pid", "thread_create"],
+                "kpp_ktrr": ["kpp", "ktrr", "ppl_", "amcc", "__TEXT_EXEC"]
+            }}
+
+            for category, markers in ios_markers.items():
+                for marker in markers:
+                    for symbol in symbol_table.getAllSymbols(True):
+                        if marker.lower() in symbol.getName().lower():
+                            if category not in report["ios_analysis"]:
+                                report["ios_analysis"][category] = []
+                            report["ios_analysis"][category].append({{
+                                "symbol": symbol.getName(),
+                                "address": str(symbol.getAddress())
+                            }})
+
+    # =========================================================================
+    # 14. RECOMMENDATIONS
+    # =========================================================================
+    # Suggest renames for auto-generated function names
+    for func_data in report["functions"]["most_referenced"][:10]:
+        if func_data["name"].startswith("FUN_") or func_data["name"].startswith("sub_"):
+            report["recommendations"].append({{
+                "type": "rename_suggestion",
+                "target": func_data["name"],
+                "address": func_data["address"],
+                "reason": "High-traffic function with auto-generated name should be analyzed and renamed"
+            }})
+
+    # Flag functions that need investigation
+    for vuln in report["vulnerabilities"]:
+        if vuln["severity"] in ["critical", "high"] and vuln["caller_count"] > 0:
+            report["recommendations"].append({{
+                "type": "security_review",
+                "target": vuln["function"],
+                "address": vuln["address"],
+                "reason": "Dangerous function with " + str(vuln["caller_count"]) + " callers - verify safe usage"
+            }})
+
+    result = {{"success": True, "report": report}}
+except Exception as e:
+    import traceback
+    result = {{"success": False, "error": str(e), "traceback": traceback.format_exc()}}
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    stdout, stderr, code = run_ghidra_headless([
+        str(config.project_dir / project_name),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py", script
+    ], timeout=config.analysis_timeout * 2)  # Double timeout for exhaustive reports
+
+    result = parse_ghidra_json_output(stdout)
+    if not result.get("success"):
+        error_msg = result.get("error", "Unknown error")
+        tb = result.get("traceback", "")
+        return [types.TextContent(type="text", text=f"Report generation failed: {error_msg}\n{tb}")]
+
+    report = result.get("report", {})
+
+    if output_format == "json":
+        output_text = json.dumps(report, indent=2)
+        # Cache the result
+        cache.set("generate_report", binary_name, project_name, cache_params,
+                  {"text": output_text},
+                  project_dir=config.get_project_path(project_name))
+        return [types.TextContent(type="text", text=output_text)]
+
+    # Generate Markdown report
+    md = generate_markdown_report(report)
+
+    # Cache the result
+    cache.set("generate_report", binary_name, project_name, cache_params,
+              {"text": md},
+              project_dir=config.get_project_path(project_name))
+
+    return [types.TextContent(type="text", text=md)]
+
+
+def generate_markdown_report(report: dict) -> str:
+    """Convert report data to formatted markdown."""
+    md = []
+
+    # Header
+    binary_info = report.get("binary_info", {})
+    md.append(f"# Binary Analysis Report: {binary_info.get('name', 'Unknown')}")
+    md.append(f"\n*Generated: {report.get('meta', {}).get('generated_at', 'N/A')} | Depth: {report.get('meta', {}).get('depth', 'N/A')} | Analyzer: Kawaiidra MCP*\n")
+
+    # Executive Summary
+    md.append("## Executive Summary\n")
+    func_count = report.get("functions", {}).get("total", 0)
+    string_count = report.get("strings", {}).get("total", 0)
+    vuln_count = len(report.get("vulnerabilities", []))
+    critical_vulns = len([v for v in report.get("vulnerabilities", []) if v.get("severity") == "critical"])
+    high_vulns = len([v for v in report.get("vulnerabilities", []) if v.get("severity") == "high"])
+
+    md.append(f"| Metric | Value |")
+    md.append(f"|--------|-------|")
+    md.append(f"| **Format** | {binary_info.get('format', 'N/A')} |")
+    md.append(f"| **Architecture** | {binary_info.get('processor', 'N/A')} ({binary_info.get('endian', 'N/A')} endian) |")
+    md.append(f"| **Functions** | {func_count} |")
+    md.append(f"| **Strings** | {string_count} |")
+    md.append(f"| **Vulnerabilities** | {vuln_count} ({critical_vulns} critical, {high_vulns} high) |")
+    md.append(f"| **Libraries Detected** | {len(report.get('libraries', []))} |")
+    md.append("")
+
+    # Risk Assessment
+    risk_score = "LOW"
+    if critical_vulns > 0:
+        risk_score = "CRITICAL"
+    elif high_vulns > 2:
+        risk_score = "HIGH"
+    elif high_vulns > 0 or vuln_count > 5:
+        risk_score = "MEDIUM"
+    md.append(f"**Risk Assessment: {risk_score}**\n")
+
+    # Binary Info
+    md.append("## Binary Information\n")
+    md.append("```")
+    md.append(f"Name:        {binary_info.get('name', 'N/A')}")
+    md.append(f"Path:        {binary_info.get('path', 'N/A')}")
+    md.append(f"Format:      {binary_info.get('format', 'N/A')}")
+    md.append(f"Processor:   {binary_info.get('processor', 'N/A')}")
+    md.append(f"Endianness:  {binary_info.get('endian', 'N/A')}")
+    md.append(f"Address Size: {binary_info.get('address_size', 'N/A')} bit")
+    md.append(f"Compiler:    {binary_info.get('compiler', 'N/A')}")
+    md.append(f"Image Base:  {binary_info.get('image_base', 'N/A')}")
+    if binary_info.get('md5'):
+        md.append(f"MD5:         {binary_info.get('md5')}")
+    if binary_info.get('sha256'):
+        md.append(f"SHA256:      {binary_info.get('sha256')}")
+    md.append("```\n")
+
+    # Memory Layout
+    md.append("## Memory Layout\n")
+    md.append("| Section | Start | End | Size | Permissions |")
+    md.append("|---------|-------|-----|------|-------------|")
+    for section in report.get("memory_layout", [])[:20]:
+        md.append(f"| {section.get('name', 'N/A')} | {section.get('start', 'N/A')} | {section.get('end', 'N/A')} | {section.get('size', 0):,} | {section.get('permissions', 'N/A')} |")
+    md.append("")
+
+    # Libraries
+    if report.get("libraries"):
+        md.append("## Detected Libraries\n")
+        for lib in report.get("libraries", []):
+            confidence_emoji = "✅" if lib.get("confidence") == "high" else "⚠️"
+            md.append(f"- {confidence_emoji} **{lib.get('name')}** ({lib.get('confidence')} confidence)")
+            md.append(f"  - Evidence: {', '.join(lib.get('evidence', [])[:3])}")
+        md.append("")
+
+    # Vulnerabilities
+    if report.get("vulnerabilities"):
+        md.append("## Security Vulnerabilities\n")
+        md.append("| Severity | Type | Function | Address | CWE | Callers |")
+        md.append("|----------|------|----------|---------|-----|---------|")
+        for vuln in sorted(report.get("vulnerabilities", []), key=lambda x: {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(x.get("severity", "low"), 4))[:30]:
+            sev_emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(vuln.get("severity", "low"), "⚪")
+            md.append(f"| {sev_emoji} {vuln.get('severity', 'N/A').upper()} | {vuln.get('type', 'N/A')} | `{vuln.get('function', 'N/A')}` | {vuln.get('address', 'N/A')} | {vuln.get('cwe', 'N/A')} | {vuln.get('caller_count', 0)} |")
+        md.append("")
+
+    # Functions
+    md.append("## Function Analysis\n")
+    md.append(f"**Total Functions:** {report.get('functions', {}).get('total', 0)}\n")
+
+    if report.get("functions", {}).get("entry_points"):
+        md.append("### Entry Points")
+        for ep in report.get("functions", {}).get("entry_points", []):
+            md.append(f"- `{ep.get('name')}` @ {ep.get('address')} ({ep.get('size', 0)} bytes)")
+        md.append("")
+
+    if report.get("functions", {}).get("most_referenced"):
+        md.append("### Most Referenced Functions")
+        md.append("| Function | Address | References | Size |")
+        md.append("|----------|---------|------------|------|")
+        for func in report.get("functions", {}).get("most_referenced", [])[:15]:
+            md.append(f"| `{func.get('name')}` | {func.get('address')} | {func.get('ref_count', 0)} | {func.get('size', 0)} |")
+        md.append("")
+
+    if report.get("functions", {}).get("by_size"):
+        md.append("### Largest Functions")
+        md.append("| Function | Address | Size (bytes) |")
+        md.append("|----------|---------|--------------|")
+        for func in report.get("functions", {}).get("by_size", [])[:10]:
+            md.append(f"| `{func.get('name')}` | {func.get('address')} | {func.get('size', 0):,} |")
+        md.append("")
+
+    # Strings
+    md.append("## String Analysis\n")
+    md.append(f"**Total Strings:** {report.get('strings', {}).get('total', 0)}\n")
+
+    if report.get("strings", {}).get("urls"):
+        md.append("### URLs Found")
+        for url in report.get("strings", {}).get("urls", [])[:10]:
+            md.append(f"- `{url}`")
+        md.append("")
+
+    if report.get("strings", {}).get("paths"):
+        md.append("### File Paths")
+        for path in report.get("strings", {}).get("paths", [])[:10]:
+            md.append(f"- `{path}`")
+        md.append("")
+
+    if report.get("strings", {}).get("interesting"):
+        md.append("### Interesting Strings")
+        for s in report.get("strings", {}).get("interesting", [])[:15]:
+            md.append(f"- @ {s.get('address')}: `{s.get('value', '')[:80]}{'...' if len(s.get('value', '')) > 80 else ''}`")
+        md.append("")
+
+    # Behavioral Analysis
+    behavioral = report.get("behavioral", {})
+    if any(behavioral.get(k) for k in behavioral):
+        md.append("## Behavioral Analysis\n")
+        for category, items in behavioral.items():
+            if items:
+                md.append(f"### {category.replace('_', ' ').title()} Operations")
+                for item in items[:10]:
+                    md.append(f"- `{item.get('function')}` @ {item.get('address')} (pattern: {item.get('pattern')})")
+                md.append("")
+
+    # Imports/Exports
+    md.append("## Symbol Information\n")
+    md.append(f"- **Exports:** {len(report.get('symbols', {}).get('exports', []))}")
+    md.append(f"- **Imports:** {len(report.get('symbols', {}).get('imports', []))}")
+    md.append(f"- **Namespaces:** {len(report.get('symbols', {}).get('namespaces', []))}")
+    md.append("")
+
+    # iOS Analysis
+    ios = report.get("ios_analysis", {})
+    if ios:
+        md.append("## iOS/macOS Specific Analysis\n")
+        for category, items in ios.items():
+            if items:
+                md.append(f"### {category.replace('_', ' ').title()}")
+                for item in items[:10]:
+                    md.append(f"- `{item.get('symbol')}` @ {item.get('address')}")
+                md.append("")
+
+    # Decompiled Functions
+    if report.get("decompiled_functions"):
+        md.append("## Decompiled Functions\n")
+        for func in report.get("decompiled_functions", []):
+            md.append(f"### {func.get('name')} @ {func.get('address')}")
+            md.append("```c")
+            md.append(func.get("code", "// Decompilation failed")[:3000])
+            md.append("```\n")
+
+    # Recommendations
+    if report.get("recommendations"):
+        md.append("## Recommendations\n")
+        for rec in report.get("recommendations", [])[:20]:
+            rec_type = rec.get("type", "").replace("_", " ").title()
+            md.append(f"- **[{rec_type}]** `{rec.get('target')}` @ {rec.get('address')}")
+            md.append(f"  - {rec.get('reason')}")
+        md.append("")
+
+    # Footer
+    md.append("---")
+    md.append("*Report generated by Kawaiidra MCP - Binary Analysis Made Adorable*")
+
+    return "\n".join(md)
+
+
+# ============================================================================
+# Cache Management Handlers
+# ============================================================================
+
+async def handle_cache_stats(args: dict) -> Sequence[types.TextContent]:
+    """Get cache statistics."""
+    stats = get_cache_stats()
+
+    output = [
+        "# Kawaiidra Cache Statistics\n",
+        f"**Status:** {'Enabled' if stats['enabled'] else 'Disabled'}",
+        f"**Location:** `{stats['cache_dir']}`\n",
+        "## Usage",
+        f"- **Entries:** {stats['entry_count']}",
+        f"- **Size:** {stats['total_size_mb']} MB / {stats['max_size_mb']} MB max\n",
+        "## Performance",
+        f"- **Hits:** {stats['hits']}",
+        f"- **Misses:** {stats['misses']}",
+        f"- **Hit Rate:** {stats['hit_rate_percent']}%\n",
+        "## Maintenance",
+        f"- **Invalidations:** {stats['invalidations']}",
+        f"- **Evictions:** {stats['evictions']}",
+    ]
+
+    return [types.TextContent(type="text", text="\n".join(output))]
+
+
+async def handle_cache_clear(args: dict) -> Sequence[types.TextContent]:
+    """Clear cache entries."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name")
+
+    cleared = clear_cache(binary_name=binary_name, project_name=project_name)
+
+    if binary_name or project_name:
+        scope = []
+        if binary_name:
+            scope.append(f"binary=`{binary_name}`")
+        if project_name:
+            scope.append(f"project=`{project_name}`")
+        scope_str = ", ".join(scope)
+        msg = f"Cleared {cleared} cache entries for {scope_str}"
+    else:
+        msg = f"Cleared {cleared} cache entries (all)"
+
+    return [types.TextContent(type="text", text=msg)]
+
+
+# ============================================================================
+# Bridge Status Handler
+# ============================================================================
+
+def handle_bridge_status(args: dict) -> Sequence[types.TextContent]:
+    """Get JPype bridge status."""
+    backend = get_backend()
+
+    output = ["# Kawaiidra Bridge Status\n"]
+
+    if backend is None:
+        output.extend([
+            "**Mode:** Subprocess (fallback)",
+            "**Reason:** Bridge backend not available",
+            "",
+            "The subprocess mode uses Ghidra's analyzeHeadless command for each operation.",
+            "This involves ~5-15 seconds of JVM startup overhead per tool call.",
+            "",
+            "To enable the fast bridge mode, install JPype:",
+            "```",
+            "pip install JPype1",
+            "```",
+            "",
+            "Requirements:",
+            "- JPype1 >= 1.5.0",
+            "- Java JDK 17+ installed",
+        ])
+    else:
+        status = backend.get_status()
+        output.extend([
+            f"**Mode:** {status['mode']}",
+            f"**Bridge Enabled:** {status['bridge_enabled']}",
+            f"**Bridge Started:** {status['bridge_started']}",
+            f"**JPype Available:** {status['jpype_available']}",
+        ])
+
+        if status.get('jpype_error'):
+            output.append(f"**JPype Error:** {status['jpype_error']}")
+
+        if status.get('cached_programs') is not None:
+            output.append(f"**Cached Programs:** {status['cached_programs']}")
+
+        output.append("")
+
+        if status['bridge_started']:
+            output.extend([
+                "## Performance",
+                "The bridge is active! Operations run ~100-1000x faster than subprocess mode:",
+                "- **First call per binary:** ~2-5 seconds (program load)",
+                "- **Subsequent calls:** ~1-50 milliseconds",
+                "",
+                "Programs stay loaded in memory for instant access.",
+            ])
+        else:
+            output.extend([
+                "## Note",
+                "Bridge is enabled but not yet started. It will start automatically",
+                "on the first tool call that requires Ghidra analysis.",
+            ])
+
+    return [types.TextContent(type="text", text="\n".join(output))]
 
 
 # ============================================================================

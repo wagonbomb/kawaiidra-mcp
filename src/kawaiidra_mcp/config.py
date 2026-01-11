@@ -75,36 +75,166 @@ class Config:
         # Default project name
         self.default_project = os.environ.get("KAWAIIDRA_DEFAULT_PROJECT", "default")
 
+        # Cache settings
+        self.cache_enabled = os.environ.get("KAWAIIDRA_CACHE_ENABLED", "true").lower() == "true"
+        cache_dir_env = os.environ.get("KAWAIIDRA_CACHE_DIR")
+        self.cache_dir = Path(cache_dir_env) if cache_dir_env else Path.home() / ".kawaiidra" / "cache"
+        self.cache_max_size_mb = int(os.environ.get("KAWAIIDRA_CACHE_MAX_SIZE_MB", "500"))
+
+        # JPype Bridge settings
+        # Use bridge for ~100-1000x faster operations (requires JPype1 + Java JDK 17+)
+        self.use_bridge = os.environ.get("KAWAIIDRA_USE_BRIDGE", "true").lower() == "true"
+        # Keep programs loaded in memory for faster subsequent calls
+        self.bridge_cache_programs = os.environ.get("KAWAIIDRA_BRIDGE_CACHE_PROGRAMS", "true").lower() == "true"
+        # Max programs to keep in memory (LRU eviction)
+        self.bridge_max_cached_programs = int(os.environ.get("KAWAIIDRA_BRIDGE_MAX_PROGRAMS", "5"))
+
     def _detect_ghidra_installation(self) -> Optional[Path]:
-        """Auto-detect Ghidra installation in common locations."""
+        """Auto-detect Ghidra installation in common locations.
+
+        Searches for all known Ghidra versions (9.x through 12.x) and also
+        uses glob patterns to find any version dynamically.
+        """
+        # All known Ghidra versions (newest first for priority)
+        # Source: https://github.com/NationalSecurityAgency/ghidra/releases
+        KNOWN_VERSIONS = [
+            # 12.x
+            "12.0",
+            # 11.x
+            "11.4.3", "11.4.2", "11.4.1", "11.4",
+            "11.3.2", "11.3.1", "11.3",
+            "11.2.1", "11.2",
+            "11.1.2", "11.1.1", "11.1",
+            "11.0.3", "11.0.2", "11.0.1", "11.0",
+            # 10.x
+            "10.4",
+            "10.3.3", "10.3.2", "10.3.1", "10.3",
+            "10.2.3", "10.2.2", "10.2.1", "10.2",
+            "10.1.5", "10.1.4", "10.1.3", "10.1.2", "10.1.1", "10.1",
+            "10.0.4", "10.0.3", "10.0.2", "10.0.1", "10.0",
+            # 9.x
+            "9.2.4", "9.2.3", "9.2.2", "9.2.1", "9.2",
+            "9.1.2", "9.1.1", "9.1",
+            "9.0.4", "9.0.2", "9.0.1", "9.0",
+        ]
+
         common_locations = []
 
         if sys.platform == "darwin":  # macOS
+            # Homebrew locations (highest priority)
             common_locations = [
                 Path("/opt/homebrew"),  # Apple Silicon Homebrew
                 Path("/usr/local"),  # Intel Homebrew
-                Path("/Applications/ghidra_11.2_PUBLIC"),
-                Path("/Applications/ghidra_11.1_PUBLIC"),
-                Path("/Applications/ghidra_11.0_PUBLIC"),
-                Path("/Applications/ghidra"),
-            ]
-        elif sys.platform == "linux":
-            common_locations = [
-                Path("/home/linuxbrew/.linuxbrew"),  # Linux Homebrew
-                Path("/opt/ghidra"),
-                Path.home() / "ghidra",
-                Path("/usr/local/ghidra"),
-            ]
-        elif sys.platform == "win32":
-            common_locations = [
-                Path("C:/ghidra"),
-                Path("C:/ghidra_11.2_PUBLIC"),
-                Path("C:/ghidra_11.1_PUBLIC"),
-                Path("C:/ghidra_11.0_PUBLIC"),
-                Path.home() / "ghidra",
             ]
 
-        for location in common_locations:
+            # Check /Applications for versioned installs
+            apps_dir = Path("/Applications")
+            if apps_dir.exists():
+                # Try glob pattern first to catch any version
+                for ghidra_dir in sorted(apps_dir.glob("ghidra_*"), reverse=True):
+                    common_locations.append(ghidra_dir)
+                # Also try ghidra_*_PUBLIC pattern
+                for ghidra_dir in sorted(apps_dir.glob("Ghidra_*"), reverse=True):
+                    common_locations.append(ghidra_dir)
+
+            # Add specific known versions as fallback
+            for ver in KNOWN_VERSIONS:
+                common_locations.append(Path(f"/Applications/ghidra_{ver}_PUBLIC"))
+                common_locations.append(Path(f"/Applications/ghidra_{ver}"))
+                common_locations.append(Path(f"/Applications/Ghidra_{ver}_PUBLIC"))
+                common_locations.append(Path(f"/Applications/Ghidra_{ver}"))
+
+            # Generic locations
+            common_locations.extend([
+                Path("/Applications/ghidra"),
+                Path("/Applications/Ghidra"),
+                Path.home() / "ghidra",
+                Path("/opt/ghidra"),
+            ])
+
+        elif sys.platform == "linux":
+            # Homebrew
+            common_locations = [
+                Path("/home/linuxbrew/.linuxbrew"),  # Linux Homebrew
+            ]
+
+            # Check /opt for versioned installs
+            opt_dir = Path("/opt")
+            if opt_dir.exists():
+                for ghidra_dir in sorted(opt_dir.glob("ghidra_*"), reverse=True):
+                    common_locations.append(ghidra_dir)
+                for ghidra_dir in sorted(opt_dir.glob("ghidra-*"), reverse=True):
+                    common_locations.append(ghidra_dir)
+
+            # Check home directory
+            home_dir = Path.home()
+            for ghidra_dir in sorted(home_dir.glob("ghidra_*"), reverse=True):
+                common_locations.append(ghidra_dir)
+            for ghidra_dir in sorted(home_dir.glob("ghidra-*"), reverse=True):
+                common_locations.append(ghidra_dir)
+
+            # Add specific known versions
+            for ver in KNOWN_VERSIONS:
+                common_locations.append(Path(f"/opt/ghidra_{ver}_PUBLIC"))
+                common_locations.append(Path(f"/opt/ghidra_{ver}"))
+                common_locations.append(Path(f"/opt/ghidra-{ver}"))
+                common_locations.append(home_dir / f"ghidra_{ver}_PUBLIC")
+                common_locations.append(home_dir / f"ghidra_{ver}")
+
+            # Generic locations
+            common_locations.extend([
+                Path("/opt/ghidra"),
+                home_dir / "ghidra",
+                Path("/usr/local/ghidra"),
+                Path("/usr/share/ghidra"),
+            ])
+
+        elif sys.platform == "win32":
+            # Check common Windows locations with glob
+            for drive in ["C:", "D:", "E:"]:
+                drive_path = Path(drive + "/")
+                if drive_path.exists():
+                    # Glob for any ghidra version
+                    for ghidra_dir in sorted(drive_path.glob("ghidra_*"), reverse=True):
+                        common_locations.append(ghidra_dir)
+                    for ghidra_dir in sorted(drive_path.glob("Ghidra_*"), reverse=True):
+                        common_locations.append(ghidra_dir)
+
+            # Program Files locations
+            program_files = [
+                Path(os.environ.get("ProgramFiles", "C:/Program Files")),
+                Path(os.environ.get("ProgramFiles(x86)", "C:/Program Files (x86)")),
+            ]
+            for pf in program_files:
+                if pf.exists():
+                    for ghidra_dir in sorted(pf.glob("ghidra_*"), reverse=True):
+                        common_locations.append(ghidra_dir)
+                    for ghidra_dir in sorted(pf.glob("Ghidra*"), reverse=True):
+                        common_locations.append(ghidra_dir)
+
+            # Add specific known versions
+            for ver in KNOWN_VERSIONS:
+                common_locations.append(Path(f"C:/ghidra_{ver}_PUBLIC"))
+                common_locations.append(Path(f"C:/ghidra_{ver}"))
+                common_locations.append(Path(f"C:/Ghidra_{ver}_PUBLIC"))
+
+            # Generic locations
+            common_locations.extend([
+                Path("C:/ghidra"),
+                Path("C:/Ghidra"),
+                Path.home() / "ghidra",
+                Path.home() / "Downloads" / "ghidra",
+            ])
+
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_locations = []
+        for loc in common_locations:
+            if loc not in seen:
+                seen.add(loc)
+                unique_locations.append(loc)
+
+        for location in unique_locations:
             if location.exists():
                 # Verify it has Ghidra binaries
                 if self._find_ghidra_binary(location):
