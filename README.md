@@ -84,7 +84,7 @@ Or add to your Claude Code config:
 ```json
 {
   "mcpServers": {
-    "ghidra": {
+    "kawaiidra": {
       "type": "stdio",
       "command": "python",
       "args": ["/path/to/kawaiidra-mcp/run_server.py"],
