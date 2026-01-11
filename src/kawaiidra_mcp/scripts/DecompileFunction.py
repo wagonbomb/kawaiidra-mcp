@@ -20,11 +20,11 @@ def find_function(name):
     except:
         return None
 
-func = find_function("0x1401A478B")
+func = find_function("None")
 
 if not func:
     print("=== MCP_RESULT_JSON ===")
-    print(json.dumps({"success": False, "error": "Function not found: 0x1401A478B"}))
+    print(json.dumps({"success": False, "error": "Function not found: None"}))
     print("=== MCP_RESULT_END ===")
 else:
     decompiler = DecompInterface()

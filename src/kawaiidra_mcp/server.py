@@ -3825,7 +3825,7 @@ else:
                 "symbol": func_name,
                 "suggested_name": common_hint + "_handler",
                 "confidence": "medium",
-                "reason": f"Calls {common_hint}-related APIs"
+                "reason": "Calls " + common_hint + "-related APIs"
             }})
 
         # Extract keywords from strings
@@ -5131,7 +5131,8 @@ async def handle_list_exports(args: dict) -> Sequence[types.TextContent]:
     offset = args.get("offset", 0)
     limit = args.get("limit", 100)
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.program.model.symbol import SymbolType
 
@@ -5164,14 +5165,17 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("ListExports.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script
-    ])
+        "-postScript", "ListExports.py"
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5192,7 +5196,8 @@ async def handle_list_imports(args: dict) -> Sequence[types.TextContent]:
     offset = args.get("offset", 0)
     limit = args.get("limit", 100)
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.program.model.symbol import SymbolType
 
@@ -5229,14 +5234,17 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("ListImports.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script
-    ])
+        "-postScript", "ListImports.py"
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5258,7 +5266,8 @@ async def handle_list_data_items(args: dict) -> Sequence[types.TextContent]:
     offset = args.get("offset", 0)
     limit = args.get("limit", 100)
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 
 result = {{"success": True, "data_items": [], "total": 0}}
@@ -5297,14 +5306,17 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("ListDataItems.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script
-    ])
+        "-postScript", "ListDataItems.py"
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5327,7 +5339,8 @@ async def handle_list_namespaces(args: dict) -> Sequence[types.TextContent]:
     offset = args.get("offset", 0)
     limit = args.get("limit", 100)
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.program.model.symbol import SymbolType
 
@@ -5367,14 +5380,17 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("ListNamespaces.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script
-    ])
+        "-postScript", "ListNamespaces.py"
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5395,7 +5411,8 @@ async def handle_rename_function(args: dict) -> Sequence[types.TextContent]:
     old_name = args.get("old_name")
     new_name = args.get("new_name")
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.program.model.symbol import SourceType
 
@@ -5434,15 +5451,18 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("RenameFunction.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script,
+        "-postScript", "RenameFunction.py",
         "-save"  # Save changes
-    ])
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5458,7 +5478,8 @@ async def handle_rename_data(args: dict) -> Sequence[types.TextContent]:
     address = args.get("address")
     new_name = args.get("new_name")
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.program.model.symbol import SourceType
 
@@ -5496,15 +5517,18 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("RenameData.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script,
+        "-postScript", "RenameData.py",
         "-save"
-    ])
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5521,7 +5545,8 @@ async def handle_rename_variable(args: dict) -> Sequence[types.TextContent]:
     old_name = args.get("old_name")
     new_name = args.get("new_name")
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.program.model.symbol import SourceType
 from ghidra.app.decompiler import DecompInterface
@@ -5568,15 +5593,18 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("RenameVariable.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script,
+        "-postScript", "RenameVariable.py",
         "-save"
-    ])
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5593,7 +5621,8 @@ async def handle_set_comment(args: dict) -> Sequence[types.TextContent]:
     comment = args.get("comment", "").replace('"', '\\"').replace('\n', '\\n')
     comment_type = args.get("comment_type", "EOL")
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.program.model.listing import CodeUnit
 
@@ -5634,15 +5663,18 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("SetComment.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script,
+        "-postScript", "SetComment.py",
         "-save"
-    ])
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5658,7 +5690,8 @@ async def handle_set_function_prototype(args: dict) -> Sequence[types.TextConten
     function_name = args.get("function_name")
     prototype = args.get("prototype", "").replace('"', '\\"')
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.app.cmd.function import ApplyFunctionSignatureCmd
 from ghidra.program.model.data import FunctionDefinitionDataType
@@ -5705,15 +5738,18 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("SetFunctionPrototype.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script,
+        "-postScript", "SetFunctionPrototype.py",
         "-save"
-    ])
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5730,7 +5766,8 @@ async def handle_set_local_variable_type(args: dict) -> Sequence[types.TextConte
     variable_name = args.get("variable_name")
     new_type = args.get("new_type", "").replace('"', '\\"')
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 from ghidra.program.model.symbol import SourceType
 from ghidra.app.util.cparser.C import CParser
@@ -5803,15 +5840,18 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("SetLocalVariableType.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script,
+        "-postScript", "SetLocalVariableType.py",
         "-save"
-    ])
+    ], timeout=config.decompile_timeout)
 
     result = parse_ghidra_json_output(stdout)
     if result.get("success"):
@@ -5856,7 +5896,8 @@ async def handle_generate_report(args: dict) -> Sequence[types.TextContent]:
     if max_functions_decompile is None:
         max_functions_decompile = {"quick": 0, "standard": 5, "full": 20, "exhaustive": 50}.get(depth, 5)
 
-    script = f'''
+    script = f'''# @category MCP
+# @runtime Jython
 import json
 import re
 from datetime import datetime
@@ -6306,13 +6347,16 @@ print(json.dumps(result))
 print("=== MCP_RESULT_END ===")
 '''
 
+    write_ghidra_script("GenerateReport.py", script)
+
+    project_path = config.get_project_path(project_name)
     stdout, stderr, code = run_ghidra_headless([
-        str(config.project_dir / project_name),
+        str(project_path),
         project_name,
         "-process", str(binary_name),
         "-noanalysis",
         "-scriptPath", str(config.scripts_dir),
-        "-postScript", "RunScript.py", script
+        "-postScript", "GenerateReport.py"
     ], timeout=config.analysis_timeout * 2)  # Double timeout for exhaustive reports
 
     result = parse_ghidra_json_output(stdout)

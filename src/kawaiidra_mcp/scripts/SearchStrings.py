@@ -2,7 +2,7 @@
 # @runtime Jython
 import json
 
-pattern = "sauerbraten".lower()
+pattern = "flight".lower()
 results = []
 data_mgr = currentProgram.getListing()
 
