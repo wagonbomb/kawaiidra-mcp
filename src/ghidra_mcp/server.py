@@ -28,7 +28,7 @@ from .config import config
 
 
 # Initialize MCP server
-server = Server("ghidra")
+server = Server("kawaiidra")
 
 
 def log(message: str) -> None:
@@ -1319,7 +1319,7 @@ async def main():
             read_stream,
             write_stream,
             InitializationOptions(
-                server_name="ghidra",
+                server_name="kawaiidra",
                 server_version="1.0.0",
                 capabilities=server.get_capabilities(
                     notification_options=NotificationOptions(),

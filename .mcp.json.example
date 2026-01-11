@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "ghidra": {
+    "kawaiidra": {
       "command": "python",
       "args": ["run_server.py"],
       "env": {
