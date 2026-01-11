@@ -158,6 +158,40 @@ def resolve_binary_path(file_path: str) -> Optional[Path]:
     return None
 
 
+# Regex pattern for Ghidra index entries: "  XXXXXXXX:name:hash" (indented, 8 hex digits ID)
+_GHIDRA_INDEX_ENTRY_PATTERN = re.compile(r'^\s+([0-9a-fA-F]{8}):([^:]+):([0-9a-fA-F]+)$')
+
+
+def parse_ghidra_index(index_file: Path) -> list[dict[str, str]]:
+    """Parse a Ghidra project index file and return binary entries.
+
+    Args:
+        index_file: Path to the ~index.dat file
+
+    Returns:
+        List of dicts with 'id', 'name', and 'hash' keys for each binary
+    """
+    entries = []
+
+    if not index_file.exists():
+        return entries
+
+    try:
+        content = index_file.read_text(encoding="utf-8")
+        for line in content.splitlines():
+            match = _GHIDRA_INDEX_ENTRY_PATTERN.match(line)
+            if match:
+                entries.append({
+                    'id': match.group(1),
+                    'name': match.group(2),
+                    'hash': match.group(3)
+                })
+    except Exception:
+        pass
+
+    return entries
+
+
 def get_analyzed_binaries(project_name: Optional[str] = None) -> list[str]:
     """List binaries that have been analyzed in a project."""
     project_path = config.get_project_path(project_name)
@@ -166,15 +200,35 @@ def get_analyzed_binaries(project_name: Optional[str] = None) -> list[str]:
     if not rep_dir.exists():
         return []
 
-    # Look for .prp files which indicate analyzed programs
-    binaries = []
+    # Parse the index file to get actual binary names
     idata_dir = rep_dir / "idata"
+    index_file = idata_dir / "~index.dat"
+
+    entries = parse_ghidra_index(index_file)
+    if entries:
+        return [entry['name'] for entry in entries]
+
+    # Fallback to directory listing if index parsing fails
+    binaries = []
     if idata_dir.exists():
         for item in idata_dir.iterdir():
             if item.is_dir():
                 binaries.append(item.name)
 
     return binaries
+
+
+def binary_exists(binary_name: str, project_name: Optional[str] = None) -> bool:
+    """Check if a binary exists in a project.
+
+    Args:
+        binary_name: Name of the binary to check
+        project_name: Ghidra project name (uses default if None)
+
+    Returns:
+        True if the binary exists in the project
+    """
+    return binary_name in get_analyzed_binaries(project_name)
 
 
 def write_ghidra_script(script_name: str, content: str) -> Path:
