@@ -293,16 +293,19 @@ class KawaiidraTestRunner:
         print("PHASE 3: Android/Mobile Tools")
         print("=" * 50)
 
-        # Analyze Android binaries
-        self.ensure_binary_analyzed("libcrypto.1.1.so")
-        self.ensure_binary_analyzed("libBleLib.so")
+        # Analyze Android/mobile binaries
+        # Uses open-source binaries:
+        # - busybox: GPL-2.0 multi-call binary from busybox.net
+        # - libcrypto: Apache-2.0 OpenSSL library
+        self.ensure_binary_analyzed("busybox")
+        self.ensure_binary_analyzed("libcrypto.so")
 
         tests = [
-            ("ANDROID-001", "find_crypto_constants", {"binary_name": "libcrypto.1.1.so"}),
-            ("ANDROID-002", "analyze_jni_methods", {"binary_name": "libBleLib.so"}),
-            ("ANDROID-003", "extract_api_endpoints", {"binary_name": "libBleLib.so"}),
-            ("ANDROID-004", "find_hardcoded_secrets", {"binary_name": "libBleLib.so"}),
-            ("ANDROID-005", "compare_binaries", {"binary_name_a": "libcrypto.1.1.so", "binary_name_b": "libBleLib.so"}),
+            ("ANDROID-001", "find_crypto_constants", {"binary_name": "libcrypto.so"}),
+            ("ANDROID-002", "analyze_jni_methods", {"binary_name": "busybox"}),
+            ("ANDROID-003", "extract_api_endpoints", {"binary_name": "busybox"}),
+            ("ANDROID-004", "find_hardcoded_secrets", {"binary_name": "busybox"}),
+            ("ANDROID-005", "compare_binaries", {"binary_name_a": "libcrypto.so", "binary_name_b": "busybox"}),
         ]
 
         for test_id, tool, args in tests:

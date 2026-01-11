@@ -745,15 +745,7 @@ The server automatically falls back to subprocess mode if JPype is unavailable.
 
 ## Analysis Reports
 
-Binary analysis reports generated using Kawaiidra MCP are stored in the [`md/`](md/) folder.
-
-### Available Reports
-
-| Target | Version | Report |
-|--------|---------|--------|
-| GE Cync Smart Home | 6.20.0 | [Full Analysis](md/analysis/ge-cync-analysis.md) |
-
-See [md/README.md](md/README.md) for the complete index.
+Binary analysis reports generated using Kawaiidra MCP can be stored in the [`md/`](md/) folder. See [md/README.md](md/README.md) for report structure guidelines.
 
 ## Why "Kawaiidra"?
 
