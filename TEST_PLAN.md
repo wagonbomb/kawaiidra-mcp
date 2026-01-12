@@ -12,15 +12,21 @@ All test binaries used in this plan are from **open-source projects with permiss
 
 | Binary | Source | License | Format | Use Case |
 |--------|--------|---------|--------|----------|
-| `hello_x86.exe` | Self-compiled | N/A | PE x86 | Windows core testing |
-| `hello_x64.elf` | Self-compiled | N/A | ELF x64 | Linux testing |
-| `busybox` | busybox.net | GPL-2.0 | ELF ARM | Embedded/Android testing |
-| `openssl` | openssl.org | Apache-2.0 | Various | Crypto detection testing |
+| `putty.exe` | putty.org | MIT | PE x86/x64 | Windows core testing |
+| `busybox` | busybox.net | GPL-2.0 | ELF | Linux/Embedded testing |
+| `libcrypto.so` | openssl.org | Apache-2.0 | ELF | Crypto detection testing |
 | `curl` | curl.se | MIT | Various | Network/API testing |
 
-### Creating Test Binaries
+### Obtaining Test Binaries
 
-#### Windows PE (hello_x86.exe)
+#### Windows PE (putty.exe) - Recommended
+```bash
+# Download from official PuTTY site
+# https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html
+# Direct link: https://the.earth.li/~sgtatham/putty/latest/w64/putty.exe
+```
+
+#### Alternative: Self-compiled Windows PE (hello_x86.exe)
 ```c
 // hello.c - Compile with: cl /Fe:hello_x86.exe hello.c
 #include <stdio.h>
