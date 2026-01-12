@@ -2,7 +2,7 @@
 # @runtime Jython
 import json
 
-search_terms = ["CreateProcess", "OpenProcess", "TerminateProcess", "GetCurrentProcess", "fork", "exec", "system", "popen", "WinExec", "ShellExecute", "CreateThread", "CreateRemoteThread", "VirtualAllocEx", "WriteProcessMemory", "ReadProcessMemory"]
+search_terms = ["crypt", "hash", "md5", "sha1", "sha256", "sha512", "aes", "des", "rsa", "encrypt", "decrypt", "CryptAcquireContext", "CryptCreateHash", "CryptHashData", "EVP_", "SSL_", "HMAC", "PBKDF2", "bcrypt", "scrypt"]
 matches = []
 
 fm = currentProgram.getFunctionManager()
@@ -44,5 +44,5 @@ for func in fm.getFunctions(True):
         break
 
 print("=== MCP_RESULT_JSON ===")
-print(json.dumps({"success": True, "pattern": "process", "results": matches}))
+print(json.dumps({"success": True, "pattern": "crypto", "results": matches}))
 print("=== MCP_RESULT_END ===")

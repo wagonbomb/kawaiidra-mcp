@@ -13,13 +13,13 @@ def find_function(name):
     except:
         return None
 
-func = find_function("TERRAIN")
+func = find_function("entry")
 include_comments = true
 include_xrefs = true
 
 if not func:
     print("=== MCP_RESULT_JSON ===")
-    print(json.dumps({"success": False, "error": "Function not found: TERRAIN"}))
+    print(json.dumps({"success": False, "error": "Function not found: entry"}))
     print("=== MCP_RESULT_END ===")
 else:
     listing = currentProgram.getListing()

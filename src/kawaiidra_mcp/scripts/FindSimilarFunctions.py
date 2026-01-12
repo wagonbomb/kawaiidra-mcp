@@ -77,12 +77,12 @@ def compare_fingerprints(fp1, fp2):
     # Weighted average
     return (size_sim * 0.2 + inst_sim * 0.2 + mnem_sim * 0.3 + call_sim * 0.2 + param_sim * 0.1)
 
-ref_func = find_function("ISWATER")
+ref_func = find_function("entry")
 threshold = 0.7
 
 if not ref_func:
     print("=== MCP_RESULT_JSON ===")
-    print(json.dumps({"success": False, "error": "Function not found: ISWATER"}))
+    print(json.dumps({"success": False, "error": "Function not found: entry"}))
     print("=== MCP_RESULT_END ===")
 else:
     ref_fp = get_function_fingerprint(ref_func)

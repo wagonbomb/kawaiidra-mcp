@@ -14,12 +14,12 @@ def find_function(name):
     except:
         return None
 
-func = find_function("ISWATER")
+func = find_function("entry")
 include_insts = true
 
 if not func:
     print("=== MCP_RESULT_JSON ===")
-    print(json.dumps({"success": False, "error": "Function not found: ISWATER"}))
+    print(json.dumps({"success": False, "error": "Function not found: entry"}))
     print("=== MCP_RESULT_END ===")
 else:
     bbm = BasicBlockModel(currentProgram)
