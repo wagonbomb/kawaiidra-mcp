@@ -3,7 +3,7 @@
 import json
 
 min_len = 4
-limit = 20
+limit = 30
 results = []
 data_mgr = currentProgram.getListing()
 count = 0

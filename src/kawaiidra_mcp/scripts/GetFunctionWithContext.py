@@ -28,11 +28,11 @@ def decompile_func(func, decompiler):
         }
     return None
 
-func = find_function("ISTREE")
+func = find_function("entry")
 
 if not func:
     print("=== MCP_RESULT_JSON ===")
-    print(json.dumps({"success": False, "error": "Function not found: ISTREE"}))
+    print(json.dumps({"success": False, "error": "Function not found: entry"}))
     print("=== MCP_RESULT_END ===")
 else:
     decompiler = DecompInterface()

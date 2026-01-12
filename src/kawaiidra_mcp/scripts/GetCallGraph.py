@@ -68,8 +68,8 @@ def get_callers(func, visited, current_depth, max_depth):
         "callers": callers[:20]
     }
 
-root_func_name = "FLIGHTSIM" if "FLIGHTSIM" else None
-max_depth = 2
+root_func_name = "entry" if "entry" else None
+max_depth = 3
 direction = "both"
 
 result = {"success": True}
@@ -77,7 +77,7 @@ result = {"success": True}
 if root_func_name:
     root_func = find_function(root_func_name)
     if not root_func:
-        result = {"success": False, "error": "Function not found: FLIGHTSIM"}
+        result = {"success": False, "error": "Function not found: entry"}
     else:
         if direction in ["callees", "both"]:
             result["callees"] = get_callees(root_func, set(), 0, max_depth)

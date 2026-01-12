@@ -2,7 +2,7 @@
 # @runtime Jython
 import json
 
-pattern = "flight".lower()
+pattern = "aes".lower()
 results = []
 data_mgr = currentProgram.getListing()
 

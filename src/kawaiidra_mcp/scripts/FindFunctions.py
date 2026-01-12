@@ -2,7 +2,7 @@
 # @runtime Jython
 import json
 
-pattern = "flight".lower()
+pattern = "sha".lower()
 results = []
 fm = currentProgram.getFunctionManager()
 
