@@ -227,27 +227,27 @@ class KawaiidraTestRunner:
         print("=" * 50)
 
         # Ensure test binary is analyzed
-        if not self.ensure_binary_analyzed("sauerbraten.exe"):
+        if not self.ensure_binary_analyzed("hello_x86.exe"):
             print("Cannot proceed without analyzed binary")
             return suite
 
         # Core tests
         tests = [
             ("CORE-002", "list_analyzed_binaries", {}),
-            ("CORE-003", "list_functions", {"binary_name": "sauerbraten.exe", "limit": 20}),
-            ("CORE-004", "find_functions", {"binary_name": "sauerbraten.exe", "pattern": "main"}),
-            ("CORE-005", "get_function_decompile", {"binary_name": "sauerbraten.exe", "function_name": "entry"}),
-            ("CORE-006", "get_function_disassembly", {"binary_name": "sauerbraten.exe", "function_name": "entry"}),
-            ("CORE-007", "get_function_xrefs", {"binary_name": "sauerbraten.exe", "function_name": "entry"}),
-            ("CORE-008", "list_strings", {"binary_name": "sauerbraten.exe", "limit": 50}),
-            ("CORE-009", "search_strings", {"binary_name": "sauerbraten.exe", "pattern": "error"}),
-            ("CORE-010", "get_binary_info", {"binary_name": "sauerbraten.exe"}),
-            ("CORE-011", "get_memory_map", {"binary_name": "sauerbraten.exe"}),
-            ("CORE-012", "list_imports", {"binary_name": "sauerbraten.exe", "limit": 20}),
-            ("CORE-013", "list_exports", {"binary_name": "sauerbraten.exe"}),
-            ("CORE-014", "list_data_items", {"binary_name": "sauerbraten.exe", "limit": 20}),
-            ("CORE-015", "list_namespaces", {"binary_name": "sauerbraten.exe"}),
-            ("CORE-019", "export_analysis", {"binary_name": "sauerbraten.exe"}),
+            ("CORE-003", "list_functions", {"binary_name": "hello_x86.exe", "limit": 20}),
+            ("CORE-004", "find_functions", {"binary_name": "hello_x86.exe", "pattern": "main"}),
+            ("CORE-005", "get_function_decompile", {"binary_name": "hello_x86.exe", "function_name": "entry"}),
+            ("CORE-006", "get_function_disassembly", {"binary_name": "hello_x86.exe", "function_name": "entry"}),
+            ("CORE-007", "get_function_xrefs", {"binary_name": "hello_x86.exe", "function_name": "entry"}),
+            ("CORE-008", "list_strings", {"binary_name": "hello_x86.exe", "limit": 50}),
+            ("CORE-009", "search_strings", {"binary_name": "hello_x86.exe", "pattern": "error"}),
+            ("CORE-010", "get_binary_info", {"binary_name": "hello_x86.exe"}),
+            ("CORE-011", "get_memory_map", {"binary_name": "hello_x86.exe"}),
+            ("CORE-012", "list_imports", {"binary_name": "hello_x86.exe", "limit": 20}),
+            ("CORE-013", "list_exports", {"binary_name": "hello_x86.exe"}),
+            ("CORE-014", "list_data_items", {"binary_name": "hello_x86.exe", "limit": 20}),
+            ("CORE-015", "list_namespaces", {"binary_name": "hello_x86.exe"}),
+            ("CORE-019", "export_analysis", {"binary_name": "hello_x86.exe"}),
             ("CORE-021", "cache_stats", {}),
             ("CORE-022", "bridge_status", {}),
         ]
@@ -267,16 +267,16 @@ class KawaiidraTestRunner:
         print("=" * 50)
 
         tests = [
-            ("ADV-001", "get_call_graph", {"binary_name": "sauerbraten.exe", "function_name": "entry", "depth": 2}),
-            ("ADV-002", "detect_libraries", {"binary_name": "sauerbraten.exe"}),
-            ("ADV-003", "semantic_code_search", {"binary_name": "sauerbraten.exe", "pattern": "file_io"}),
-            ("ADV-004", "get_function_with_context", {"binary_name": "sauerbraten.exe", "function_name": "entry"}),
-            ("ADV-005", "get_data_structures", {"binary_name": "sauerbraten.exe"}),
-            ("ADV-006", "get_control_flow_graph", {"binary_name": "sauerbraten.exe", "function_name": "entry"}),
-            ("ADV-007", "detect_vulnerabilities", {"binary_name": "sauerbraten.exe", "severity": "medium"}),
-            ("ADV-008", "find_similar_functions", {"binary_name": "sauerbraten.exe", "function_name": "entry"}),
-            ("ADV-009", "get_annotated_disassembly", {"binary_name": "sauerbraten.exe", "function_name": "entry"}),
-            ("ADV-010", "suggest_symbol_names", {"binary_name": "sauerbraten.exe", "function_name": "entry"}),
+            ("ADV-001", "get_call_graph", {"binary_name": "hello_x86.exe", "function_name": "entry", "depth": 2}),
+            ("ADV-002", "detect_libraries", {"binary_name": "hello_x86.exe"}),
+            ("ADV-003", "semantic_code_search", {"binary_name": "hello_x86.exe", "pattern": "file_io"}),
+            ("ADV-004", "get_function_with_context", {"binary_name": "hello_x86.exe", "function_name": "entry"}),
+            ("ADV-005", "get_data_structures", {"binary_name": "hello_x86.exe"}),
+            ("ADV-006", "get_control_flow_graph", {"binary_name": "hello_x86.exe", "function_name": "entry"}),
+            ("ADV-007", "detect_vulnerabilities", {"binary_name": "hello_x86.exe", "severity": "medium"}),
+            ("ADV-008", "find_similar_functions", {"binary_name": "hello_x86.exe", "function_name": "entry"}),
+            ("ADV-009", "get_annotated_disassembly", {"binary_name": "hello_x86.exe", "function_name": "entry"}),
+            ("ADV-010", "suggest_symbol_names", {"binary_name": "hello_x86.exe", "function_name": "entry"}),
         ]
 
         for test_id, tool, args in tests:
@@ -349,14 +349,14 @@ class KawaiidraTestRunner:
         # But we test that the handlers don't crash
 
         tests = [
-            ("IOS-001", "detect_kpp_ktrr", {"binary_name": "sauerbraten.exe"}),
-            ("IOS-002", "analyze_mach_traps", {"binary_name": "sauerbraten.exe"}),
-            ("IOS-003", "find_pac_gadgets", {"binary_name": "sauerbraten.exe"}),
-            ("IOS-004", "analyze_sandbox_ops", {"binary_name": "sauerbraten.exe"}),
-            ("IOS-005", "find_iokit_classes", {"binary_name": "sauerbraten.exe"}),
-            ("IOS-006", "detect_entitlement_checks", {"binary_name": "sauerbraten.exe"}),
-            ("IOS-007", "find_kernel_symbols", {"binary_name": "sauerbraten.exe"}),
-            ("IOS-008", "analyze_mach_ports", {"binary_name": "sauerbraten.exe"}),
+            ("IOS-001", "detect_kpp_ktrr", {"binary_name": "hello_x86.exe"}),
+            ("IOS-002", "analyze_mach_traps", {"binary_name": "hello_x86.exe"}),
+            ("IOS-003", "find_pac_gadgets", {"binary_name": "hello_x86.exe"}),
+            ("IOS-004", "analyze_sandbox_ops", {"binary_name": "hello_x86.exe"}),
+            ("IOS-005", "find_iokit_classes", {"binary_name": "hello_x86.exe"}),
+            ("IOS-006", "detect_entitlement_checks", {"binary_name": "hello_x86.exe"}),
+            ("IOS-007", "find_kernel_symbols", {"binary_name": "hello_x86.exe"}),
+            ("IOS-008", "analyze_mach_ports", {"binary_name": "hello_x86.exe"}),
         ]
 
         for test_id, tool, args in tests:
@@ -433,7 +433,7 @@ def main():
 
         # For phases 2-5, ensure base binary is analyzed first
         if args.phase >= 2:
-            runner.ensure_binary_analyzed("sauerbraten.exe")
+            runner.ensure_binary_analyzed("hello_x86.exe")
 
         suite = phase_methods[args.phase]()
         runner.suites.append(suite)
