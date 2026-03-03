@@ -13,7 +13,7 @@ try:
     for symbol in symbol_table.getAllSymbols(True):
         # Check if symbol is exported (external entry point or has GLOBAL scope)
         if symbol.isExternalEntryPoint() or (symbol.getSymbolType() == SymbolType.FUNCTION and symbol.isGlobal()):
-            if count >= 0 and len(exports) < 10:
+            if count >= 0 and len(exports) < 500:
                 exports.append({
                     "name": symbol.getName(),
                     "address": str(symbol.getAddress()),

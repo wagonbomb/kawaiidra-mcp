@@ -10,9 +10,9 @@ from ghidra.program.model.symbol import SymbolType, SourceType
 from ghidra.program.model.listing import CodeUnit
 from ghidra.app.decompiler import DecompInterface
 
-depth = "quick"
+depth = "standard"
 include_decompilation = False
-max_functions_decompile = 0
+max_functions_decompile = 5
 
 report = {
     "meta": {},

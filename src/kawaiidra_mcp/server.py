@@ -83,16 +83,35 @@ def _quote_windows_arg(arg: str) -> str:
     # Characters that need quoting in cmd.exe
     special_chars = ' \t()&^|<>!'
     if any(c in arg for c in special_chars) or '"' in arg:
-        # Escape special cmd.exe characters with ^ and wrap in double quotes
+        # When wrapped in double quotes, only ^ & | < > need escaping.
+        # Parentheses do NOT need escaping inside double-quoted strings.
         escaped = arg
-        for char in '^&|<>':  # Characters that need escaping even in quotes
+        for char in '^&|<>':  # Characters that need escaping even inside double quotes
             escaped = escaped.replace(char, f'^{char}')
-        # Parentheses need escaping in cmd.exe
-        escaped = escaped.replace('(', '^(').replace(')', '^)')
         # Escape any existing double quotes
         escaped = escaped.replace('"', '""')
         return '"' + escaped + '"'
     return arg
+
+
+def _get_win32_short_path(path: str) -> str:
+    """Convert a Windows path to its 8.3 short form.
+
+    analyzeHeadless.bat parses its arguments with an internal `for %%i in (%*)` loop.
+    This loop treats parentheses as group delimiters even inside double-quoted tokens,
+    so paths like 'C:\\Program Files (x86)\\...' are misread. Converting to the 8.3
+    short path (e.g. PROGRA~2) sidesteps the issue entirely.
+    """
+    if sys.platform != "win32" or "(" not in path:
+        return path
+    try:
+        import ctypes
+        buf = ctypes.create_unicode_buffer(32768)
+        if ctypes.windll.kernel32.GetShortPathNameW(path, buf, 32768):
+            return buf.value
+    except Exception:
+        pass
+    return path
 
 
 def run_ghidra_headless(
@@ -113,7 +132,10 @@ def run_ghidra_headless(
 
     # On Windows with batch files, we need to manually quote arguments for cmd.exe
     if sys.platform == "win32" and str(analyze_headless).endswith(".bat"):
-        quoted_args = [_quote_windows_arg(arg) for arg in command_args]
+        # Convert paths with parentheses to 8.3 short form before quoting —
+        # analyzeHeadless.bat's internal for-loop misparses parentheses even in quoted args.
+        safe_args = [_get_win32_short_path(arg) for arg in command_args]
+        quoted_args = [_quote_windows_arg(arg) for arg in safe_args]
         cmd_str = f'"{analyze_headless}" ' + ' '.join(quoted_args)
         log(f"Running: {cmd_str}")
         try:
@@ -6367,7 +6389,7 @@ try:
     # =========================================================================
     strings_data = []
     interesting_patterns = {{
-        "urls": re.compile(r'https?://[^\s<>"{{}}|\\\\^`\\[\\]]+', re.I),
+        "urls": re.compile(r'https?://[^\\s<>"{{}}|\\\\^`\\[\\]]+', re.I),
         "ips": re.compile(r'\\b(?:\\d{{1,3}}\\.?){{4}}\\b'),
         "paths": re.compile(r'[A-Za-z]:\\\\[^\\s]+|/(?:usr|etc|var|home|tmp|bin|opt)/[^\\s]+'),
         "emails": re.compile(r'[\\w.-]+@[\\w.-]+\\.\\w+'),
@@ -7381,10 +7403,10 @@ results = {{
 }}
 
 # Patterns
-url_pattern = re.compile(r'https?://[a-zA-Z0-9][a-zA-Z0-9\-._~:/?#\[\]@!$&\'()*+,;=%]+', re.IGNORECASE)
-hostname_pattern = re.compile(r'(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{{0,61}}[a-zA-Z0-9])?\.)+[a-zA-Z]{{2,}}')
-ip_pattern = re.compile(r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.)+(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)')
-path_pattern = re.compile(r'/(?:api|v[0-9]+|rest|graphql|ws|wss)/[a-zA-Z0-9/_\-]+')
+url_pattern = re.compile(r'https?://[a-zA-Z0-9][a-zA-Z0-9\\-._~:/?#\\[\\]@!$&\'()*+,;=%]+', re.IGNORECASE)
+hostname_pattern = re.compile(r'(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{{0,61}}[a-zA-Z0-9])?\\.)+[a-zA-Z]{{2,}}')
+ip_pattern = re.compile(r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.)+(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)')
+path_pattern = re.compile(r'/(?:api|v[0-9]+|rest|graphql|ws|wss)/[a-zA-Z0-9/_\\-]+')
 
 seen_urls = set()
 seen_hosts = set()
@@ -7526,14 +7548,14 @@ results = {{
 patterns = {{
     "aws_key": re.compile(r'AKIA[0-9A-Z]{{16}}'),
     "aws_secret": re.compile(r'[0-9a-zA-Z/+]{{40}}'),
-    "google_api": re.compile(r'AIza[0-9A-Za-z\-_]{{35}}'),
+    "google_api": re.compile(r'AIza[0-9A-Za-z\\-_]{{35}}'),
     "firebase": re.compile(r'AAAA[A-Za-z0-9_-]{{7}}:[A-Za-z0-9_-]{{140}}'),
     "github_token": re.compile(r'gh[pousr]_[A-Za-z0-9_]{{36,}}'),
-    "jwt": re.compile(r'eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'),
+    "jwt": re.compile(r'eyJ[A-Za-z0-9_-]*\\.eyJ[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*'),
     "private_key": re.compile(r'-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'),
-    "password_field": re.compile(r'(?:password|passwd|pwd|secret|api_key|apikey|auth_token|access_token)["\']?\s*[:=]\s*["\']([^"\'\\s]{{8,}})["\']', re.IGNORECASE),
-    "bearer_token": re.compile(r'[Bb]earer\s+[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+'),
-    "basic_auth": re.compile(r'[Bb]asic\s+[A-Za-z0-9+/=]{{20,}}'),
+    "password_field": re.compile(r'(?:password|passwd|pwd|secret|api_key|apikey|auth_token|access_token)["\']?\\s*[:=]\\s*["\']([^"\'\\s]{{8,}})["\']', re.IGNORECASE),
+    "bearer_token": re.compile(r'[Bb]earer\\s+[A-Za-z0-9\\-_]+\\.[A-Za-z0-9\\-_]+'),
+    "basic_auth": re.compile(r'[Bb]asic\\s+[A-Za-z0-9+/=]{{20,}}'),
     "hex_key": re.compile(r'["\'][0-9a-fA-F]{{32,64}}["\']'),
 }}
 
@@ -7543,7 +7565,7 @@ if sensitivity in ["medium", "high"]:
     patterns["connection_string"] = re.compile(r'(?:mongodb|mysql|postgres|redis|amqp)://[^\\s"\']+')
 
 if sensitivity == "high":
-    patterns["potential_secret"] = re.compile(r'(?:secret|key|token|password|credential|auth)[_-]?[A-Za-z0-9]{{0,20}}["\']?\s*[:=]\s*["\']?[^\\s"\'{{}}]{{6,}}', re.IGNORECASE)
+    patterns["potential_secret"] = re.compile(r'(?:secret|key|token|password|credential|auth)[_-]?[A-Za-z0-9]{{0,20}}["\']?\\s*[:=]\\s*["\']?[^\\s"\'{{}}]{{6,}}', re.IGNORECASE)
 
 data_mgr = currentProgram.getListing()
 seen = set()

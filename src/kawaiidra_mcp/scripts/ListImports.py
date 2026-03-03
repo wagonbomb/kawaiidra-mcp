@@ -13,7 +13,7 @@ try:
 
     # Get external symbols (imports)
     for symbol in symbol_table.getExternalSymbols():
-        if count >= 0 and len(imports) < 10:
+        if count >= 0 and len(imports) < 500:
             ext_loc = symbol.getExternalLocation() if hasattr(symbol, 'getExternalLocation') else None
             library = ""
             if ext_loc:
