@@ -2738,7 +2738,7 @@ def get_callers(func, visited, current_depth, max_depth):
         "callers": callers[:20]
     }}
 
-root_func_name = "{function_name}" if "{function_name}" else None
+root_func_name = {"'%s'" % function_name if function_name else "None"}
 max_depth = {depth}
 direction = "{direction}"
 
@@ -3295,7 +3295,7 @@ async def handle_get_data_structures(args: dict) -> Sequence[types.TextContent]:
 import json
 from ghidra.program.model.data import Structure, Union, Enum
 
-structure_filter = "{structure_name}" if "{structure_name}" else None
+structure_filter = {"'%s'" % structure_name if structure_name else "None"}
 include_usage = {"True" if include_usage else "False"}
 
 dtm = currentProgram.getDataTypeManager()
@@ -3616,7 +3616,7 @@ VULN_PATTERNS = {{
 }}
 
 severity_filter = "{severity}"
-function_filter = "{function_name}" if "{function_name}" else None
+function_filter = {"'%s'" % function_name if function_name else "None"}
 severity_order = {{"critical": 4, "high": 3, "medium": 2, "low": 1, "all": 0}}
 
 vulnerabilities = []
