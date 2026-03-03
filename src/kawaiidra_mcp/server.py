@@ -7,6 +7,7 @@ Ghidra's headless analyzer and decompiler.
 """
 
 import asyncio
+import base64
 import json
 import os
 import re
@@ -392,6 +393,14 @@ TOOLS = [
                 "project_name": {
                     "type": "string",
                     "description": "Ghidra project name (default: 'default')"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Line offset to start from (0-based, for paginating long output)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of lines to return (default: all)"
                 }
             },
             "required": ["binary_name", "function_name"]
@@ -414,6 +423,14 @@ TOOLS = [
                 "project_name": {
                     "type": "string",
                     "description": "Ghidra project name (default: 'default')"
+                },
+                "offset": {
+                    "type": "integer",
+                    "description": "Instruction offset to start from (0-based, for paginating long output)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of instructions to return (default: all)"
                 }
             },
             "required": ["binary_name", "function_name"]
@@ -1602,6 +1619,156 @@ TOOLS = [
             "required": []
         }
     ),
+    # Batch / Low-level / Script Tools
+    types.Tool(
+        name="batch_decompile",
+        description="Decompile multiple functions in a single Ghidra invocation. More efficient than calling get_function_decompile repeatedly.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_names": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of function names or addresses to decompile"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_names"]
+        }
+    ),
+    types.Tool(
+        name="read_memory",
+        description="Read raw bytes at an address. Returns hex dump with ASCII representation.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Start address in hex (e.g., '0x401000')"
+                },
+                "length": {
+                    "type": "integer",
+                    "description": "Number of bytes to read (default: 256, max: 4096)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address"]
+        }
+    ),
+    types.Tool(
+        name="search_bytes",
+        description="Search for a byte pattern in the binary. Supports ?? wildcards for unknown bytes. Example pattern: '48 8B 05 ?? ?? ?? ??'",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "pattern": {
+                    "type": "string",
+                    "description": "Hex byte pattern with optional ?? wildcards (e.g., '4D 5A 90 00' or '48 8B ?? ?? ?? ?? ??')"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of matches to return (default: 20, max: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "pattern"]
+        }
+    ),
+    types.Tool(
+        name="create_function",
+        description="Create a new function at a specified address. Useful for defining functions that Ghidra's auto-analysis missed.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address to create function at (hex, e.g., '0x401000')"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Optional name for the new function"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address"]
+        }
+    ),
+    types.Tool(
+        name="delete_function",
+        description="Delete a function by address or name. Removes the function definition but not the underlying code bytes.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address_or_name": {
+                    "type": "string",
+                    "description": "Function address (hex) or name to delete"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address_or_name"]
+        }
+    ),
+    types.Tool(
+        name="run_script",
+        description="Execute arbitrary Jython code in the Ghidra scripting environment. Has access to currentProgram, ghidra API, and all standard Ghidra script variables. Output is captured from stdout.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "code": {
+                    "type": "string",
+                    "description": "Jython code to execute in Ghidra's scripting environment"
+                },
+                "save": {
+                    "type": "boolean",
+                    "description": "Whether to save changes to the project (default: false)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "code"]
+        }
+    ),
 ]
 
 
@@ -1743,6 +1910,19 @@ async def handle_call_tool(
             return handle_get_current_selection(arguments)
         elif name == "gui_status":
             return handle_gui_status(arguments)
+        # Batch / Low-level / Script Tools
+        elif name == "batch_decompile":
+            return await handle_batch_decompile(arguments)
+        elif name == "read_memory":
+            return await handle_read_memory(arguments)
+        elif name == "search_bytes":
+            return await handle_search_bytes(arguments)
+        elif name == "create_function":
+            return await handle_create_function(arguments)
+        elif name == "delete_function":
+            return await handle_delete_function(arguments)
+        elif name == "run_script":
+            return await handle_run_script(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -2011,6 +2191,27 @@ async def handle_get_function_decompile(args: dict) -> Sequence[types.TextConten
     binary_name = args.get("binary_name")
     function_name = args.get("function_name")
     project_name = args.get("project_name", config.default_project)
+    page_offset = args.get("offset")
+    page_limit = args.get("limit")
+
+    def _format_decompile_result(func_name, address, signature, code, source_tag=""):
+        """Format decompile result with optional line pagination."""
+        lines = code.split("\n")
+        total_lines = len(lines)
+        tag = f" [{source_tag}]" if source_tag else ""
+
+        if page_offset is not None or page_limit is not None:
+            start = page_offset or 0
+            end = start + page_limit if page_limit is not None else total_lines
+            sliced = lines[start:end]
+            text = f"Decompiled {func_name} @ {address}{tag} (lines {start}-{min(end, total_lines)} of {total_lines}):\n\n"
+            text += f"Signature: {signature}\n\n"
+            text += f"```c\n" + "\n".join(sliced) + "\n```"
+        else:
+            text = f"Decompiled {func_name} @ {address}{tag}:\n\n"
+            text += f"Signature: {signature}\n\n"
+            text += f"```c\n{code}\n```"
+        return text
 
     # Check cache first
     cache = get_cache()
@@ -2018,9 +2219,7 @@ async def handle_get_function_decompile(args: dict) -> Sequence[types.TextConten
     cached = cache.get("get_function_decompile", binary_name, project_name, cache_params,
                        project_dir=config.get_project_path(project_name))
     if cached is not None:
-        text = f"Decompiled {cached['function']} @ {cached['address']} [CACHED]:\n\n"
-        text += f"Signature: {cached['signature']}\n\n"
-        text += f"```c\n{cached['code']}\n```"
+        text = _format_decompile_result(cached['function'], cached['address'], cached['signature'], cached['code'], "CACHED")
         return [types.TextContent(type="text", text=text)]
 
     # Try fast bridge path first
@@ -2035,9 +2234,7 @@ async def handle_get_function_decompile(args: dict) -> Sequence[types.TextConten
                            "signature": result['signature'], "code": result['code']},
                           project_dir=config.get_project_path(project_name))
 
-                text = f"Decompiled {result['function_name']} @ {result['address']} [BRIDGE]:\n\n"
-                text += f"Signature: {result['signature']}\n\n"
-                text += f"```c\n{result['code']}\n```"
+                text = _format_decompile_result(result['function_name'], result['address'], result['signature'], result['code'], "BRIDGE")
                 return [types.TextContent(type="text", text=text)]
             else:
                 return [types.TextContent(type="text", text=f"Decompilation failed: {result.get('error', 'Unknown error')}")]
@@ -2114,9 +2311,7 @@ else:
                    "signature": result['signature'], "code": result['code']},
                   project_dir=config.get_project_path(project_name))
 
-        text = f"Decompiled {result['function']} @ {result['address']}:\n\n"
-        text += f"Signature: {result['signature']}\n\n"
-        text += f"```c\n{result['code']}\n```"
+        text = _format_decompile_result(result['function'], result['address'], result['signature'], result['code'])
         return [types.TextContent(type="text", text=text)]
     else:
         return [types.TextContent(type="text", text=f"Decompilation failed: {result.get('error', 'Unknown error')}")]
@@ -2127,6 +2322,8 @@ async def handle_get_function_disassembly(args: dict) -> Sequence[types.TextCont
     binary_name = args.get("binary_name")
     function_name = args.get("function_name")
     project_name = args.get("project_name", config.default_project)
+    page_offset = args.get("offset")
+    page_limit = args.get("limit")
 
     # Try fast bridge path first
     backend = get_backend()
@@ -2200,8 +2397,20 @@ else:
     result = parse_ghidra_json_output(stdout)
 
     if result.get("success"):
-        text = f"Disassembly of {result['function']} @ {result['address']}:\n\n```asm\n"
-        for inst in result.get("instructions", []):
+        all_instructions = result.get("instructions", [])
+        total = len(all_instructions)
+
+        # Apply pagination
+        if page_offset is not None or page_limit is not None:
+            start = page_offset or 0
+            end = start + page_limit if page_limit is not None else total
+            instructions = all_instructions[start:end]
+            text = f"Disassembly of {result['function']} @ {result['address']} (instructions {start}-{min(end, total)} of {total}):\n\n```asm\n"
+        else:
+            instructions = all_instructions
+            text = f"Disassembly of {result['function']} @ {result['address']}:\n\n```asm\n"
+
+        for inst in instructions:
             text += f"{inst['address']}:  {inst['operands']}\n"
         text += "```"
         return [types.TextContent(type="text", text=text)]
@@ -8064,6 +8273,538 @@ print("=== MCP_RESULT_END ===")
             text += f"  ... and {len(modified) - 50} more\n"
 
     return [types.TextContent(type="text", text=text)]
+
+
+# ============================================================================
+# Batch / Low-level / Script Tool Handlers
+# ============================================================================
+
+async def handle_batch_decompile(args: dict) -> Sequence[types.TextContent]:
+    """Decompile multiple functions in a single Ghidra invocation."""
+    binary_name = args.get("binary_name")
+    function_names = args.get("function_names", [])
+    project_name = args.get("project_name", config.default_project)
+
+    if not function_names:
+        return [types.TextContent(type="text", text="Error: function_names list is empty")]
+
+    # Inject the list safely via json.dumps (escape single quotes for Jython string literal)
+    names_json = json.dumps(function_names).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+from ghidra.app.decompiler import DecompInterface
+from ghidra.util.task import ConsoleTaskMonitor
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+def find_function(name):
+    funcs = getGlobalFunctions(name)
+    if funcs:
+        return funcs[0]
+    try:
+        addr = toAddr(name)
+        func = getFunctionAt(addr)
+        if not func:
+            func = getFunctionContaining(addr)
+        return func
+    except:
+        return None
+
+names = json.loads('{names_json}')
+results = []
+
+decompiler = DecompInterface()
+decompiler.openProgram(currentProgram)
+monitor = ConsoleTaskMonitor()
+
+for name in names:
+    func = find_function(name)
+    if not func:
+        results.append({{"name": name, "success": False, "error": "Function not found"}})
+        continue
+
+    decomp_result = decompiler.decompileFunction(func, 60, monitor)
+    if decomp_result.decompileCompleted():
+        code = decomp_result.getDecompiledFunction().getC()
+        results.append({{
+            "name": _safe_str(func.getName()),
+            "address": _safe_str(func.getEntryPoint()),
+            "signature": _safe_str(func.getSignature()),
+            "code": code,
+            "success": True
+        }})
+    else:
+        results.append({{
+            "name": _safe_str(func.getName()),
+            "success": False,
+            "error": _safe_str(decomp_result.getErrorMessage())
+        }})
+
+decompiler.dispose()
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "results": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("BatchDecompile.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "BatchDecompile.py"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if not result.get("success"):
+        return [types.TextContent(type="text", text=f"Batch decompilation failed: {result.get('error', 'Unknown error')}")]
+
+    text = f"# Batch Decompilation ({len(function_names)} requested)\n\n"
+    for r in result.get("results", []):
+        if r.get("success"):
+            text += f"## {r['name']} @ {r['address']}\n"
+            text += f"Signature: {r['signature']}\n\n"
+            text += f"```c\n{r['code']}\n```\n\n"
+        else:
+            text += f"## {r['name']}\n"
+            text += f"Error: {r.get('error', 'Unknown error')}\n\n"
+
+    return [types.TextContent(type="text", text=text)]
+
+
+async def handle_read_memory(args: dict) -> Sequence[types.TextContent]:
+    """Read raw bytes at an address, returns hex dump + ASCII."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    length = min(args.get("length", 256), 4096)
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+import jarray
+
+addr_str = "{address}"
+length = {length}
+
+addr = currentProgram.getAddressFactory().getAddress(addr_str)
+if addr is None:
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{"success": False, "error": "Invalid address: " + addr_str}}))
+    print("=== MCP_RESULT_END ===")
+else:
+    memory = currentProgram.getMemory()
+    buf = jarray.zeros(length, "b")
+    try:
+        bytes_read = memory.getBytes(addr, buf)
+        # Convert signed Java bytes to unsigned
+        hex_bytes = []
+        for b in buf:
+            hex_bytes.append(int(b) & 0xFF)
+
+        # Build hex dump rows (16 bytes per row)
+        rows = []
+        row_addr = addr
+        for i in range(0, len(hex_bytes), 16):
+            chunk = hex_bytes[i:i+16]
+            hex_part = " ".join("%02X" % b for b in chunk)
+            ascii_part = ""
+            for b in chunk:
+                if 0x20 <= b <= 0x7E:
+                    ascii_part += chr(b)
+                else:
+                    ascii_part += "."
+            rows.append("%s:  %-48s  |%s|" % (str(row_addr), hex_part, ascii_part))
+            row_addr = row_addr.add(16)
+
+        print("=== MCP_RESULT_JSON ===")
+        print(json.dumps({{
+            "success": True,
+            "address": addr_str,
+            "length": len(hex_bytes),
+            "dump": "\\n".join(rows)
+        }}))
+        print("=== MCP_RESULT_END ===")
+    except Exception as e:
+        print("=== MCP_RESULT_JSON ===")
+        print(json.dumps({{"success": False, "error": str(e)}}))
+        print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ReadMemory.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ReadMemory.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"Memory dump at {result['address']} ({result['length']} bytes):\n\n```\n{result['dump']}\n```"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_search_bytes(args: dict) -> Sequence[types.TextContent]:
+    """Search for a byte pattern with ?? wildcards."""
+    binary_name = args.get("binary_name")
+    pattern_str = args.get("pattern", "")
+    limit = min(args.get("limit", 20), 100)
+    project_name = args.get("project_name", config.default_project)
+
+    # Parse the pattern in Python — build byte[] and mask[] for Ghidra
+    tokens = pattern_str.strip().split()
+    byte_vals = []
+    mask_vals = []
+    for token in tokens:
+        if token == "??" or token == "?":
+            byte_vals.append(0)
+            mask_vals.append(0)  # 0 = don't care
+        else:
+            try:
+                byte_vals.append(int(token, 16))
+                mask_vals.append(0xFF)  # 0xFF = must match
+            except ValueError:
+                return [types.TextContent(type="text", text=f"Error: Invalid hex byte in pattern: '{token}'")]
+
+    if not byte_vals:
+        return [types.TextContent(type="text", text="Error: Empty byte pattern")]
+
+    byte_vals_json = json.dumps(byte_vals).replace("'", "\\'")
+    mask_vals_json = json.dumps(mask_vals).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+import jarray
+from ghidra.util.task import ConsoleTaskMonitor
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+byte_vals = json.loads('{byte_vals_json}')
+mask_vals = json.loads('{mask_vals_json}')
+limit = {limit}
+
+# Build Java byte arrays
+search_bytes = jarray.zeros(len(byte_vals), "b")
+search_masks = jarray.zeros(len(mask_vals), "b")
+for i in range(len(byte_vals)):
+    # Convert to signed byte (-128 to 127)
+    v = byte_vals[i]
+    if v > 127:
+        v = v - 256
+    search_bytes[i] = v
+    m = mask_vals[i]
+    if m > 127:
+        m = m - 256
+    search_masks[i] = m
+
+memory = currentProgram.getMemory()
+monitor = ConsoleTaskMonitor()
+matches = []
+
+# Search through all memory blocks
+addr = memory.getMinAddress()
+end_addr = memory.getMaxAddress()
+
+while addr is not None and len(matches) < limit:
+    found = memory.findBytes(addr, end_addr, search_bytes, search_masks, True, monitor)
+    if found is None:
+        break
+
+    # Find containing function for context
+    func = getFunctionContaining(found)
+    func_name = _safe_str(func.getName()) if func else None
+
+    matches.append({{
+        "address": str(found),
+        "function": func_name
+    }})
+
+    # Move past this match
+    addr = found.add(1)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "pattern": "{pattern_str}", "count": len(matches), "matches": matches}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("SearchBytes.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "SearchBytes.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        matches = result.get("matches", [])
+        text = f"Byte pattern search: `{result.get('pattern', pattern_str)}`\n"
+        text += f"Found {result.get('count', len(matches))} matches:\n\n"
+        for m in matches:
+            func_info = f" (in {m['function']})" if m.get("function") else ""
+            text += f"  {m['address']}{func_info}\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_create_function(args: dict) -> Sequence[types.TextContent]:
+    """Create a function at a specified address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    name = args.get("name")
+    project_name = args.get("project_name", config.default_project)
+
+    name_arg = f"'{name}'" if name else "None"
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.symbol import SourceType
+
+result = {{"success": False, "message": ""}}
+
+try:
+    addr_str = "{address}"
+    func_name = {name_arg}
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["message"] = "Invalid address: " + addr_str
+    else:
+        func_manager = currentProgram.getFunctionManager()
+
+        # Check if function already exists
+        existing = func_manager.getFunctionAt(addr)
+        if existing:
+            result["message"] = "Function already exists at " + addr_str + ": " + existing.getName()
+        else:
+            func = createFunction(addr, func_name or ("FUN_" + addr_str.replace("0x", "")))
+            if func:
+                if func_name:
+                    func.setName(func_name, SourceType.USER_DEFINED)
+                result["success"] = True
+                result["message"] = "Created function '{{}}' at {{}}".format(func.getName(), addr_str)
+                result["address"] = addr_str
+                result["name"] = func.getName()
+            else:
+                result["message"] = "Failed to create function at " + addr_str
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("CreateFunction.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "CreateFunction.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_delete_function(args: dict) -> Sequence[types.TextContent]:
+    """Delete a function by address or name."""
+    binary_name = args.get("binary_name")
+    address_or_name = args.get("address_or_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+result = {{"success": False, "message": ""}}
+
+try:
+    target = "{address_or_name}"
+    func_manager = currentProgram.getFunctionManager()
+    func = None
+
+    # Try as address first
+    try:
+        addr = currentProgram.getAddressFactory().getAddress(target)
+        if addr is not None:
+            func = func_manager.getFunctionAt(addr)
+    except:
+        pass
+
+    # Try by name if address lookup failed
+    if func is None:
+        for f in func_manager.getFunctions(True):
+            if f.getName() == target:
+                func = f
+                break
+
+    if func:
+        func_name = func.getName()
+        entry = func.getEntryPoint()
+        removed = func_manager.removeFunction(entry)
+        if removed:
+            result["success"] = True
+            result["message"] = "Deleted function '{{}}' at {{}}".format(func_name, str(entry))
+        else:
+            result["message"] = "Failed to remove function '{{}}' at {{}}".format(func_name, str(entry))
+    else:
+        result["message"] = "Function not found: " + target
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("DeleteFunction.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "DeleteFunction.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_run_script(args: dict) -> Sequence[types.TextContent]:
+    """Execute arbitrary Jython code in Ghidra's scripting environment."""
+    binary_name = args.get("binary_name")
+    user_code = args.get("code", "")
+    save = args.get("save", False)
+    project_name = args.get("project_name", config.default_project)
+
+    if not user_code.strip():
+        return [types.TextContent(type="text", text="Error: No code provided")]
+
+    # Base64-encode the user code to avoid all quoting/escaping issues
+    code_b64 = base64.b64encode(user_code.encode("utf-8")).decode("ascii")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import base64
+import sys
+import json
+
+class OutputCapture:
+    def __init__(self):
+        self.lines = []
+    def write(self, s):
+        self.lines.append(s)
+    def flush(self):
+        pass
+
+captured = OutputCapture()
+old_stdout = sys.stdout
+sys.stdout = captured
+
+error_msg = None
+try:
+    code = base64.b64decode("{code_b64}").decode("utf-8")
+    exec(code)
+except Exception as e:
+    error_msg = str(e)
+finally:
+    sys.stdout = old_stdout
+
+output = "".join(captured.lines)
+
+print("=== MCP_RESULT_JSON ===")
+if error_msg:
+    print(json.dumps({{"success": False, "error": error_msg, "output": output}}))
+else:
+    print(json.dumps({{"success": True, "output": output}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("RunScript.py", script)
+
+    project_path = config.get_project_path(project_name)
+    cmd_args = [
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RunScript.py"
+    ]
+    if save:
+        cmd_args.append("-save")
+
+    stdout, stderr, code = run_ghidra_headless(cmd_args, timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        output = result.get("output", "")
+        if output:
+            text = f"Script output:\n\n```\n{output}\n```"
+        else:
+            text = "Script executed successfully (no output)."
+        return [types.TextContent(type="text", text=text)]
+    else:
+        error = result.get("error", "Unknown error")
+        output = result.get("output", "")
+        text = f"Script error: {error}"
+        if output:
+            text += f"\n\nPartial output:\n```\n{output}\n```"
+        return [types.TextContent(type="text", text=text)]
 
 
 # ============================================================================
