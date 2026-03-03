@@ -2297,18 +2297,31 @@ async def handle_search_strings(args: dict) -> Sequence[types.TextContent]:
 # @runtime Jython
 import json
 
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
 pattern = "{pattern}".lower()
 results = []
 data_mgr = currentProgram.getListing()
 
 for data in data_mgr.getDefinedData(True):
     if data.hasStringValue():
-        val = data.getValue()
-        if val and pattern in str(val).lower():
-            results.append({{
-                "address": str(data.getAddress()),
-                "value": str(val)[:200]
-            }})
+        try:
+            val = data.getValue()
+            s = _safe_str(val)
+            if s and pattern in s.lower():
+                results.append({{
+                    "address": str(data.getAddress()),
+                    "value": s[:200]
+                }})
+        except:
+            pass
 
 print("=== MCP_RESULT_JSON ===")
 print(json.dumps({{"success": True, "matches": results[:100]}}))
@@ -2872,29 +2885,49 @@ LIBRARY_PATTERNS = {{
     }}
 }}
 
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
 detected = {{}}
-detailed_flag = {str(detailed).lower()}
+detailed_flag = {"True" if detailed else "False"}
 
 # Collect all function names
 fm = currentProgram.getFunctionManager()
 all_funcs = []
 for func in fm.getFunctions(True):
-    all_funcs.append(func.getName())
+    try:
+        all_funcs.append(func.getName())
+    except:
+        pass
 
 # Collect all strings
 all_strings = []
 listing = currentProgram.getListing()
 for data in listing.getDefinedData(True):
     if data.hasStringValue():
-        val = data.getValue()
-        if val:
-            all_strings.append(str(val))
+        try:
+            val = data.getValue()
+            if val:
+                s = _safe_str(val)
+                if s:
+                    all_strings.append(s)
+        except:
+            pass
 
 # Collect import names
 imports = []
 sym_table = currentProgram.getSymbolTable()
 for sym in sym_table.getExternalSymbols():
-    imports.append(sym.getName())
+    try:
+        imports.append(sym.getName())
+    except:
+        pass
 
 # Check each library
 for lib_name, patterns in LIBRARY_PATTERNS.items():
@@ -3140,7 +3173,7 @@ else:
         result["function"] = main_decomp
 
     # Get callees
-    if {str(include_callees).lower()}:
+    if {"True" if include_callees else "False"}:
         callees = []
         ref_mgr = currentProgram.getReferenceManager()
         for addr in func.getBody().getAddresses(True):
@@ -3154,7 +3187,7 @@ else:
         result["callees"] = callees
 
     # Get callers
-    if {str(include_callers).lower()}:
+    if {"True" if include_callers else "False"}:
         callers = []
         ref_mgr = currentProgram.getReferenceManager()
         for ref in ref_mgr.getReferencesTo(func.getEntryPoint()):
@@ -3180,7 +3213,7 @@ else:
     result["strings"] = strings[:20]
 
     # Get data types (if enabled)
-    if {str(include_data_types).lower()}:
+    if {"True" if include_data_types else "False"}:
         types_used = []
         # Get parameter types
         for param in func.getParameters():
@@ -3263,7 +3296,7 @@ import json
 from ghidra.program.model.data import Structure, Union, Enum
 
 structure_filter = "{structure_name}" if "{structure_name}" else None
-include_usage = {str(include_usage).lower()}
+include_usage = {"True" if include_usage else "False"}
 
 dtm = currentProgram.getDataTypeManager()
 structures = []
@@ -3389,7 +3422,7 @@ def find_function(name):
         return None
 
 func = find_function("{function_name}")
-include_insts = {str(include_instructions).lower()}
+include_insts = {"True" if include_instructions else "False"}
 
 if not func:
     print("=== MCP_RESULT_JSON ===")
@@ -3887,8 +3920,8 @@ def find_function(name):
         return None
 
 func = find_function("{function_name}")
-include_comments = {str(include_comments).lower()}
-include_xrefs = {str(include_xrefs).lower()}
+include_comments = {"True" if include_comments else "False"}
+include_xrefs = {"True" if include_xrefs else "False"}
 
 if not func:
     print("=== MCP_RESULT_JSON ===")
@@ -4240,7 +4273,7 @@ KPP_INDICATORS = {{
     "segments": ["__PPLTEXT", "__PPLDATA", "__TEXT_EXEC", "__KLD"]
 }}
 
-detailed_flag = {str(detailed).lower()}
+detailed_flag = {"True" if detailed else "False"}
 
 results = {{
     "kpp_detected": False,
@@ -4814,7 +4847,7 @@ async def handle_find_iokit_classes(args: dict) -> Sequence[types.TextContent]:
 import json
 
 {class_filter}
-include_vtable = {str(include_vtable).lower()}
+include_vtable = {"True" if include_vtable else "False"}
 
 # Known IOKit base classes
 IOKIT_BASE_CLASSES = [
@@ -7032,7 +7065,7 @@ memory = currentProgram.getMemory()
 listing = currentProgram.getListing()
 
 # Search for AES S-box
-if {str(include_aes).lower()}:
+if {"True" if include_aes else "False"}:
     for block in memory.getBlocks():
         if not block.isInitialized():
             continue
@@ -7085,7 +7118,7 @@ if {str(include_aes).lower()}:
             continue
 
 # Search for CRC tables
-if {str(include_crc).lower()}:
+if {"True" if include_crc else "False"}:
     for block in memory.getBlocks():
         if not block.isInitialized():
             continue
@@ -7249,7 +7282,7 @@ for func in func_mgr.getFunctions(True):
         }}
 
         # Optionally decompile JNI_OnLoad
-        if {str(include_decompile).lower()}:
+        if {"True" if include_decompile else "False"}:
             try:
                 decompiler = DecompInterface()
                 decompiler.openProgram(currentProgram)
@@ -7395,6 +7428,15 @@ async def handle_extract_api_endpoints(args: dict) -> Sequence[types.TextContent
 import json
 import re
 
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
 results = {{
     "urls": [],
     "hostnames": [],
@@ -7403,10 +7445,10 @@ results = {{
 }}
 
 # Patterns
-url_pattern = re.compile(r'https?://[a-zA-Z0-9][a-zA-Z0-9\\-._~:/?#\\[\\]@!$&\'()*+,;=%]+', re.IGNORECASE)
-hostname_pattern = re.compile(r'(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{{0,61}}[a-zA-Z0-9])?\\.)+[a-zA-Z]{{2,}}')
-ip_pattern = re.compile(r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.)+(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)')
-path_pattern = re.compile(r'/(?:api|v[0-9]+|rest|graphql|ws|wss)/[a-zA-Z0-9/_\\-]+')
+url_pattern = re.compile(r"https?://[a-zA-Z0-9][a-zA-Z0-9\\-._~:/?#\\[\\]@!$&()*+,;=%]+", re.IGNORECASE)
+hostname_pattern = re.compile(r"(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{{0,61}}[a-zA-Z0-9])?\\.)+[a-zA-Z]{{2,}}")
+ip_pattern = re.compile(r"(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.)+(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+path_pattern = re.compile(r"/(?:api|v[0-9]+|rest|graphql|ws|wss)/[a-zA-Z0-9/_\\-]+")
 
 seen_urls = set()
 seen_hosts = set()
@@ -7417,51 +7459,56 @@ data_mgr = currentProgram.getListing()
 
 for data in data_mgr.getDefinedData(True):
     if data.hasStringValue():
-        val = str(data.getValue())
-        addr = str(data.getAddress())
+        try:
+            val = _safe_str(data.getValue())
+            if not val:
+                continue
+            addr = str(data.getAddress())
 
-        # Find URLs
-        for match in url_pattern.finditer(val):
-            url = match.group(0)
-            if url not in seen_urls:
-                seen_urls.add(url)
-                results["urls"].append({{
-                    "address": addr,
-                    "url": url
-                }})
-
-        # Find hostnames (not already in URLs)
-        for match in hostname_pattern.finditer(val):
-            hostname = match.group(0).lower()
-            # Filter out common false positives
-            if hostname not in seen_hosts and not hostname.endswith(('.so', '.dll', '.exe', '.png', '.jpg', '.xml', '.json')):
-                if '.' in hostname and len(hostname) > 4:
-                    seen_hosts.add(hostname)
-                    results["hostnames"].append({{
+            # Find URLs
+            for match in url_pattern.finditer(val):
+                url = match.group(0)
+                if url not in seen_urls:
+                    seen_urls.add(url)
+                    results["urls"].append({{
                         "address": addr,
-                        "hostname": hostname
+                        "url": url
                     }})
 
-        # Find IP addresses
-        for match in ip_pattern.finditer(val):
-            ip = match.group(0)
-            if ip not in seen_ips and not ip.startswith('0.') and not ip.startswith('255.'):
-                seen_ips.add(ip)
-                results["ip_addresses"].append({{
-                    "address": addr,
-                    "ip": ip
-                }})
+            # Find hostnames (not already in URLs)
+            for match in hostname_pattern.finditer(val):
+                hostname = match.group(0).lower()
+                # Filter out common false positives
+                if hostname not in seen_hosts and not hostname.endswith(('.so', '.dll', '.exe', '.png', '.jpg', '.xml', '.json')):
+                    if '.' in hostname and len(hostname) > 4:
+                        seen_hosts.add(hostname)
+                        results["hostnames"].append({{
+                            "address": addr,
+                            "hostname": hostname
+                        }})
 
-        # Find API paths
-        if {str(include_paths).lower()}:
-            for match in path_pattern.finditer(val):
-                path = match.group(0)
-                if path not in seen_paths:
-                    seen_paths.add(path)
-                    results["paths"].append({{
+            # Find IP addresses
+            for match in ip_pattern.finditer(val):
+                ip = match.group(0)
+                if ip not in seen_ips and not ip.startswith('0.') and not ip.startswith('255.'):
+                    seen_ips.add(ip)
+                    results["ip_addresses"].append({{
                         "address": addr,
-                        "path": path
+                        "ip": ip
                     }})
+
+            # Find API paths
+            if {"True" if include_paths else "False"}:
+                for match in path_pattern.finditer(val):
+                    path = match.group(0)
+                    if path not in seen_paths:
+                        seen_paths.add(path)
+                        results["paths"].append({{
+                            "address": addr,
+                            "path": path
+                        }})
+        except:
+            pass
 
 print("=== MCP_RESULT_JSON ===")
 print(json.dumps({{"success": True, "results": results}}))
@@ -7533,6 +7580,15 @@ async def handle_find_hardcoded_secrets(args: dict) -> Sequence[types.TextConten
 import json
 import re
 
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
 sensitivity = "{sensitivity}"
 
 results = {{
@@ -7546,67 +7602,68 @@ results = {{
 
 # Patterns for different secret types
 patterns = {{
-    "aws_key": re.compile(r'AKIA[0-9A-Z]{{16}}'),
-    "aws_secret": re.compile(r'[0-9a-zA-Z/+]{{40}}'),
-    "google_api": re.compile(r'AIza[0-9A-Za-z\\-_]{{35}}'),
-    "firebase": re.compile(r'AAAA[A-Za-z0-9_-]{{7}}:[A-Za-z0-9_-]{{140}}'),
-    "github_token": re.compile(r'gh[pousr]_[A-Za-z0-9_]{{36,}}'),
-    "jwt": re.compile(r'eyJ[A-Za-z0-9_-]*\\.eyJ[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*'),
-    "private_key": re.compile(r'-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----'),
-    "password_field": re.compile(r'(?:password|passwd|pwd|secret|api_key|apikey|auth_token|access_token)["\']?\\s*[:=]\\s*["\']([^"\'\\s]{{8,}})["\']', re.IGNORECASE),
-    "bearer_token": re.compile(r'[Bb]earer\\s+[A-Za-z0-9\\-_]+\\.[A-Za-z0-9\\-_]+'),
-    "basic_auth": re.compile(r'[Bb]asic\\s+[A-Za-z0-9+/=]{{20,}}'),
-    "hex_key": re.compile(r'["\'][0-9a-fA-F]{{32,64}}["\']'),
+    "aws_key": re.compile(r"AKIA[0-9A-Z]{{16}}"),
+    "aws_secret": re.compile(r"[0-9a-zA-Z/+]{{40}}"),
+    "google_api": re.compile(r"AIza[0-9A-Za-z\\-_]{{35}}"),
+    "firebase": re.compile(r"AAAA[A-Za-z0-9_-]{{7}}:[A-Za-z0-9_-]{{140}}"),
+    "github_token": re.compile(r"gh[pousr]_[A-Za-z0-9_]{{36,}}"),
+    "jwt": re.compile(r"eyJ[A-Za-z0-9_-]*\\.eyJ[A-Za-z0-9_-]*\\.[A-Za-z0-9_-]*"),
+    "private_key": re.compile(r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"),
+    "password_field": re.compile(r"(?:password|passwd|pwd|secret|api_key|apikey|auth_token|access_token).?\\s*[:=]\\s*.([^\\s]{{8,}})", re.IGNORECASE),
+    "bearer_token": re.compile(r"[Bb]earer\\s+[A-Za-z0-9\\-_]+\\.[A-Za-z0-9\\-_]+"),
+    "basic_auth": re.compile(r"[Bb]asic\\s+[A-Za-z0-9+/=]{{20,}}"),
+    "hex_key": re.compile(r"[0-9a-fA-F]{{32,64}}"),
 }}
 
 # Additional patterns for medium/high sensitivity
 if sensitivity in ["medium", "high"]:
-    patterns["base64_long"] = re.compile(r'[A-Za-z0-9+/]{{40,}}={0,2}')
-    patterns["connection_string"] = re.compile(r'(?:mongodb|mysql|postgres|redis|amqp)://[^\\s"\']+')
+    patterns["base64_long"] = re.compile(r"[A-Za-z0-9+/]{{40,}}={{0,2}}")
+    patterns["connection_string"] = re.compile(r"(?:mongodb|mysql|postgres|redis|amqp)://[^\\s]+")
 
 if sensitivity == "high":
-    patterns["potential_secret"] = re.compile(r'(?:secret|key|token|password|credential|auth)[_-]?[A-Za-z0-9]{{0,20}}["\']?\\s*[:=]\\s*["\']?[^\\s"\'{{}}]{{6,}}', re.IGNORECASE)
+    patterns["potential_secret"] = re.compile(r"(?:secret|key|token|password|credential|auth)[_-]?[A-Za-z0-9]{{0,20}}.?\\s*[:=]\\s*.?[^\\s{{}}]{{6,}}", re.IGNORECASE)
 
 data_mgr = currentProgram.getListing()
 seen = set()
 
 for data in data_mgr.getDefinedData(True):
     if data.hasStringValue():
-        val = str(data.getValue())
-        addr = str(data.getAddress())
+        try:
+            val = _safe_str(data.getValue())
+            if not val or len(val) < 8:
+                continue
+            addr = str(data.getAddress())
 
-        # Skip short strings
-        if len(val) < 8:
-            continue
+            # Check each pattern
+            for pattern_name, pattern in patterns.items():
+                for match in pattern.finditer(val):
+                    secret = match.group(0)
+                    if secret in seen:
+                        continue
+                    seen.add(secret)
 
-        # Check each pattern
-        for pattern_name, pattern in patterns.items():
-            for match in pattern.finditer(val):
-                secret = match.group(0)
-                if secret in seen:
-                    continue
-                seen.add(secret)
+                    entry = {{
+                        "address": addr,
+                        "pattern": pattern_name,
+                        "value": secret[:100] + ("..." if len(secret) > 100 else ""),
+                        "context": val[:200] if len(val) > len(secret) else ""
+                    }}
 
-                entry = {{
-                    "address": addr,
-                    "pattern": pattern_name,
-                    "value": secret[:100] + ("..." if len(secret) > 100 else ""),
-                    "context": val[:200] if len(val) > len(secret) else ""
-                }}
-
-                # Categorize
-                if pattern_name in ["aws_key", "aws_secret", "google_api", "firebase"]:
-                    results["api_keys"].append(entry)
-                elif pattern_name in ["password_field"]:
-                    results["passwords"].append(entry)
-                elif pattern_name in ["jwt", "bearer_token", "github_token", "basic_auth"]:
-                    results["tokens"].append(entry)
-                elif pattern_name == "private_key":
-                    results["private_keys"].append(entry)
-                elif pattern_name in ["connection_string", "hex_key"]:
-                    results["credentials"].append(entry)
-                elif pattern_name in ["base64_long", "potential_secret"]:
-                    results["base64_secrets"].append(entry)
+                    # Categorize
+                    if pattern_name in ["aws_key", "aws_secret", "google_api", "firebase"]:
+                        results["api_keys"].append(entry)
+                    elif pattern_name in ["password_field"]:
+                        results["passwords"].append(entry)
+                    elif pattern_name in ["jwt", "bearer_token", "github_token", "basic_auth"]:
+                        results["tokens"].append(entry)
+                    elif pattern_name == "private_key":
+                        results["private_keys"].append(entry)
+                    elif pattern_name in ["connection_string", "hex_key"]:
+                        results["credentials"].append(entry)
+                    elif pattern_name in ["base64_long", "potential_secret"]:
+                        results["base64_secrets"].append(entry)
+        except:
+            pass
 
 print("=== MCP_RESULT_JSON ===")
 print(json.dumps({{"success": True, "results": results, "sensitivity": sensitivity}}))
