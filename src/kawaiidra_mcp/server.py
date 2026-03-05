@@ -1932,6 +1932,23 @@ async def handle_find_functions(args: dict) -> Sequence[types.TextContent]:
     binary_name = args.get("binary_name")
     project_name = args.get("project_name", config.default_project)
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.find_functions(binary_name, project_name, pattern)
+        if result is not None and result.get("success"):
+            matches = result.get("matches", [])
+            if matches:
+                text = f"Functions matching '{pattern}' [BRIDGE]:\n\n"
+                for f in matches[:50]:
+                    text += f"  {f['address']}: {f['name']}\n"
+                if len(matches) > 50:
+                    text += f"\n  ... and {len(matches) - 50} more\n"
+            else:
+                text = f"No functions found matching '{pattern}'"
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -2111,6 +2128,18 @@ async def handle_get_function_disassembly(args: dict) -> Sequence[types.TextCont
     function_name = args.get("function_name")
     project_name = args.get("project_name", config.default_project)
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.get_disassembly(binary_name, project_name, function_name)
+        if result is not None and result.get("success"):
+            text = f"Disassembly of {result['function_name']} @ {result['address']} [BRIDGE]:\n\n```asm\n"
+            for inst in result.get("instructions", []):
+                text += f"{inst['address']}:  {inst['operands']}\n"
+            text += "```"
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -2187,6 +2216,28 @@ async def handle_get_function_xrefs(args: dict) -> Sequence[types.TextContent]:
     direction = args.get("direction", "both")
     project_name = args.get("project_name", config.default_project)
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.get_xrefs(binary_name, project_name, function_name, direction)
+        if result is not None and result.get("success"):
+            text = f"Cross-references for {result['function_name']} [BRIDGE]:\n\n"
+            refs_to = result.get("references_to", [])
+            refs_from = result.get("references_from", [])
+            if refs_to:
+                text += f"Called BY ({len(refs_to)} refs):\n"
+                for ref in refs_to[:50]:
+                    text += f"  {ref['from_address']}: {ref.get('from_function', 'unknown')} ({ref['ref_type']})\n"
+                text += "\n"
+            if refs_from:
+                text += f"Calls TO ({len(refs_from)} refs):\n"
+                for ref in refs_from[:50]:
+                    text += f"  {ref['to_address']}: {ref.get('to_function', 'unknown')} ({ref['ref_type']})\n"
+            if not refs_to and not refs_from:
+                text += "No cross-references found."
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -2293,6 +2344,21 @@ async def handle_search_strings(args: dict) -> Sequence[types.TextContent]:
     pattern = args.get("pattern", "").lower()
     project_name = args.get("project_name", config.default_project)
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.search_strings(binary_name, project_name, pattern)
+        if result is not None and result.get("success"):
+            matches = result.get("matches", [])
+            if matches:
+                text = f"Strings matching '{pattern}' in {binary_name} [BRIDGE]:\n\n"
+                for m in matches[:100]:
+                    text += f"  {m['address']}: {m['value']}\n"
+            else:
+                text = f"No strings found matching '{pattern}'"
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -2361,6 +2427,17 @@ async def handle_list_strings(args: dict) -> Sequence[types.TextContent]:
     min_length = args.get("min_length", 4)
     limit = args.get("limit", 200)
     project_name = args.get("project_name", config.default_project)
+
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.list_strings(binary_name, project_name, min_length, limit)
+        if result is not None and result.get("success"):
+            strings = result.get("strings", [])
+            text = f"Strings in {binary_name} ({len(strings)} shown) [BRIDGE]:\n\n"
+            for s in strings:
+                text += f"  {s['address']}: {s['value']}\n"
+            return [types.TextContent(type="text", text=text)]
 
     # Check cache first
     cache = get_cache()
@@ -2437,6 +2514,22 @@ async def handle_get_binary_info(args: dict) -> Sequence[types.TextContent]:
     binary_name = args.get("binary_name")
     project_name = args.get("project_name", config.default_project)
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.get_binary_info(binary_name, project_name)
+        if result is not None and result.get("success"):
+            text = f"Binary Info: {binary_name} [BRIDGE]\n\n"
+            text += f"Format:       {result.get('format', 'unknown')}\n"
+            text += f"Language:     {result.get('language', 'unknown')}\n"
+            text += f"Address size: {result.get('address_size', 'unknown')} bytes\n"
+            text += f"Compiler:     {result.get('compiler', 'unknown')}\n"
+            text += f"Address range: {result.get('min_address', '?')} - {result.get('max_address', '?')}\n"
+            text += f"Functions:    {result.get('function_count', 0)}\n"
+            text += f"Symbols:      {result.get('symbol_count', 0)}\n"
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = '''# @category MCP
 # @runtime Jython
 import json
@@ -2506,6 +2599,21 @@ async def handle_get_memory_map(args: dict) -> Sequence[types.TextContent]:
     binary_name = args.get("binary_name")
     project_name = args.get("project_name", config.default_project)
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.get_memory_map(binary_name, project_name)
+        if result is not None and result.get("success"):
+            segments = result.get("segments", [])
+            text = f"Memory Map for {binary_name} [BRIDGE]:\n\n"
+            text += f"{'Name':<20} {'Start':<18} {'End':<18} {'Size':>12} {'Perms':<6}\n"
+            text += "-" * 80 + "\n"
+            for s in segments:
+                perms = ("r" if s.get("readable") else "-") + ("w" if s.get("writable") else "-") + ("x" if s.get("executable") else "-")
+                text += f"{s['name']:<20} {s['start']:<18} {s['end']:<18} {s['size']:>12,} {perms:<6}\n"
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = '''# @category MCP
 # @runtime Jython
 import json
@@ -5465,6 +5573,18 @@ async def handle_list_exports(args: dict) -> Sequence[types.TextContent]:
     offset = args.get("offset", 0)
     limit = args.get("limit", 100)
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.list_exports(binary_name, project_name, limit)
+        if result is not None and result.get("success"):
+            exports = result.get("exports", [])
+            text = f"# Exports ({len(exports)}) [BRIDGE]\n\n"
+            for exp in exports:
+                text += f"- {exp['name']} @ {exp['address']} [{exp.get('type', '')}]\n"
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -5530,6 +5650,19 @@ async def handle_list_imports(args: dict) -> Sequence[types.TextContent]:
     offset = args.get("offset", 0)
     limit = args.get("limit", 100)
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.list_imports(binary_name, project_name, limit)
+        if result is not None and result.get("success"):
+            imports = result.get("imports", [])
+            text = f"# Imports ({len(imports)}) [BRIDGE]\n\n"
+            for imp in imports:
+                ns = f" from {imp['namespace']}" if imp.get('namespace') else ""
+                text += f"- {imp['name']}{ns} @ {imp['address']}\n"
+            return [types.TextContent(type="text", text=text)]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -5745,6 +5878,16 @@ async def handle_rename_function(args: dict) -> Sequence[types.TextContent]:
     old_name = args.get("old_name")
     new_name = args.get("new_name")
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.rename_function(binary_name, project_name, old_name, new_name)
+        if result is not None and result.get("success"):
+            return [types.TextContent(type="text", text=f"✓ Renamed '{result['old_name']}' to '{result['new_name']}' @ {result.get('address', '')} [BRIDGE]")]
+        elif result is not None:
+            return [types.TextContent(type="text", text=f"✗ {result.get('error', 'Unknown error')}")]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
@@ -5955,6 +6098,16 @@ async def handle_set_comment(args: dict) -> Sequence[types.TextContent]:
     comment = args.get("comment", "").replace('"', '\\"').replace('\n', '\\n')
     comment_type = args.get("comment_type", "EOL")
 
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.set_comment(binary_name, project_name, address, comment, comment_type)
+        if result is not None and result.get("success"):
+            return [types.TextContent(type="text", text=f"✓ Set {result['type']} comment at {result['address']} [BRIDGE]")]
+        elif result is not None:
+            return [types.TextContent(type="text", text=f"✗ {result.get('error', 'Unknown error')}")]
+
+    # Fall back to subprocess
     script = f'''# @category MCP
 # @runtime Jython
 import json
