@@ -109,7 +109,7 @@ class Config:
         # Source: https://github.com/NationalSecurityAgency/ghidra/releases
         KNOWN_VERSIONS = [
             # 12.x
-            "12.0.3", "12.0.2", "12.0.1", "12.0",
+            "12.0.4", "12.0.3", "12.0.2", "12.0.1", "12.0",
             # 11.x
             "11.4.3", "11.4.2", "11.4.1", "11.4",
             "11.3.2", "11.3.1", "11.3",

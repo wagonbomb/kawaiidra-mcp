@@ -269,8 +269,19 @@ class GhidraBridge:
         """Load commonly used Java classes after JVM start."""
         import jpype.imports
 
-        # Core Ghidra classes
-        from ghidra.app.util.headless import HeadlessGhidraApplicationConfiguration
+        # Ghidra 12 moved HeadlessGhidraApplicationConfiguration to ghidra.framework
+        # and requires GhidraApplicationLayout for initialization.
+        # Ghidra 11 keeps it in ghidra.app.util.headless and doesn't need the layout.
+        try:
+            from ghidra.framework import HeadlessGhidraApplicationConfiguration
+            from ghidra import GhidraApplicationLayout
+            self._ghidra_major = 12
+        except (ImportError, Exception):
+            from ghidra.app.util.headless import HeadlessGhidraApplicationConfiguration
+            GhidraApplicationLayout = None
+            self._ghidra_major = 11
+            logger.info("Detected Ghidra 11.x API")
+
         from ghidra.base.project import GhidraProject
         from ghidra.program.model.listing import Program, Function, FunctionManager
         from ghidra.program.model.symbol import SymbolTable, ReferenceManager
@@ -289,6 +300,7 @@ class GhidraBridge:
         # Store references
         self._java_classes = {
             "HeadlessGhidraApplicationConfiguration": HeadlessGhidraApplicationConfiguration,
+            "GhidraApplicationLayout": GhidraApplicationLayout,
             "GhidraProject": GhidraProject,
             "Program": Program,
             "Function": Function,
@@ -312,8 +324,15 @@ class GhidraBridge:
         if not Application.isInitialized():
             logger.info("Initializing Ghidra application...")
             config = HeadlessConfig()
-            Application.initializeApplication(config)
-            logger.info("Ghidra application initialized")
+            if self._ghidra_major >= 12:
+                # Ghidra 12+ requires ApplicationLayout as first argument
+                GhidraLayout = self._java_classes["GhidraApplicationLayout"]
+                layout = GhidraLayout()
+                Application.initializeApplication(layout, config)
+            else:
+                # Ghidra 11.x: single-argument form
+                Application.initializeApplication(config)
+            logger.info(f"Ghidra application initialized (v{self._ghidra_major}.x API)")
 
     def ensure_started(self) -> None:
         """Ensure the bridge is started, starting it if needed."""
@@ -423,17 +442,25 @@ class GhidraBridge:
             gpr_file = project_path / f"{project_name}.gpr"
 
             if gpr_file.exists():
-                project = GhidraProject.openProject(
-                    JFile(str(project_dir)),
-                    project_name,
-                    True  # readOnly=false
-                )
+                if self._ghidra_major >= 12:
+                    # Ghidra 12+: openProject(String, String, boolean)
+                    project = GhidraProject.openProject(
+                        str(project_path), project_name, True
+                    )
+                else:
+                    # Ghidra 11.x: openProject(File, String, boolean)
+                    project = GhidraProject.openProject(
+                        JFile(str(project_path)), project_name, True
+                    )
             else:
-                project = GhidraProject.createProject(
-                    JFile(str(project_dir)),
-                    project_name,
-                    False  # not temporary
-                )
+                if self._ghidra_major >= 12:
+                    project = GhidraProject.createProject(
+                        str(project_path), project_name, False
+                    )
+                else:
+                    project = GhidraProject.createProject(
+                        JFile(str(project_path)), project_name, False
+                    )
 
             # Check if already imported
             program = None
@@ -831,10 +858,8 @@ class GhidraBridge:
         refs_from = []
 
         if direction in ("to", "both"):
-            # References TO this function
-            iter_to = ref_mgr.getReferencesTo(entry)
-            while iter_to.hasNext():
-                ref = iter_to.next()
+            # References TO this function (returns array in Ghidra 12+)
+            for ref in ref_mgr.getReferencesTo(entry):
                 from_addr = ref.getFromAddress()
                 from_func = fm.getFunctionContaining(from_addr)
                 refs_to.append({
@@ -844,11 +869,9 @@ class GhidraBridge:
                 })
 
         if direction in ("from", "both"):
-            # References FROM this function
+            # References FROM this function (returns array in Ghidra 12+)
             for addr in body.getAddresses(True):
-                iter_from = ref_mgr.getReferencesFrom(addr)
-                while iter_from.hasNext():
-                    ref = iter_from.next()
+                for ref in ref_mgr.getReferencesFrom(addr):
                     to_addr = ref.getToAddress()
                     to_func = fm.getFunctionContaining(to_addr)
                     refs_from.append({
