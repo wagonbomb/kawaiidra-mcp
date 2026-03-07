@@ -1769,6 +1769,365 @@ TOOLS = [
             "required": ["binary_name", "code"]
         }
     ),
+    # Data Types & Structures Tools (Phase 2)
+    types.Tool(
+        name="list_data_types",
+        description="List available data types in the binary. Supports filtering by name substring and category path.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "filter": {
+                    "type": "string",
+                    "description": "Substring filter for type names (case-insensitive)"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Category path filter (e.g., '/MyStructs')"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum types to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="get_data_type_details",
+        description="Get detailed information about a specific data type including size, fields, and category.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "type_name": {
+                    "type": "string",
+                    "description": "Full type name or path (e.g., 'MyStruct' or '/MyCategory/MyStruct')"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "type_name"]
+        }
+    ),
+    types.Tool(
+        name="create_struct",
+        description="Create a new structure data type with optional initial fields.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name for the new structure"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {"type": "string", "description": "Field name"},
+                            "type": {"type": "string", "description": "Field data type (e.g., 'int', 'char *', 'byte[16]')"},
+                            "comment": {"type": "string", "description": "Optional field comment"}
+                        },
+                        "required": ["name", "type"]
+                    },
+                    "description": "Optional list of fields to add (appended sequentially)"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Category path (e.g., '/MyStructs'). Created if it doesn't exist."
+                },
+                "size": {
+                    "type": "integer",
+                    "description": "Explicit struct size in bytes (for empty/padding structs)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "name"]
+        }
+    ),
+    types.Tool(
+        name="add_struct_field",
+        description="Add a field to an existing structure.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "struct_name": {
+                    "type": "string",
+                    "description": "Name or path of the structure"
+                },
+                "field_name": {
+                    "type": "string",
+                    "description": "Name for the new field"
+                },
+                "field_type": {
+                    "type": "string",
+                    "description": "Data type for the field (e.g., 'int', 'char *', 'byte[16]')"
+                },
+                "comment": {
+                    "type": "string",
+                    "description": "Optional field comment"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "struct_name", "field_name", "field_type"]
+        }
+    ),
+    types.Tool(
+        name="modify_struct_field",
+        description="Modify a field in an existing structure (change name, type, or comment).",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "struct_name": {
+                    "type": "string",
+                    "description": "Name or path of the structure"
+                },
+                "field_index": {
+                    "type": "integer",
+                    "description": "Index of the field to modify (0-based)"
+                },
+                "new_name": {
+                    "type": "string",
+                    "description": "New field name (optional)"
+                },
+                "new_type": {
+                    "type": "string",
+                    "description": "New field data type (optional)"
+                },
+                "new_comment": {
+                    "type": "string",
+                    "description": "New field comment (optional)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "struct_name", "field_index"]
+        }
+    ),
+    types.Tool(
+        name="remove_struct_field",
+        description="Remove a field from a structure by index.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "struct_name": {
+                    "type": "string",
+                    "description": "Name or path of the structure"
+                },
+                "field_index": {
+                    "type": "integer",
+                    "description": "Index of the field to remove (0-based)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "struct_name", "field_index"]
+        }
+    ),
+    types.Tool(
+        name="create_enum",
+        description="Create a new enumeration data type with values.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name for the new enum"
+                },
+                "values": {
+                    "type": "object",
+                    "additionalProperties": {"type": "integer"},
+                    "description": "Enum values as {name: integer_value} pairs (e.g., {\"RED\": 0, \"GREEN\": 1})"
+                },
+                "size": {
+                    "type": "integer",
+                    "description": "Size in bytes (1, 2, 4, or 8; default: 4)"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Category path (e.g., '/MyEnums')"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "name", "values"]
+        }
+    ),
+    types.Tool(
+        name="add_enum_value",
+        description="Add a value to an existing enumeration.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "enum_name": {
+                    "type": "string",
+                    "description": "Name or path of the enum"
+                },
+                "value_name": {
+                    "type": "string",
+                    "description": "Name for the new enum value"
+                },
+                "value": {
+                    "type": "integer",
+                    "description": "Integer value for the enum entry"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "enum_name", "value_name", "value"]
+        }
+    ),
+    types.Tool(
+        name="create_typedef",
+        description="Create a typedef alias for an existing data type.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Name for the new typedef"
+                },
+                "base_type": {
+                    "type": "string",
+                    "description": "The existing data type to alias (e.g., 'uint', 'int *')"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Category path (e.g., '/MyTypes')"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "name", "base_type"]
+        }
+    ),
+    types.Tool(
+        name="apply_data_type",
+        description="Apply a data type at a specific address in the binary.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address to apply the type at (hex, e.g., '0x401000')"
+                },
+                "type_name": {
+                    "type": "string",
+                    "description": "Data type to apply (e.g., 'int', 'MyStruct', 'char[32]')"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address", "type_name"]
+        }
+    ),
+    types.Tool(
+        name="delete_data_type",
+        description="Delete a user-defined data type from the binary.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "type_name": {
+                    "type": "string",
+                    "description": "Name or path of the data type to delete"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "type_name"]
+        }
+    ),
+    types.Tool(
+        name="get_function_variables",
+        description="List all variables (parameters, local variables, return type) of a function with their types, storage locations, and sizes.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Function name or address"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name"]
+        }
+    ),
 ]
 
 
@@ -1923,6 +2282,31 @@ async def handle_call_tool(
             return await handle_delete_function(arguments)
         elif name == "run_script":
             return await handle_run_script(arguments)
+        # Data Types & Structures (Phase 2)
+        elif name == "list_data_types":
+            return await handle_list_data_types(arguments)
+        elif name == "get_data_type_details":
+            return await handle_get_data_type_details(arguments)
+        elif name == "create_struct":
+            return await handle_create_struct(arguments)
+        elif name == "add_struct_field":
+            return await handle_add_struct_field(arguments)
+        elif name == "modify_struct_field":
+            return await handle_modify_struct_field(arguments)
+        elif name == "remove_struct_field":
+            return await handle_remove_struct_field(arguments)
+        elif name == "create_enum":
+            return await handle_create_enum(arguments)
+        elif name == "add_enum_value":
+            return await handle_add_enum_value(arguments)
+        elif name == "create_typedef":
+            return await handle_create_typedef(arguments)
+        elif name == "apply_data_type":
+            return await handle_apply_data_type(arguments)
+        elif name == "delete_data_type":
+            return await handle_delete_data_type(arguments)
+        elif name == "get_function_variables":
+            return await handle_get_function_variables(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -8805,6 +9189,1290 @@ print("=== MCP_RESULT_END ===")
         if output:
             text += f"\n\nPartial output:\n```\n{output}\n```"
         return [types.TextContent(type="text", text=text)]
+
+
+# ============================================================================
+# Data Types & Structures Tool Handlers (Phase 2)
+# ============================================================================
+
+async def handle_list_data_types(args: dict) -> Sequence[types.TextContent]:
+    """List available data types in the binary."""
+    binary_name = args.get("binary_name")
+    filter_str = args.get("filter", "")
+    category = args.get("category", "")
+    limit = args.get("limit", 100)
+    project_name = args.get("project_name", config.default_project)
+
+    filter_json = json.dumps(filter_str)
+    category_json = json.dumps(category)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+filter_str = json.loads('{filter_json.replace(chr(39), chr(92) + chr(39))}').lower()
+category_filter = json.loads('{category_json.replace(chr(39), chr(92) + chr(39))}')
+limit = {limit}
+
+dtm = currentProgram.getDataTypeManager()
+results = []
+
+for dt in dtm.getAllDataTypes():
+    name = _safe_str(dt.getName())
+    cat_path = _safe_str(dt.getCategoryPath())
+
+    if filter_str and filter_str not in name.lower():
+        continue
+    if category_filter and not cat_path.startswith(category_filter):
+        continue
+
+    results.append({{
+        "name": name,
+        "category": cat_path,
+        "size": dt.getLength(),
+        "kind": _safe_str(type(dt).__name__)
+    }})
+
+    if len(results) >= limit:
+        break
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "count": len(results), "types": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ListDataTypes.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ListDataTypes.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        types_list = result.get("types", [])
+        text = f"Data types ({result.get('count', len(types_list))} results):\n\n"
+        for t in types_list:
+            text += f"  {t['category']}/{t['name']} ({t['kind']}, {t['size']} bytes)\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_get_data_type_details(args: dict) -> Sequence[types.TextContent]:
+    """Get detailed info about a specific data type."""
+    binary_name = args.get("binary_name")
+    type_name = args.get("type_name")
+    project_name = args.get("project_name", config.default_project)
+
+    type_name_json = json.dumps(type_name).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+type_name = json.loads('{type_name_json}')
+
+dtm = currentProgram.getDataTypeManager()
+
+# Search for the type by name or path
+found = None
+for dt in dtm.getAllDataTypes():
+    dt_name = _safe_str(dt.getName())
+    dt_path = _safe_str(dt.getPathName())
+    if dt_name == type_name or dt_path == type_name or dt_path.endswith("/" + type_name):
+        found = dt
+        break
+
+if not found:
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{"success": False, "error": "Data type not found: " + type_name}}))
+    print("=== MCP_RESULT_END ===")
+else:
+    info = {{
+        "name": _safe_str(found.getName()),
+        "path": _safe_str(found.getPathName()),
+        "category": _safe_str(found.getCategoryPath()),
+        "size": found.getLength(),
+        "kind": _safe_str(type(found).__name__),
+        "description": _safe_str(found.getDescription()) if found.getDescription() else ""
+    }}
+
+    # If it's a structure, include fields
+    from ghidra.program.model.data import Structure, Enum, TypeDef
+    if isinstance(found, Structure):
+        fields = []
+        for i in range(found.getNumComponents()):
+            comp = found.getComponent(i)
+            fields.append({{
+                "index": i,
+                "offset": comp.getOffset(),
+                "name": _safe_str(comp.getFieldName()) if comp.getFieldName() else "",
+                "type": _safe_str(comp.getDataType().getName()),
+                "size": comp.getLength(),
+                "comment": _safe_str(comp.getComment()) if comp.getComment() else ""
+            }})
+        info["fields"] = fields
+    elif isinstance(found, Enum):
+        values = {{}}
+        for name in found.getNames():
+            values[_safe_str(name)] = int(found.getValue(_safe_str(name)))
+        info["values"] = values
+    elif isinstance(found, TypeDef):
+        info["base_type"] = _safe_str(found.getDataType().getName())
+
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{"success": True, "type": info}}))
+    print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetDataTypeDetails.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetDataTypeDetails.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        t = result["type"]
+        text = f"# {t['name']}\n\n"
+        text += f"**Path**: {t['path']}\n"
+        text += f"**Kind**: {t['kind']}\n"
+        text += f"**Size**: {t['size']} bytes\n"
+        if t.get("description"):
+            text += f"**Description**: {t['description']}\n"
+        if t.get("base_type"):
+            text += f"**Base type**: {t['base_type']}\n"
+
+        if t.get("fields") is not None:
+            text += f"\n**Fields** ({len(t['fields'])}):\n\n"
+            text += "| Index | Offset | Name | Type | Size | Comment |\n"
+            text += "|-------|--------|------|------|------|---------|\n"
+            for f in t["fields"]:
+                text += f"| {f['index']} | 0x{f['offset']:X} | {f['name']} | {f['type']} | {f['size']} | {f['comment']} |\n"
+
+        if t.get("values") is not None:
+            text += f"\n**Values** ({len(t['values'])}):\n\n"
+            for name, val in sorted(t["values"].items(), key=lambda x: x[1]):
+                text += f"  {name} = {val} (0x{val & 0xFFFFFFFF:X})\n"
+
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_create_struct(args: dict) -> Sequence[types.TextContent]:
+    """Create a new structure data type."""
+    binary_name = args.get("binary_name")
+    name = args.get("name")
+    fields = args.get("fields", [])
+    category = args.get("category", "")
+    size = args.get("size", 0)
+    project_name = args.get("project_name", config.default_project)
+
+    fields_json = json.dumps(fields).replace("'", "\\'")
+    category_json = json.dumps(category).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.data import StructureDataType, CategoryPath, DataTypeConflictHandler
+from ghidra.program.model.data import IntegerDataType, ByteDataType, ShortDataType, LongDataType
+from ghidra.program.model.data import CharDataType, BooleanDataType, FloatDataType, DoubleDataType
+from ghidra.program.model.data import PointerDataType, ArrayDataType, UnsignedIntegerDataType
+from ghidra.program.model.data import UnsignedShortDataType, UnsignedLongDataType, LongLongDataType
+from ghidra.program.model.data import UnsignedLongLongDataType, Undefined1DataType
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+def resolve_type(type_str):
+    """Resolve a type string to a Ghidra DataType."""
+    dtm = currentProgram.getDataTypeManager()
+
+    # Check for pointer
+    if type_str.endswith("*"):
+        base = resolve_type(type_str[:-1].strip())
+        if base:
+            return PointerDataType(base)
+        return PointerDataType()
+
+    # Check for array  e.g. "byte[16]"
+    import re
+    arr_match = re.match(r"(.+)\[(\d+)\]$", type_str.strip())
+    if arr_match:
+        base = resolve_type(arr_match.group(1).strip())
+        count = int(arr_match.group(2))
+        if base:
+            return ArrayDataType(base, count, base.getLength())
+        return None
+
+    # Built-in types
+    builtins = {{
+        "byte": ByteDataType.dataType,
+        "char": CharDataType.dataType,
+        "short": ShortDataType.dataType,
+        "int": IntegerDataType.dataType,
+        "long": LongDataType.dataType,
+        "longlong": LongLongDataType.dataType,
+        "float": FloatDataType.dataType,
+        "double": DoubleDataType.dataType,
+        "bool": BooleanDataType.dataType,
+        "uint": UnsignedIntegerDataType.dataType,
+        "ushort": UnsignedShortDataType.dataType,
+        "ulong": UnsignedLongDataType.dataType,
+        "ulonglong": UnsignedLongLongDataType.dataType,
+        "undefined": Undefined1DataType.dataType,
+        "undefined1": Undefined1DataType.dataType,
+        "void": None,
+    }}
+
+    lower = type_str.strip().lower().replace("unsigned ", "u").replace(" ", "")
+    if lower in builtins:
+        return builtins[lower]
+
+    # Search in data type manager
+    for dt in dtm.getAllDataTypes():
+        if _safe_str(dt.getName()) == type_str.strip():
+            return dt
+        if _safe_str(dt.getPathName()) == type_str.strip():
+            return dt
+
+    return None
+
+name = "{name}"
+fields = json.loads('{fields_json}')
+category = json.loads('{category_json}')
+size = {size}
+
+result = {{"success": False, "message": ""}}
+
+try:
+    cat_path = CategoryPath(category) if category else CategoryPath.ROOT
+    struct = StructureDataType(cat_path, name, size)
+
+    for field in fields:
+        f_name = field["name"]
+        f_type_str = field["type"]
+        f_comment = field.get("comment", "")
+
+        f_type = resolve_type(f_type_str)
+        if f_type is None:
+            result["message"] = "Unknown field type: " + f_type_str
+            print("=== MCP_RESULT_JSON ===")
+            print(json.dumps(result))
+            print("=== MCP_RESULT_END ===")
+            import sys
+            sys.exit(0)
+
+        if f_comment:
+            struct.add(f_type, f_type.getLength(), f_name, f_comment)
+        else:
+            struct.add(f_type, f_type.getLength(), f_name, None)
+
+    dtm = currentProgram.getDataTypeManager()
+    txn = dtm.startTransaction("Create struct " + name)
+    try:
+        added = dtm.addDataType(struct, DataTypeConflictHandler.REPLACE_HANDLER)
+        dtm.endTransaction(txn, True)
+        result["success"] = True
+        result["message"] = "Created struct '{{}}' ({{}}/{{}}) with {{}} fields, size {{}} bytes".format(
+            _safe_str(added.getName()), _safe_str(added.getCategoryPath()),
+            _safe_str(added.getName()), added.getNumComponents(), added.getLength())
+    except Exception as e:
+        dtm.endTransaction(txn, False)
+        result["message"] = str(e)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("CreateStruct.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "CreateStruct.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_add_struct_field(args: dict) -> Sequence[types.TextContent]:
+    """Add a field to an existing structure."""
+    binary_name = args.get("binary_name")
+    struct_name = args.get("struct_name")
+    field_name = args.get("field_name")
+    field_type = args.get("field_type")
+    comment = args.get("comment", "")
+    project_name = args.get("project_name", config.default_project)
+
+    comment_arg = f"'{comment}'" if comment else "None"
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json, re
+from ghidra.program.model.data import DataTypeConflictHandler
+from ghidra.program.model.data import IntegerDataType, ByteDataType, ShortDataType, LongDataType
+from ghidra.program.model.data import CharDataType, BooleanDataType, FloatDataType, DoubleDataType
+from ghidra.program.model.data import PointerDataType, ArrayDataType, UnsignedIntegerDataType
+from ghidra.program.model.data import UnsignedShortDataType, UnsignedLongDataType, LongLongDataType
+from ghidra.program.model.data import UnsignedLongLongDataType, Undefined1DataType
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+def resolve_type(type_str):
+    dtm = currentProgram.getDataTypeManager()
+    if type_str.endswith("*"):
+        base = resolve_type(type_str[:-1].strip())
+        if base:
+            return PointerDataType(base)
+        return PointerDataType()
+    arr_match = re.match(r"(.+)\[(\d+)\]$", type_str.strip())
+    if arr_match:
+        base = resolve_type(arr_match.group(1).strip())
+        count = int(arr_match.group(2))
+        if base:
+            return ArrayDataType(base, count, base.getLength())
+        return None
+    builtins = {{
+        "byte": ByteDataType.dataType, "char": CharDataType.dataType,
+        "short": ShortDataType.dataType, "int": IntegerDataType.dataType,
+        "long": LongDataType.dataType, "longlong": LongLongDataType.dataType,
+        "float": FloatDataType.dataType, "double": DoubleDataType.dataType,
+        "bool": BooleanDataType.dataType, "uint": UnsignedIntegerDataType.dataType,
+        "ushort": UnsignedShortDataType.dataType, "ulong": UnsignedLongDataType.dataType,
+        "ulonglong": UnsignedLongLongDataType.dataType,
+        "undefined": Undefined1DataType.dataType, "undefined1": Undefined1DataType.dataType,
+    }}
+    lower = type_str.strip().lower().replace("unsigned ", "u").replace(" ", "")
+    if lower in builtins:
+        return builtins[lower]
+    for dt in dtm.getAllDataTypes():
+        if _safe_str(dt.getName()) == type_str.strip() or _safe_str(dt.getPathName()) == type_str.strip():
+            return dt
+    return None
+
+struct_name = "{struct_name}"
+field_name = "{field_name}"
+field_type_str = "{field_type}"
+comment = {comment_arg}
+
+result = {{"success": False, "message": ""}}
+
+try:
+    dtm = currentProgram.getDataTypeManager()
+    struct = None
+    for dt in dtm.getAllDataTypes():
+        n = _safe_str(dt.getName())
+        p = _safe_str(dt.getPathName())
+        if n == struct_name or p == struct_name or p.endswith("/" + struct_name):
+            from ghidra.program.model.data import Structure
+            if isinstance(dt, Structure):
+                struct = dt
+                break
+
+    if not struct:
+        result["message"] = "Structure not found: " + struct_name
+    else:
+        f_type = resolve_type(field_type_str)
+        if not f_type:
+            result["message"] = "Unknown field type: " + field_type_str
+        else:
+            txn = dtm.startTransaction("Add field to " + struct_name)
+            try:
+                struct.add(f_type, f_type.getLength(), field_name, comment)
+                dtm.endTransaction(txn, True)
+                result["success"] = True
+                result["message"] = "Added field '{{}}' ({{}}) to '{{}}' (now {{}} fields, {{}} bytes)".format(
+                    field_name, field_type_str, struct_name,
+                    struct.getNumComponents(), struct.getLength())
+            except Exception as e:
+                dtm.endTransaction(txn, False)
+                result["message"] = str(e)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("AddStructField.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "AddStructField.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_modify_struct_field(args: dict) -> Sequence[types.TextContent]:
+    """Modify a field in an existing structure."""
+    binary_name = args.get("binary_name")
+    struct_name = args.get("struct_name")
+    field_index = args.get("field_index")
+    new_name = args.get("new_name")
+    new_type = args.get("new_type")
+    new_comment = args.get("new_comment")
+    project_name = args.get("project_name", config.default_project)
+
+    new_name_arg = f"'{new_name}'" if new_name else "None"
+    new_type_arg = f"'{new_type}'" if new_type else "None"
+    new_comment_arg = f"'{new_comment}'" if new_comment else "None"
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json, re
+from ghidra.program.model.data import DataTypeConflictHandler
+from ghidra.program.model.data import IntegerDataType, ByteDataType, ShortDataType, LongDataType
+from ghidra.program.model.data import CharDataType, BooleanDataType, FloatDataType, DoubleDataType
+from ghidra.program.model.data import PointerDataType, ArrayDataType, UnsignedIntegerDataType
+from ghidra.program.model.data import UnsignedShortDataType, UnsignedLongDataType, LongLongDataType
+from ghidra.program.model.data import UnsignedLongLongDataType, Undefined1DataType
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+def resolve_type(type_str):
+    dtm = currentProgram.getDataTypeManager()
+    if type_str.endswith("*"):
+        base = resolve_type(type_str[:-1].strip())
+        if base:
+            return PointerDataType(base)
+        return PointerDataType()
+    arr_match = re.match(r"(.+)\[(\d+)\]$", type_str.strip())
+    if arr_match:
+        base = resolve_type(arr_match.group(1).strip())
+        count = int(arr_match.group(2))
+        if base:
+            return ArrayDataType(base, count, base.getLength())
+        return None
+    builtins = {{
+        "byte": ByteDataType.dataType, "char": CharDataType.dataType,
+        "short": ShortDataType.dataType, "int": IntegerDataType.dataType,
+        "long": LongDataType.dataType, "longlong": LongLongDataType.dataType,
+        "float": FloatDataType.dataType, "double": DoubleDataType.dataType,
+        "bool": BooleanDataType.dataType, "uint": UnsignedIntegerDataType.dataType,
+        "ushort": UnsignedShortDataType.dataType, "ulong": UnsignedLongDataType.dataType,
+        "ulonglong": UnsignedLongLongDataType.dataType,
+        "undefined": Undefined1DataType.dataType, "undefined1": Undefined1DataType.dataType,
+    }}
+    lower = type_str.strip().lower().replace("unsigned ", "u").replace(" ", "")
+    if lower in builtins:
+        return builtins[lower]
+    for dt in dtm.getAllDataTypes():
+        if _safe_str(dt.getName()) == type_str.strip() or _safe_str(dt.getPathName()) == type_str.strip():
+            return dt
+    return None
+
+struct_name = "{struct_name}"
+field_index = {field_index}
+new_name = {new_name_arg}
+new_type_str = {new_type_arg}
+new_comment = {new_comment_arg}
+
+result = {{"success": False, "message": ""}}
+
+try:
+    dtm = currentProgram.getDataTypeManager()
+    struct = None
+    for dt in dtm.getAllDataTypes():
+        n = _safe_str(dt.getName())
+        p = _safe_str(dt.getPathName())
+        if n == struct_name or p == struct_name or p.endswith("/" + struct_name):
+            from ghidra.program.model.data import Structure
+            if isinstance(dt, Structure):
+                struct = dt
+                break
+
+    if not struct:
+        result["message"] = "Structure not found: " + struct_name
+    elif field_index < 0 or field_index >= struct.getNumComponents():
+        result["message"] = "Field index {{}} out of range (0-{{}})".format(field_index, struct.getNumComponents() - 1)
+    else:
+        txn = dtm.startTransaction("Modify field in " + struct_name)
+        try:
+            comp = struct.getComponent(field_index)
+            changes = []
+
+            if new_name is not None:
+                comp.setFieldName(new_name)
+                changes.append("name -> " + new_name)
+
+            if new_comment is not None:
+                comp.setComment(new_comment)
+                changes.append("comment updated")
+
+            if new_type_str is not None:
+                f_type = resolve_type(new_type_str)
+                if not f_type:
+                    dtm.endTransaction(txn, False)
+                    result["message"] = "Unknown type: " + new_type_str
+                    print("=== MCP_RESULT_JSON ===")
+                    print(json.dumps(result))
+                    print("=== MCP_RESULT_END ===")
+                    import sys
+                    sys.exit(0)
+                comp.setDataType(f_type)
+                changes.append("type -> " + new_type_str)
+
+            dtm.endTransaction(txn, True)
+            result["success"] = True
+            result["message"] = "Modified field {{}} in '{{}}': {{}}".format(
+                field_index, struct_name, ", ".join(changes) if changes else "no changes")
+        except Exception as e:
+            dtm.endTransaction(txn, False)
+            result["message"] = str(e)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ModifyStructField.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ModifyStructField.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_remove_struct_field(args: dict) -> Sequence[types.TextContent]:
+    """Remove a field from a structure by index."""
+    binary_name = args.get("binary_name")
+    struct_name = args.get("struct_name")
+    field_index = args.get("field_index")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+struct_name = "{struct_name}"
+field_index = {field_index}
+
+result = {{"success": False, "message": ""}}
+
+try:
+    dtm = currentProgram.getDataTypeManager()
+    struct = None
+    for dt in dtm.getAllDataTypes():
+        n = _safe_str(dt.getName())
+        p = _safe_str(dt.getPathName())
+        if n == struct_name or p == struct_name or p.endswith("/" + struct_name):
+            from ghidra.program.model.data import Structure
+            if isinstance(dt, Structure):
+                struct = dt
+                break
+
+    if not struct:
+        result["message"] = "Structure not found: " + struct_name
+    elif field_index < 0 or field_index >= struct.getNumComponents():
+        result["message"] = "Field index {{}} out of range (0-{{}})".format(field_index, struct.getNumComponents() - 1)
+    else:
+        txn = dtm.startTransaction("Remove field from " + struct_name)
+        try:
+            comp = struct.getComponent(field_index)
+            removed_name = _safe_str(comp.getFieldName()) if comp.getFieldName() else "field_" + str(field_index)
+            struct.delete(field_index)
+            dtm.endTransaction(txn, True)
+            result["success"] = True
+            result["message"] = "Removed field '{{}}' (index {{}}) from '{{}}' (now {{}} fields, {{}} bytes)".format(
+                removed_name, field_index, struct_name,
+                struct.getNumComponents(), struct.getLength())
+        except Exception as e:
+            dtm.endTransaction(txn, False)
+            result["message"] = str(e)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("RemoveStructField.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RemoveStructField.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_create_enum(args: dict) -> Sequence[types.TextContent]:
+    """Create a new enumeration data type with values."""
+    binary_name = args.get("binary_name")
+    name = args.get("name")
+    values = args.get("values", {})
+    size = args.get("size", 4)
+    category = args.get("category", "")
+    project_name = args.get("project_name", config.default_project)
+
+    values_json = json.dumps(values).replace("'", "\\'")
+    category_json = json.dumps(category).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.data import EnumDataType, CategoryPath, DataTypeConflictHandler
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+name = "{name}"
+values = json.loads('{values_json}')
+size = {size}
+category = json.loads('{category_json}')
+
+result = {{"success": False, "message": ""}}
+
+try:
+    cat_path = CategoryPath(category) if category else CategoryPath.ROOT
+    enum = EnumDataType(cat_path, name, size)
+
+    for val_name, val_int in values.items():
+        enum.add(val_name, int(val_int))
+
+    dtm = currentProgram.getDataTypeManager()
+    txn = dtm.startTransaction("Create enum " + name)
+    try:
+        added = dtm.addDataType(enum, DataTypeConflictHandler.REPLACE_HANDLER)
+        dtm.endTransaction(txn, True)
+        result["success"] = True
+        result["message"] = "Created enum '{{}}' with {{}} values ({{}}-byte)".format(
+            _safe_str(added.getName()), added.getCount(), added.getLength())
+    except Exception as e:
+        dtm.endTransaction(txn, False)
+        result["message"] = str(e)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("CreateEnum.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "CreateEnum.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_add_enum_value(args: dict) -> Sequence[types.TextContent]:
+    """Add a value to an existing enumeration."""
+    binary_name = args.get("binary_name")
+    enum_name = args.get("enum_name")
+    value_name = args.get("value_name")
+    value = args.get("value")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+enum_name = "{enum_name}"
+value_name = "{value_name}"
+value = {value}
+
+result = {{"success": False, "message": ""}}
+
+try:
+    dtm = currentProgram.getDataTypeManager()
+    found = None
+    from ghidra.program.model.data import Enum
+    for dt in dtm.getAllDataTypes():
+        n = _safe_str(dt.getName())
+        p = _safe_str(dt.getPathName())
+        if (n == enum_name or p == enum_name or p.endswith("/" + enum_name)) and isinstance(dt, Enum):
+            found = dt
+            break
+
+    if not found:
+        result["message"] = "Enum not found: " + enum_name
+    else:
+        txn = dtm.startTransaction("Add value to enum " + enum_name)
+        try:
+            found.add(value_name, value)
+            dtm.endTransaction(txn, True)
+            result["success"] = True
+            result["message"] = "Added '{{}}' = {{}} to enum '{{}}' (now {{}} values)".format(
+                value_name, value, enum_name, found.getCount())
+        except Exception as e:
+            dtm.endTransaction(txn, False)
+            result["message"] = str(e)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("AddEnumValue.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "AddEnumValue.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_create_typedef(args: dict) -> Sequence[types.TextContent]:
+    """Create a typedef alias for an existing data type."""
+    binary_name = args.get("binary_name")
+    name = args.get("name")
+    base_type = args.get("base_type")
+    category = args.get("category", "")
+    project_name = args.get("project_name", config.default_project)
+
+    category_json = json.dumps(category).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json, re
+from ghidra.program.model.data import TypedefDataType, CategoryPath, DataTypeConflictHandler
+from ghidra.program.model.data import IntegerDataType, ByteDataType, ShortDataType, LongDataType
+from ghidra.program.model.data import CharDataType, BooleanDataType, FloatDataType, DoubleDataType
+from ghidra.program.model.data import PointerDataType, ArrayDataType, UnsignedIntegerDataType
+from ghidra.program.model.data import UnsignedShortDataType, UnsignedLongDataType, LongLongDataType
+from ghidra.program.model.data import UnsignedLongLongDataType, Undefined1DataType
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+def resolve_type(type_str):
+    dtm = currentProgram.getDataTypeManager()
+    if type_str.endswith("*"):
+        base = resolve_type(type_str[:-1].strip())
+        if base:
+            return PointerDataType(base)
+        return PointerDataType()
+    arr_match = re.match(r"(.+)\[(\d+)\]$", type_str.strip())
+    if arr_match:
+        base = resolve_type(arr_match.group(1).strip())
+        count = int(arr_match.group(2))
+        if base:
+            return ArrayDataType(base, count, base.getLength())
+        return None
+    builtins = {{
+        "byte": ByteDataType.dataType, "char": CharDataType.dataType,
+        "short": ShortDataType.dataType, "int": IntegerDataType.dataType,
+        "long": LongDataType.dataType, "longlong": LongLongDataType.dataType,
+        "float": FloatDataType.dataType, "double": DoubleDataType.dataType,
+        "bool": BooleanDataType.dataType, "uint": UnsignedIntegerDataType.dataType,
+        "ushort": UnsignedShortDataType.dataType, "ulong": UnsignedLongDataType.dataType,
+        "ulonglong": UnsignedLongLongDataType.dataType,
+        "undefined": Undefined1DataType.dataType, "undefined1": Undefined1DataType.dataType,
+    }}
+    lower = type_str.strip().lower().replace("unsigned ", "u").replace(" ", "")
+    if lower in builtins:
+        return builtins[lower]
+    for dt in dtm.getAllDataTypes():
+        if _safe_str(dt.getName()) == type_str.strip() or _safe_str(dt.getPathName()) == type_str.strip():
+            return dt
+    return None
+
+name = "{name}"
+base_type_str = "{base_type}"
+category = json.loads('{category_json}')
+
+result = {{"success": False, "message": ""}}
+
+try:
+    base = resolve_type(base_type_str)
+    if not base:
+        result["message"] = "Unknown base type: " + base_type_str
+    else:
+        cat_path = CategoryPath(category) if category else CategoryPath.ROOT
+        typedef = TypedefDataType(cat_path, name, base)
+
+        dtm = currentProgram.getDataTypeManager()
+        txn = dtm.startTransaction("Create typedef " + name)
+        try:
+            added = dtm.addDataType(typedef, DataTypeConflictHandler.REPLACE_HANDLER)
+            dtm.endTransaction(txn, True)
+            result["success"] = True
+            result["message"] = "Created typedef '{{}}' -> '{{}}' ({{}} bytes)".format(
+                _safe_str(added.getName()), base_type_str, added.getLength())
+        except Exception as e:
+            dtm.endTransaction(txn, False)
+            result["message"] = str(e)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("CreateTypedef.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "CreateTypedef.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_apply_data_type(args: dict) -> Sequence[types.TextContent]:
+    """Apply a data type at a specific address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    type_name = args.get("type_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json, re
+from ghidra.program.model.data import IntegerDataType, ByteDataType, ShortDataType, LongDataType
+from ghidra.program.model.data import CharDataType, BooleanDataType, FloatDataType, DoubleDataType
+from ghidra.program.model.data import PointerDataType, ArrayDataType, UnsignedIntegerDataType
+from ghidra.program.model.data import UnsignedShortDataType, UnsignedLongDataType, LongLongDataType
+from ghidra.program.model.data import UnsignedLongLongDataType, Undefined1DataType
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+def resolve_type(type_str):
+    dtm = currentProgram.getDataTypeManager()
+    if type_str.endswith("*"):
+        base = resolve_type(type_str[:-1].strip())
+        if base:
+            return PointerDataType(base)
+        return PointerDataType()
+    arr_match = re.match(r"(.+)\[(\d+)\]$", type_str.strip())
+    if arr_match:
+        base = resolve_type(arr_match.group(1).strip())
+        count = int(arr_match.group(2))
+        if base:
+            return ArrayDataType(base, count, base.getLength())
+        return None
+    builtins = {{
+        "byte": ByteDataType.dataType, "char": CharDataType.dataType,
+        "short": ShortDataType.dataType, "int": IntegerDataType.dataType,
+        "long": LongDataType.dataType, "longlong": LongLongDataType.dataType,
+        "float": FloatDataType.dataType, "double": DoubleDataType.dataType,
+        "bool": BooleanDataType.dataType, "uint": UnsignedIntegerDataType.dataType,
+        "ushort": UnsignedShortDataType.dataType, "ulong": UnsignedLongDataType.dataType,
+        "ulonglong": UnsignedLongLongDataType.dataType,
+        "undefined": Undefined1DataType.dataType, "undefined1": Undefined1DataType.dataType,
+    }}
+    lower = type_str.strip().lower().replace("unsigned ", "u").replace(" ", "")
+    if lower in builtins:
+        return builtins[lower]
+    for dt in dtm.getAllDataTypes():
+        if _safe_str(dt.getName()) == type_str.strip() or _safe_str(dt.getPathName()) == type_str.strip():
+            return dt
+    return None
+
+addr_str = "{address}"
+type_name = "{type_name}"
+
+result = {{"success": False, "message": ""}}
+
+try:
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["message"] = "Invalid address: " + addr_str
+    else:
+        dt = resolve_type(type_name)
+        if not dt:
+            result["message"] = "Unknown data type: " + type_name
+        else:
+            listing = currentProgram.getListing()
+            listing.clearCodeUnits(addr, addr.add(dt.getLength() - 1), False)
+            listing.createData(addr, dt)
+            result["success"] = True
+            result["message"] = "Applied '{{}}' ({{}} bytes) at {{}}".format(type_name, dt.getLength(), addr_str)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ApplyDataType.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ApplyDataType.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_delete_data_type(args: dict) -> Sequence[types.TextContent]:
+    """Delete a user-defined data type."""
+    binary_name = args.get("binary_name")
+    type_name = args.get("type_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+type_name = "{type_name}"
+
+result = {{"success": False, "message": ""}}
+
+try:
+    dtm = currentProgram.getDataTypeManager()
+    found = None
+    for dt in dtm.getAllDataTypes():
+        n = _safe_str(dt.getName())
+        p = _safe_str(dt.getPathName())
+        if n == type_name or p == type_name or p.endswith("/" + type_name):
+            found = dt
+            break
+
+    if not found:
+        result["message"] = "Data type not found: " + type_name
+    else:
+        dt_name = _safe_str(found.getName())
+        dt_path = _safe_str(found.getPathName())
+        txn = dtm.startTransaction("Delete data type " + dt_name)
+        try:
+            dtm.remove(found, None)
+            dtm.endTransaction(txn, True)
+            result["success"] = True
+            result["message"] = "Deleted data type '{{}}' ({{}})".format(dt_name, dt_path)
+        except Exception as e:
+            dtm.endTransaction(txn, False)
+            result["message"] = str(e)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("DeleteDataType.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "DeleteDataType.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_get_function_variables(args: dict) -> Sequence[types.TextContent]:
+    """List all variables of a function with types and storage."""
+    binary_name = args.get("binary_name")
+    function_name = args.get("function_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+def find_function(name):
+    funcs = getGlobalFunctions(name)
+    if funcs:
+        return funcs[0]
+    try:
+        addr = toAddr(name)
+        func = getFunctionAt(addr) or getFunctionContaining(addr)
+        return func
+    except:
+        return None
+
+func = find_function("{function_name}")
+
+if not func:
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{"success": False, "error": "Function not found: {function_name}"}}))
+    print("=== MCP_RESULT_END ===")
+else:
+    params = []
+    for p in func.getParameters():
+        params.append({{
+            "name": _safe_str(p.getName()),
+            "type": _safe_str(p.getDataType().getName()),
+            "size": p.getLength(),
+            "storage": _safe_str(p.getVariableStorage()),
+            "ordinal": p.getOrdinal()
+        }})
+
+    locals_list = []
+    for v in func.getLocalVariables():
+        locals_list.append({{
+            "name": _safe_str(v.getName()),
+            "type": _safe_str(v.getDataType().getName()),
+            "size": v.getLength(),
+            "storage": _safe_str(v.getVariableStorage()),
+            "first_use": v.getFirstUseOffset()
+        }})
+
+    ret_type = _safe_str(func.getReturnType().getName())
+
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{
+        "success": True,
+        "function": _safe_str(func.getName()),
+        "address": _safe_str(func.getEntryPoint()),
+        "return_type": ret_type,
+        "calling_convention": _safe_str(func.getCallingConventionName()),
+        "parameters": params,
+        "local_variables": locals_list
+    }}))
+    print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetFunctionVariables.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetFunctionVariables.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"# Variables for {result['function']} @ {result['address']}\n\n"
+        text += f"**Return type**: {result['return_type']}\n"
+        text += f"**Calling convention**: {result['calling_convention']}\n\n"
+
+        params = result.get("parameters", [])
+        if params:
+            text += f"## Parameters ({len(params)})\n\n"
+            text += "| # | Name | Type | Size | Storage |\n"
+            text += "|---|------|------|------|---------|\n"
+            for p in params:
+                text += f"| {p['ordinal']} | {p['name']} | {p['type']} | {p['size']} | {p['storage']} |\n"
+            text += "\n"
+
+        locals_list = result.get("local_variables", [])
+        if locals_list:
+            text += f"## Local Variables ({len(locals_list)})\n\n"
+            text += "| Name | Type | Size | Storage | First Use |\n"
+            text += "|------|------|------|---------|-----------|\n"
+            for v in locals_list:
+                text += f"| {v['name']} | {v['type']} | {v['size']} | {v['storage']} | {v['first_use']} |\n"
+
+        if not params and not locals_list:
+            text += "No parameters or local variables found.\n"
+
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
 
 
 # ============================================================================
