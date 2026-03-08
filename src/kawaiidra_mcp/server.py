@@ -8792,41 +8792,60 @@ if addr is None:
     print("=== MCP_RESULT_END ===")
 else:
     memory = currentProgram.getMemory()
-    buf = jarray.zeros(length, "b")
-    try:
-        bytes_read = memory.getBytes(addr, buf)
-        # Convert signed Java bytes to unsigned
-        hex_bytes = []
-        for b in buf:
-            hex_bytes.append(int(b) & 0xFF)
 
-        # Build hex dump rows (16 bytes per row)
-        rows = []
-        row_addr = addr
-        for i in range(0, len(hex_bytes), 16):
-            chunk = hex_bytes[i:i+16]
-            hex_part = " ".join("%02X" % b for b in chunk)
-            ascii_part = ""
-            for b in chunk:
-                if 0x20 <= b <= 0x7E:
-                    ascii_part += chr(b)
-                else:
-                    ascii_part += "."
-            rows.append("%s:  %-48s  |%s|" % (str(row_addr), hex_part, ascii_part))
-            row_addr = row_addr.add(16)
+    # Verify the address is in a valid memory block
+    if not memory.contains(addr):
+        print("=== MCP_RESULT_JSON ===")
+        print(json.dumps({{"success": False, "error": "Address not in mapped memory: " + addr_str + ". Use get_memory_map to find valid ranges."}}))
+        print("=== MCP_RESULT_END ===")
+    else:
+        buf = jarray.zeros(length, "b")
+        bytes_read = 0
+        try:
+            memory.getBytes(addr, buf)
+            bytes_read = length
+        except:
+            # Fallback: read byte-by-byte for partial/boundary reads
+            for i in range(length):
+                try:
+                    buf[i] = memory.getByte(addr.add(i))
+                    bytes_read = i + 1
+                except:
+                    break
 
-        print("=== MCP_RESULT_JSON ===")
-        print(json.dumps({{
-            "success": True,
-            "address": addr_str,
-            "length": len(hex_bytes),
-            "dump": "\\n".join(rows)
-        }}))
-        print("=== MCP_RESULT_END ===")
-    except Exception as e:
-        print("=== MCP_RESULT_JSON ===")
-        print(json.dumps({{"success": False, "error": str(e)}}))
-        print("=== MCP_RESULT_END ===")
+        if bytes_read == 0:
+            print("=== MCP_RESULT_JSON ===")
+            print(json.dumps({{"success": False, "error": "Cannot read memory at: " + addr_str}}))
+            print("=== MCP_RESULT_END ===")
+        else:
+            # Convert signed Java bytes to unsigned
+            hex_bytes = []
+            for i in range(bytes_read):
+                hex_bytes.append(int(buf[i]) & 0xFF)
+
+            # Build hex dump rows (16 bytes per row)
+            rows = []
+            row_addr = addr
+            for i in range(0, len(hex_bytes), 16):
+                chunk = hex_bytes[i:i+16]
+                hex_part = " ".join("%02X" % b for b in chunk)
+                ascii_part = ""
+                for b in chunk:
+                    if 0x20 <= b <= 0x7E:
+                        ascii_part += chr(b)
+                    else:
+                        ascii_part += "."
+                rows.append("%s:  %-48s  |%s|" % (str(row_addr), hex_part, ascii_part))
+                row_addr = row_addr.add(16)
+
+            print("=== MCP_RESULT_JSON ===")
+            print(json.dumps({{
+                "success": True,
+                "address": addr_str,
+                "length": len(hex_bytes),
+                "dump": chr(10).join(rows)
+            }}))
+            print("=== MCP_RESULT_END ===")
 '''
 
     write_ghidra_script("ReadMemory.py", script)

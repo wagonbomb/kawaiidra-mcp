@@ -143,6 +143,26 @@ class KawaiidraTestRunner:
                 "set_current_function": "handle_set_current_function",
                 "get_current_selection": "handle_get_current_selection",
                 "gui_status": "handle_gui_status",
+                # Phase 1: Batch / Low-level / Script Tools
+                "batch_decompile": "handle_batch_decompile",
+                "read_memory": "handle_read_memory",
+                "search_bytes": "handle_search_bytes",
+                "create_function": "handle_create_function",
+                "delete_function": "handle_delete_function",
+                "run_script": "handle_run_script",
+                # Phase 2: Data Types & Structures
+                "list_data_types": "handle_list_data_types",
+                "get_data_type_details": "handle_get_data_type_details",
+                "create_struct": "handle_create_struct",
+                "add_struct_field": "handle_add_struct_field",
+                "modify_struct_field": "handle_modify_struct_field",
+                "remove_struct_field": "handle_remove_struct_field",
+                "create_enum": "handle_create_enum",
+                "add_enum_value": "handle_add_enum_value",
+                "create_typedef": "handle_create_typedef",
+                "apply_data_type": "handle_apply_data_type",
+                "delete_data_type": "handle_delete_data_type",
+                "get_function_variables": "handle_get_function_variables",
             }
 
             handler_name = handler_map.get(tool_name)
@@ -337,12 +357,181 @@ class KawaiidraTestRunner:
 
         return suite
 
-    def run_phase5_ios_tools(self) -> TestSuite:
-        """Phase 5: iOS Security Tools (macOS only)."""
-        suite = TestSuite("Phase 5: iOS Security Tools (macOS)")
+    def run_phase5_new_batch_tools(self) -> TestSuite:
+        """Phase 5: New Batch/Low-level/Script Tools (Tier 1 Phase 1)."""
+        suite = TestSuite("Phase 5: Batch/Low-level/Script Tools")
 
         print("\n" + "=" * 50)
-        print("PHASE 5: iOS Security Tools")
+        print("PHASE 5: Batch/Low-level/Script Tools")
+        print("=" * 50)
+
+        tests = [
+            # Batch decompile
+            ("BATCH-001", "batch_decompile", {
+                "binary_name": "putty.exe",
+                "function_names": ["entry"]
+            }),
+            # Read memory at .text section start
+            ("BATCH-002", "read_memory", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+                "length": 64
+            }),
+            # Search for MZ header bytes
+            ("BATCH-003", "search_bytes", {
+                "binary_name": "putty.exe",
+                "pattern": "4D 5A",
+                "limit": 5
+            }),
+            # Run a simple script
+            ("BATCH-004", "run_script", {
+                "binary_name": "putty.exe",
+                "code": "print(currentProgram.getName())"
+            }),
+            # Decompile with pagination
+            ("BATCH-005", "get_function_decompile", {
+                "binary_name": "putty.exe",
+                "function_name": "entry",
+                "offset": 0,
+                "limit": 10
+            }),
+            # Disassembly with pagination
+            ("BATCH-006", "get_function_disassembly", {
+                "binary_name": "putty.exe",
+                "function_name": "entry",
+                "offset": 0,
+                "limit": 20
+            }),
+            # Create function, then delete it (use an address in .text)
+            ("BATCH-007", "create_function", {
+                "binary_name": "putty.exe",
+                "address": "0x1400ec000",
+                "name": "test_func_mcp"
+            }),
+            ("BATCH-008", "delete_function", {
+                "binary_name": "putty.exe",
+                "address_or_name": "test_func_mcp"
+            }),
+        ]
+
+        for test_id, tool, args in tests:
+            result = self.run_test(test_id, tool, args)
+            suite.results.append(result)
+
+        return suite
+
+    def run_phase6_data_type_tools(self) -> TestSuite:
+        """Phase 6: Data Types & Structures Tools (Tier 1 Phase 2)."""
+        suite = TestSuite("Phase 6: Data Types & Structures Tools")
+
+        print("\n" + "=" * 50)
+        print("PHASE 6: Data Types & Structures Tools")
+        print("=" * 50)
+
+        tests = [
+            # List data types
+            ("DTYPE-001", "list_data_types", {
+                "binary_name": "putty.exe",
+                "filter": "int",
+                "limit": 20
+            }),
+            # Get function variables
+            ("DTYPE-002", "get_function_variables", {
+                "binary_name": "putty.exe",
+                "function_name": "entry"
+            }),
+            # Create a struct
+            ("DTYPE-003", "create_struct", {
+                "binary_name": "putty.exe",
+                "name": "TestMCPStruct",
+                "fields": [
+                    {"name": "id", "type": "int"},
+                    {"name": "flags", "type": "byte"},
+                ],
+                "category": "/MCP_Test"
+            }),
+            # Get struct details
+            ("DTYPE-004", "get_data_type_details", {
+                "binary_name": "putty.exe",
+                "type_name": "TestMCPStruct"
+            }),
+            # Add a field to the struct
+            ("DTYPE-005", "add_struct_field", {
+                "binary_name": "putty.exe",
+                "struct_name": "TestMCPStruct",
+                "field_name": "data",
+                "field_type": "long",
+                "comment": "Test field"
+            }),
+            # Modify a field in the struct
+            ("DTYPE-006", "modify_struct_field", {
+                "binary_name": "putty.exe",
+                "struct_name": "TestMCPStruct",
+                "field_index": 0,
+                "new_name": "identifier",
+                "new_comment": "Renamed from id"
+            }),
+            # Remove a field
+            ("DTYPE-007", "remove_struct_field", {
+                "binary_name": "putty.exe",
+                "struct_name": "TestMCPStruct",
+                "field_index": 2
+            }),
+            # Create an enum
+            ("DTYPE-008", "create_enum", {
+                "binary_name": "putty.exe",
+                "name": "TestMCPEnum",
+                "values": {"NONE": 0, "READ": 1, "WRITE": 2, "EXEC": 4},
+                "size": 4,
+                "category": "/MCP_Test"
+            }),
+            # Add enum value
+            ("DTYPE-009", "add_enum_value", {
+                "binary_name": "putty.exe",
+                "enum_name": "TestMCPEnum",
+                "value_name": "ALL",
+                "value": 7
+            }),
+            # Create a typedef
+            ("DTYPE-010", "create_typedef", {
+                "binary_name": "putty.exe",
+                "name": "MCPHandle",
+                "base_type": "int",
+                "category": "/MCP_Test"
+            }),
+            # Apply data type at an address (.rdata section)
+            ("DTYPE-011", "apply_data_type", {
+                "binary_name": "putty.exe",
+                "address": "0x1400ed000",
+                "type_name": "int"
+            }),
+            # Delete the test types (cleanup)
+            ("DTYPE-012", "delete_data_type", {
+                "binary_name": "putty.exe",
+                "type_name": "TestMCPStruct"
+            }),
+            ("DTYPE-013", "delete_data_type", {
+                "binary_name": "putty.exe",
+                "type_name": "TestMCPEnum"
+            }),
+            ("DTYPE-014", "delete_data_type", {
+                "binary_name": "putty.exe",
+                "type_name": "MCPHandle"
+            }),
+        ]
+
+        for test_id, tool, args in tests:
+            result = self.run_test(test_id, tool, args)
+            suite.results.append(result)
+
+        return suite
+
+    def run_phase7_ios_tools(self) -> TestSuite:
+        """Phase 7: iOS Security Tools (macOS only)."""
+        suite = TestSuite("Phase 7: iOS Security Tools (macOS)")
+
+        print("\n" + "=" * 50)
+        print("PHASE 7: iOS Security Tools")
         print("=" * 50)
 
         # These will likely fail on Windows without iOS binaries
@@ -401,12 +590,14 @@ class KawaiidraTestRunner:
         self.suites.append(self.run_phase2_advanced_tools())
         self.suites.append(self.run_phase3_android_tools())
         self.suites.append(self.run_phase4_gui_tools())
+        self.suites.append(self.run_phase5_new_batch_tools())
+        self.suites.append(self.run_phase6_data_type_tools())
 
         if not skip_ios:
-            self.suites.append(self.run_phase5_ios_tools())
+            self.suites.append(self.run_phase7_ios_tools())
         else:
             print("\n" + "=" * 50)
-            print("PHASE 5: iOS Security Tools - SKIPPED (use --ios flag)")
+            print("PHASE 7: iOS Security Tools - SKIPPED (use --ios flag)")
             print("=" * 50)
 
         return self.print_summary()
@@ -417,7 +608,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Kawaiidra MCP Comprehensive Test Runner")
     parser.add_argument("--ios", action="store_true", help="Include iOS security tools tests")
-    parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5], help="Run specific phase only")
+    parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6, 7], help="Run specific phase only")
     args = parser.parse_args()
 
     runner = KawaiidraTestRunner()
@@ -428,10 +619,12 @@ def main():
             2: runner.run_phase2_advanced_tools,
             3: runner.run_phase3_android_tools,
             4: runner.run_phase4_gui_tools,
-            5: runner.run_phase5_ios_tools,
+            5: runner.run_phase5_new_batch_tools,
+            6: runner.run_phase6_data_type_tools,
+            7: runner.run_phase7_ios_tools,
         }
 
-        # For phases 2-5, ensure base binary is analyzed first
+        # For phases 2+, ensure base binary is analyzed first
         if args.phase >= 2:
             runner.ensure_binary_analyzed("putty.exe")
 
