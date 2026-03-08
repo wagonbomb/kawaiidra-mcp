@@ -2,7 +2,7 @@
 """
 Comprehensive Test Runner for Kawaiidra MCP
 
-Runs all 81 tools with real binaries and reports results.
+Runs all 87 tools with real binaries and reports results.
 """
 
 import sys
@@ -172,6 +172,13 @@ class KawaiidraTestRunner:
                 "get_xrefs_from": "handle_get_xrefs_from",
                 "set_bookmark": "handle_set_bookmark",
                 "list_bookmarks": "handle_list_bookmarks",
+                # Phase 4: Batch Operations & Comment Types
+                "batch_rename": "handle_batch_rename",
+                "batch_set_comments": "handle_batch_set_comments",
+                "set_plate_comment": "handle_set_plate_comment",
+                "set_pre_comment": "handle_set_pre_comment",
+                "batch_set_types": "handle_batch_set_types",
+                "clear_comments": "handle_clear_comments",
             }
 
             handler_name = handler_map.get(tool_name)
@@ -598,12 +605,90 @@ class KawaiidraTestRunner:
 
         return suite
 
-    def run_phase8_ios_tools(self) -> TestSuite:
-        """Phase 8: iOS Security Tools (macOS only)."""
-        suite = TestSuite("Phase 8: iOS Security Tools (macOS)")
+    def run_phase8_batch_ops_comments(self) -> TestSuite:
+        """Phase 8: Batch Operations & Comment Types (Roadmap Phase 4)."""
+        suite = TestSuite("Phase 8: Batch Ops & Comment Types")
 
         print("\n" + "=" * 50)
-        print("PHASE 7: iOS Security Tools")
+        print("PHASE 8: Batch Operations & Comment Types")
+        print("=" * 50)
+
+        tests = [
+            # Set a plate comment on entry function
+            ("BATCHOP-001", "set_plate_comment", {
+                "binary_name": "putty.exe",
+                "function_name": "entry",
+                "comment": "This is the entry point\nAnalyzed by MCP"
+            }),
+            # Set a pre-comment at .text start
+            ("BATCHOP-002", "set_pre_comment", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+                "comment": "Start of .text section"
+            }),
+            # Batch set comments at two addresses
+            ("BATCHOP-003", "batch_set_comments", {
+                "binary_name": "putty.exe",
+                "comments": [
+                    {"address": "0x140001000", "comment": "Batch comment 1", "comment_type": "EOL"},
+                    {"address": "0x140001004", "comment": "Batch comment 2", "comment_type": "EOL"}
+                ]
+            }),
+            # Clear all comments on entry
+            ("BATCHOP-004", "clear_comments", {
+                "binary_name": "putty.exe",
+                "function_name": "entry"
+            }),
+            # Batch rename: create two labels first, then batch rename them
+            ("BATCHOP-005", "create_label", {
+                "binary_name": "putty.exe",
+                "address": "0x140001010",
+                "name": "mcp_batch_test_a"
+            }),
+            ("BATCHOP-006", "create_label", {
+                "binary_name": "putty.exe",
+                "address": "0x140001020",
+                "name": "mcp_batch_test_b"
+            }),
+            ("BATCHOP-007", "batch_rename", {
+                "binary_name": "putty.exe",
+                "renames": [
+                    {"old_name": "mcp_batch_test_a", "new_name": "mcp_renamed_a", "type": "label"},
+                    {"old_name": "mcp_batch_test_b", "new_name": "mcp_renamed_b", "type": "label"}
+                ]
+            }),
+            # Batch set types on entry function variables
+            ("BATCHOP-008", "batch_set_types", {
+                "binary_name": "putty.exe",
+                "type_changes": [
+                    {"function_name": "entry", "variable_name": "param_1", "new_type": "int"}
+                ]
+            }),
+            # Cleanup: delete the test labels
+            ("BATCHOP-009", "delete_label", {
+                "binary_name": "putty.exe",
+                "address": "0x140001010",
+                "name": "mcp_renamed_a"
+            }),
+            ("BATCHOP-010", "delete_label", {
+                "binary_name": "putty.exe",
+                "address": "0x140001020",
+                "name": "mcp_renamed_b"
+            }),
+        ]
+
+        for test_id, tool, args in tests:
+            result = self.run_test(test_id, tool, args)
+            suite.results.append(result)
+
+        return suite
+
+    def run_phase9_ios_tools(self) -> TestSuite:
+        """Phase 9: iOS Security Tools (macOS only)."""
+        suite = TestSuite("Phase 9: iOS Security Tools (macOS)")
+
+        print("\n" + "=" * 50)
+        print("PHASE 9: iOS Security Tools")
         print("=" * 50)
 
         # These will likely fail on Windows without iOS binaries
@@ -665,12 +750,13 @@ class KawaiidraTestRunner:
         self.suites.append(self.run_phase5_new_batch_tools())
         self.suites.append(self.run_phase6_data_type_tools())
         self.suites.append(self.run_phase7_symbols_labels_bookmarks())
+        self.suites.append(self.run_phase8_batch_ops_comments())
 
         if not skip_ios:
-            self.suites.append(self.run_phase8_ios_tools())
+            self.suites.append(self.run_phase9_ios_tools())
         else:
             print("\n" + "=" * 50)
-            print("PHASE 8: iOS Security Tools - SKIPPED (use --ios flag)")
+            print("PHASE 9: iOS Security Tools - SKIPPED (use --ios flag)")
             print("=" * 50)
 
         return self.print_summary()
@@ -681,7 +767,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Kawaiidra MCP Comprehensive Test Runner")
     parser.add_argument("--ios", action="store_true", help="Include iOS security tools tests")
-    parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8], help="Run specific phase only")
+    parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9], help="Run specific phase only")
     args = parser.parse_args()
 
     runner = KawaiidraTestRunner()
@@ -695,7 +781,8 @@ def main():
             5: runner.run_phase5_new_batch_tools,
             6: runner.run_phase6_data_type_tools,
             7: runner.run_phase7_symbols_labels_bookmarks,
-            8: runner.run_phase8_ios_tools,
+            8: runner.run_phase8_batch_ops_comments,
+            9: runner.run_phase9_ios_tools,
         }
 
         # For phases 2+, ensure base binary is analyzed first

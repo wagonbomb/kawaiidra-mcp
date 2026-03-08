@@ -2353,6 +2353,179 @@ TOOLS = [
             "required": ["binary_name"]
         }
     ),
+    # Phase 4: Batch Operations & Comment Types
+    types.Tool(
+        name="batch_rename",
+        description="Rename multiple functions and/or labels in a single Ghidra invocation. Each rename entry specifies old_name (or address) and new_name, and optionally type='function' or 'label'.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "renames": {
+                    "type": "array",
+                    "description": "Array of rename operations",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "old_name": {"type": "string", "description": "Current name or address (e.g., 'FUN_00401000' or '0x401000')"},
+                            "new_name": {"type": "string", "description": "New name to assign"},
+                            "type": {"type": "string", "enum": ["function", "label"], "description": "Whether to rename a function or label (default: function)"}
+                        },
+                        "required": ["old_name", "new_name"]
+                    }
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "renames"]
+        }
+    ),
+    types.Tool(
+        name="batch_set_comments",
+        description="Set comments at multiple addresses in a single Ghidra invocation. Each entry specifies address, comment, and optional comment_type (EOL, PRE, POST, PLATE).",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "comments": {
+                    "type": "array",
+                    "description": "Array of comment operations",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "address": {"type": "string", "description": "Address to set comment at (hex, e.g., '0x401000')"},
+                            "comment": {"type": "string", "description": "Comment text"},
+                            "comment_type": {"type": "string", "enum": ["EOL", "PRE", "POST", "PLATE"], "description": "Comment type (default: EOL)"}
+                        },
+                        "required": ["address", "comment"]
+                    }
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "comments"]
+        }
+    ),
+    types.Tool(
+        name="set_plate_comment",
+        description="Set a plate (function header) comment for a function. Plate comments appear as a block above the function in the listing.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Function name or entry address"
+                },
+                "comment": {
+                    "type": "string",
+                    "description": "Plate comment text (can be multi-line)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name", "comment"]
+        }
+    ),
+    types.Tool(
+        name="set_pre_comment",
+        description="Set a pre-instruction comment at an address. Pre-comments appear on the line(s) before the instruction in the listing.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address to set pre-comment at (hex, e.g., '0x401000')"
+                },
+                "comment": {
+                    "type": "string",
+                    "description": "Pre-comment text (can be multi-line)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address", "comment"]
+        }
+    ),
+    types.Tool(
+        name="batch_set_types",
+        description="Set types for multiple variables across functions in a single Ghidra invocation. Each entry specifies function_name, variable_name, and new_type.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "type_changes": {
+                    "type": "array",
+                    "description": "Array of type change operations",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "function_name": {"type": "string", "description": "Function name or address"},
+                            "variable_name": {"type": "string", "description": "Variable name to retype"},
+                            "new_type": {"type": "string", "description": "New type (e.g., 'int', 'char *', 'struct MyStruct')"}
+                        },
+                        "required": ["function_name", "variable_name", "new_type"]
+                    }
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "type_changes"]
+        }
+    ),
+    types.Tool(
+        name="clear_comments",
+        description="Clear all comments (EOL, PRE, POST, PLATE) within a function's address range.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Function name or entry address"
+                },
+                "comment_types": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["EOL", "PRE", "POST", "PLATE"]},
+                    "description": "Which comment types to clear (default: all types)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name"]
+        }
+    ),
 ]
 
 
@@ -2549,6 +2722,19 @@ async def handle_call_tool(
             return await handle_set_bookmark(arguments)
         elif name == "list_bookmarks":
             return await handle_list_bookmarks(arguments)
+        # Phase 4: Batch Operations & Comment Types
+        elif name == "batch_rename":
+            return await handle_batch_rename(arguments)
+        elif name == "batch_set_comments":
+            return await handle_batch_set_comments(arguments)
+        elif name == "set_plate_comment":
+            return await handle_set_plate_comment(arguments)
+        elif name == "set_pre_comment":
+            return await handle_set_pre_comment(arguments)
+        elif name == "batch_set_types":
+            return await handle_batch_set_types(arguments)
+        elif name == "clear_comments":
+            return await handle_clear_comments(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -11327,6 +11513,637 @@ print("=== MCP_RESULT_END ===")
         if not bookmarks:
             text += "  No bookmarks found.\n"
         return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+# ============================================================================
+# Phase 4: Batch Operations & Comment Types Handlers
+# ============================================================================
+
+
+async def handle_batch_rename(args: dict) -> Sequence[types.TextContent]:
+    """Rename multiple functions and/or labels in a single Ghidra invocation."""
+    binary_name = args.get("binary_name")
+    renames = args.get("renames", [])
+    project_name = args.get("project_name", config.default_project)
+
+    if not renames:
+        return [types.TextContent(type="text", text="Error: No renames provided")]
+
+    renames_json = json.dumps(renames).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.symbol import SourceType
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+renames = json.loads('{renames_json}')
+results = []
+txn = currentProgram.startTransaction("batch_rename")
+try:
+    func_mgr = currentProgram.getFunctionManager()
+    sym_table = currentProgram.getSymbolTable()
+
+    for entry in renames:
+        old_name = entry.get("old_name", "")
+        new_name = entry.get("new_name", "")
+        rename_type = entry.get("type", "function")
+        r = {{"old_name": old_name, "new_name": new_name, "type": rename_type, "success": False}}
+
+        try:
+            if rename_type == "label":
+                # Find label by name or address
+                addr = None
+                if old_name.startswith("0x") or old_name.startswith("0X"):
+                    addr = currentProgram.getAddressFactory().getAddress(old_name)
+                if addr:
+                    syms = sym_table.getSymbols(addr)
+                    found = False
+                    for s in syms:
+                        s.setName(new_name, SourceType.USER_DEFINED)
+                        r["success"] = True
+                        r["address"] = str(addr)
+                        found = True
+                        break
+                    if not found:
+                        r["error"] = "No symbol at address"
+                else:
+                    # Search by name
+                    sym_iter = sym_table.getSymbols(old_name)
+                    found = False
+                    for s in sym_iter:
+                        s.setName(new_name, SourceType.USER_DEFINED)
+                        r["success"] = True
+                        r["address"] = str(s.getAddress())
+                        found = True
+                        break
+                    if not found:
+                        r["error"] = "Label not found: " + old_name
+            else:
+                # Function rename
+                func = None
+                if old_name.startswith("0x") or old_name.startswith("0X"):
+                    addr = currentProgram.getAddressFactory().getAddress(old_name)
+                    if addr:
+                        func = func_mgr.getFunctionAt(addr)
+                if func is None:
+                    for f in func_mgr.getFunctions(True):
+                        if f.getName() == old_name:
+                            func = f
+                            break
+                if func:
+                    func.setName(new_name, SourceType.USER_DEFINED)
+                    r["success"] = True
+                    r["address"] = str(func.getEntryPoint())
+                else:
+                    r["error"] = "Function not found: " + old_name
+        except:
+            import traceback
+            r["error"] = traceback.format_exc().split(chr(10))[-2]
+
+        results.append(r)
+
+    currentProgram.endTransaction(txn, True)
+except:
+    currentProgram.endTransaction(txn, False)
+    import traceback
+    traceback.print_exc()
+
+succeeded = sum(1 for r in results if r["success"])
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "total": len(results), "succeeded": succeeded, "failed": len(results) - succeeded, "results": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("BatchRename.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "BatchRename.py",
+        "-save"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"Batch rename: {result.get('succeeded')}/{result.get('total')} succeeded\n\n"
+        for r in result.get("results", []):
+            status = "OK" if r["success"] else "FAIL"
+            addr = r.get("address", "")
+            err = r.get("error", "")
+            text += f"  [{status}] {r['old_name']} -> {r['new_name']}"
+            if addr:
+                text += f" @ {addr}"
+            if err:
+                text += f" ({err})"
+            text += "\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_batch_set_comments(args: dict) -> Sequence[types.TextContent]:
+    """Set comments at multiple addresses in a single Ghidra invocation."""
+    binary_name = args.get("binary_name")
+    comments = args.get("comments", [])
+    project_name = args.get("project_name", config.default_project)
+
+    if not comments:
+        return [types.TextContent(type="text", text="Error: No comments provided")]
+
+    comments_json = json.dumps(comments).replace("\\", "\\\\").replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.listing import CodeUnit
+
+comments = json.loads('{comments_json}')
+results = []
+txn = currentProgram.startTransaction("batch_set_comments")
+try:
+    listing = currentProgram.getListing()
+    type_map = {{
+        "EOL": CodeUnit.EOL_COMMENT,
+        "PRE": CodeUnit.PRE_COMMENT,
+        "POST": CodeUnit.POST_COMMENT,
+        "PLATE": CodeUnit.PLATE_COMMENT
+    }}
+
+    for entry in comments:
+        addr_str = entry.get("address", "")
+        comment_text = entry.get("comment", "")
+        comment_type = entry.get("comment_type", "EOL")
+        r = {{"address": addr_str, "comment_type": comment_type, "success": False}}
+
+        try:
+            addr = currentProgram.getAddressFactory().getAddress(addr_str)
+            if addr is None:
+                r["error"] = "Invalid address"
+            else:
+                code_unit = listing.getCodeUnitAt(addr)
+                if code_unit is None:
+                    code_unit = listing.getCodeUnitContaining(addr)
+                if code_unit is None:
+                    r["error"] = "No code unit at address"
+                else:
+                    ct = type_map.get(comment_type, CodeUnit.EOL_COMMENT)
+                    code_unit.setComment(ct, comment_text)
+                    r["success"] = True
+        except:
+            import traceback
+            r["error"] = traceback.format_exc().split(chr(10))[-2]
+
+        results.append(r)
+
+    currentProgram.endTransaction(txn, True)
+except:
+    currentProgram.endTransaction(txn, False)
+    import traceback
+    traceback.print_exc()
+
+succeeded = sum(1 for r in results if r["success"])
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "total": len(results), "succeeded": succeeded, "failed": len(results) - succeeded, "results": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("BatchSetComments.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "BatchSetComments.py",
+        "-save"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"Batch set comments: {result.get('succeeded')}/{result.get('total')} succeeded\n\n"
+        for r in result.get("results", []):
+            status = "OK" if r["success"] else "FAIL"
+            err = r.get("error", "")
+            text += f"  [{status}] {r['address']} ({r['comment_type']})"
+            if err:
+                text += f" - {err}"
+            text += "\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_set_plate_comment(args: dict) -> Sequence[types.TextContent]:
+    """Set a plate (function header) comment for a function."""
+    binary_name = args.get("binary_name")
+    function_name = args.get("function_name")
+    comment = args.get("comment", "")
+    project_name = args.get("project_name", config.default_project)
+
+    comment_json = json.dumps(comment).replace("\\", "\\\\").replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.listing import CodeUnit
+
+result = {{"success": False}}
+
+txn = currentProgram.startTransaction("set_plate_comment")
+try:
+    func_name = '{function_name}'
+    comment_text = json.loads('{comment_json}')
+
+    func = None
+    func_mgr = currentProgram.getFunctionManager()
+    if func_name.startswith("0x") or func_name.startswith("0X"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        if addr:
+            func = func_mgr.getFunctionAt(addr)
+    if func is None:
+        for f in func_mgr.getFunctions(True):
+            if f.getName() == func_name:
+                func = f
+                break
+
+    if func:
+        entry = func.getEntryPoint()
+        listing = currentProgram.getListing()
+        code_unit = listing.getCodeUnitAt(entry)
+        if code_unit:
+            code_unit.setComment(CodeUnit.PLATE_COMMENT, comment_text)
+            result["success"] = True
+            result["function"] = func.getName()
+            result["address"] = str(entry)
+        else:
+            result["error"] = "No code unit at function entry"
+    else:
+        result["error"] = "Function not found: " + func_name
+
+    currentProgram.endTransaction(txn, True)
+except:
+    currentProgram.endTransaction(txn, False)
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("SetPlateComment.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "SetPlateComment.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"Set plate comment on {result.get('function', function_name)} @ {result.get('address', '')}")]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_set_pre_comment(args: dict) -> Sequence[types.TextContent]:
+    """Set a pre-instruction comment at an address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    comment = args.get("comment", "")
+    project_name = args.get("project_name", config.default_project)
+
+    comment_json = json.dumps(comment).replace("\\", "\\\\").replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.listing import CodeUnit
+
+result = {{"success": False}}
+
+txn = currentProgram.startTransaction("set_pre_comment")
+try:
+    addr_str = '{address}'
+    comment_text = json.loads('{comment_json}')
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["error"] = "Invalid address: " + addr_str
+    else:
+        listing = currentProgram.getListing()
+        code_unit = listing.getCodeUnitAt(addr)
+        if code_unit is None:
+            code_unit = listing.getCodeUnitContaining(addr)
+        if code_unit:
+            code_unit.setComment(CodeUnit.PRE_COMMENT, comment_text)
+            result["success"] = True
+            result["address"] = str(addr)
+        else:
+            result["error"] = "No code unit at address: " + addr_str
+
+    currentProgram.endTransaction(txn, True)
+except:
+    currentProgram.endTransaction(txn, False)
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("SetPreComment.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "SetPreComment.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"Set PRE comment at {result.get('address', address)}")]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_batch_set_types(args: dict) -> Sequence[types.TextContent]:
+    """Set types for multiple variables across functions in one call."""
+    binary_name = args.get("binary_name")
+    type_changes = args.get("type_changes", [])
+    project_name = args.get("project_name", config.default_project)
+
+    if not type_changes:
+        return [types.TextContent(type="text", text="Error: No type changes provided")]
+
+    changes_json = json.dumps(type_changes).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.symbol import SourceType
+from ghidra.program.model.data import (
+    BooleanDataType, ByteDataType, CharDataType,
+    ShortDataType, IntegerDataType, LongDataType, LongLongDataType,
+    UnsignedShortDataType, UnsignedIntegerDataType, UnsignedLongDataType, UnsignedLongLongDataType,
+    FloatDataType, DoubleDataType,
+    StringDataType, UnicodeDataType,
+    VoidDataType, Undefined1DataType, Undefined2DataType, Undefined4DataType, Undefined8DataType,
+    PointerDataType, ArrayDataType
+)
+
+def resolve_type(type_str, dtm):
+    type_str = type_str.strip()
+    if type_str.endswith("*"):
+        base = resolve_type(type_str[:-1].rstrip(), dtm)
+        if base:
+            return PointerDataType(base)
+        return None
+    if type_str.endswith("]"):
+        idx = type_str.rfind("[")
+        if idx > 0:
+            base_str = type_str[:idx].rstrip()
+            count_str = type_str[idx+1:-1].strip()
+            base = resolve_type(base_str, dtm)
+            if base and count_str.isdigit():
+                return ArrayDataType(base, int(count_str), base.getLength())
+        return None
+    builtin = {{
+        "bool": BooleanDataType.dataType, "boolean": BooleanDataType.dataType,
+        "byte": ByteDataType.dataType, "uchar": ByteDataType.dataType, "uint8": ByteDataType.dataType,
+        "char": CharDataType.dataType, "int8": CharDataType.dataType,
+        "short": ShortDataType.dataType, "int16": ShortDataType.dataType,
+        "int": IntegerDataType.dataType, "int32": IntegerDataType.dataType,
+        "long": LongDataType.dataType,
+        "longlong": LongLongDataType.dataType, "int64": LongLongDataType.dataType, "long long": LongLongDataType.dataType,
+        "ushort": UnsignedShortDataType.dataType, "uint16": UnsignedShortDataType.dataType, "unsigned short": UnsignedShortDataType.dataType,
+        "uint": UnsignedIntegerDataType.dataType, "uint32": UnsignedIntegerDataType.dataType, "unsigned int": UnsignedIntegerDataType.dataType,
+        "ulong": UnsignedLongDataType.dataType, "unsigned long": UnsignedLongDataType.dataType,
+        "ulonglong": UnsignedLongLongDataType.dataType, "uint64": UnsignedLongLongDataType.dataType, "unsigned long long": UnsignedLongLongDataType.dataType,
+        "float": FloatDataType.dataType, "double": DoubleDataType.dataType,
+        "string": StringDataType.dataType, "unicode": UnicodeDataType.dataType,
+        "void": VoidDataType.dataType,
+        "undefined1": Undefined1DataType.dataType, "undefined2": Undefined2DataType.dataType,
+        "undefined4": Undefined4DataType.dataType, "undefined8": Undefined8DataType.dataType,
+    }}
+    dt = builtin.get(type_str.lower())
+    if dt:
+        return dt
+    for dt_item in dtm.getAllDataTypes():
+        if dt_item.getName() == type_str:
+            return dt_item
+    return None
+
+changes = json.loads('{changes_json}')
+results = []
+txn = currentProgram.startTransaction("batch_set_types")
+try:
+    func_mgr = currentProgram.getFunctionManager()
+    dtm = currentProgram.getDataTypeManager()
+
+    for entry in changes:
+        func_name = entry.get("function_name", "")
+        var_name = entry.get("variable_name", "")
+        new_type_str = entry.get("new_type", "")
+        r = {{"function": func_name, "variable": var_name, "new_type": new_type_str, "success": False}}
+
+        try:
+            func = None
+            if func_name.startswith("0x") or func_name.startswith("0X"):
+                addr = currentProgram.getAddressFactory().getAddress(func_name)
+                if addr:
+                    func = func_mgr.getFunctionAt(addr)
+            if func is None:
+                for f in func_mgr.getFunctions(True):
+                    if f.getName() == func_name:
+                        func = f
+                        break
+
+            if func is None:
+                r["error"] = "Function not found"
+            else:
+                new_dt = resolve_type(new_type_str, dtm)
+                if new_dt is None:
+                    r["error"] = "Unknown type: " + new_type_str
+                else:
+                    found_var = False
+                    for var in list(func.getParameters()) + list(func.getLocalVariables()):
+                        if var.getName() == var_name:
+                            var.setDataType(new_dt, SourceType.USER_DEFINED)
+                            r["success"] = True
+                            found_var = True
+                            break
+                    if not found_var:
+                        r["error"] = "Variable not found: " + var_name
+        except:
+            import traceback
+            r["error"] = traceback.format_exc().split(chr(10))[-2]
+
+        results.append(r)
+
+    currentProgram.endTransaction(txn, True)
+except:
+    currentProgram.endTransaction(txn, False)
+    import traceback
+    traceback.print_exc()
+
+succeeded = sum(1 for r in results if r["success"])
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "total": len(results), "succeeded": succeeded, "failed": len(results) - succeeded, "results": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("BatchSetTypes.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "BatchSetTypes.py",
+        "-save"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"Batch set types: {result.get('succeeded')}/{result.get('total')} succeeded\n\n"
+        for r in result.get("results", []):
+            status = "OK" if r["success"] else "FAIL"
+            err = r.get("error", "")
+            text += f"  [{status}] {r['function']}.{r['variable']} -> {r['new_type']}"
+            if err:
+                text += f" ({err})"
+            text += "\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_clear_comments(args: dict) -> Sequence[types.TextContent]:
+    """Clear all comments within a function's address range."""
+    binary_name = args.get("binary_name")
+    function_name = args.get("function_name")
+    comment_types = args.get("comment_types", ["EOL", "PRE", "POST", "PLATE"])
+    project_name = args.get("project_name", config.default_project)
+
+    types_json = json.dumps(comment_types).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.listing import CodeUnit
+
+result = {{"success": False}}
+
+txn = currentProgram.startTransaction("clear_comments")
+try:
+    func_name = '{function_name}'
+    comment_types = json.loads('{types_json}')
+
+    type_map = {{
+        "EOL": CodeUnit.EOL_COMMENT,
+        "PRE": CodeUnit.PRE_COMMENT,
+        "POST": CodeUnit.POST_COMMENT,
+        "PLATE": CodeUnit.PLATE_COMMENT
+    }}
+
+    func = None
+    func_mgr = currentProgram.getFunctionManager()
+    if func_name.startswith("0x") or func_name.startswith("0X"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        if addr:
+            func = func_mgr.getFunctionAt(addr)
+    if func is None:
+        for f in func_mgr.getFunctions(True):
+            if f.getName() == func_name:
+                func = f
+                break
+
+    if func:
+        body = func.getBody()
+        listing = currentProgram.getListing()
+        cleared = 0
+
+        code_units = listing.getCodeUnits(body, True)
+        while code_units.hasNext():
+            cu = code_units.next()
+            for ct_name in comment_types:
+                ct = type_map.get(ct_name)
+                if ct is not None and cu.getComment(ct) is not None:
+                    cu.setComment(ct, None)
+                    cleared += 1
+
+        result["success"] = True
+        result["function"] = func.getName()
+        result["address"] = str(func.getEntryPoint())
+        result["cleared"] = cleared
+        result["comment_types"] = comment_types
+    else:
+        result["error"] = "Function not found: " + func_name
+
+    currentProgram.endTransaction(txn, True)
+except:
+    currentProgram.endTransaction(txn, False)
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ClearComments.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ClearComments.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"Cleared {result.get('cleared', 0)} comments from {result.get('function', function_name)} ({', '.join(result.get('comment_types', []))})")]
     else:
         return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
 

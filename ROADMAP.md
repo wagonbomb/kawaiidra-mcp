@@ -92,7 +92,7 @@ Target: +8 tools → 81 total.
 
 ---
 
-### Phase 4 — Batch Operations & Comment Types
+### Phase 4 — Batch Operations & Comment Types ✅ DONE
 
 **Gap: They have batch_rename, batch_set_comments, multiple comment types**
 
@@ -220,7 +220,7 @@ These competitor features are **not planned** due to architectural differences:
 | 1 ✅ | Batch ops, low-level, pagination | 6 | 61 | Done |
 | 2 | Data types & structures | 12 | 73 | Large |
 | 3 ✅ | Symbols, labels, bookmarks | 8 | 81 | Done |
-| 4 | Batch ops & comment types | 6 | 87 | Small |
+| 4 ✅ | Batch ops & comment types | 6 | 87 | Done |
 | 5 | Function analysis extras | 7 | 94 | Medium |
 | 6 | Script management & analysis control | 6 | 100 | Small |
 | 7 | Security & malware analysis | 4 | 104 | Medium |
