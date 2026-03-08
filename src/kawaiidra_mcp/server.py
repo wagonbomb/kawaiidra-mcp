@@ -2128,6 +2128,231 @@ TOOLS = [
             "required": ["binary_name", "function_name"]
         }
     ),
+    # Symbols, Labels & Bookmarks (Phase 3)
+    types.Tool(
+        name="create_label",
+        description="Create a label/symbol at a specific address.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address to create the label at (hex, e.g., '0x401000')"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Label name"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address", "name"]
+        }
+    ),
+    types.Tool(
+        name="delete_label",
+        description="Delete a label/symbol at a specific address.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address of the label to delete (hex)"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Label name to delete (if multiple labels at same address)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address"]
+        }
+    ),
+    types.Tool(
+        name="rename_label",
+        description="Rename an existing label/symbol.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address of the label (hex)"
+                },
+                "old_name": {
+                    "type": "string",
+                    "description": "Current label name"
+                },
+                "new_name": {
+                    "type": "string",
+                    "description": "New label name"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address", "old_name", "new_name"]
+        }
+    ),
+    types.Tool(
+        name="list_labels",
+        description="List labels/symbols with optional name filter and address range.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "filter": {
+                    "type": "string",
+                    "description": "Substring filter for label names (case-insensitive)"
+                },
+                "start_address": {
+                    "type": "string",
+                    "description": "Start of address range (hex, optional)"
+                },
+                "end_address": {
+                    "type": "string",
+                    "description": "End of address range (hex, optional)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum labels to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="get_xrefs_to",
+        description="Get all cross-references TO a specific address (not just functions).",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Target address (hex, e.g., '0x401000')"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum references to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address"]
+        }
+    ),
+    types.Tool(
+        name="get_xrefs_from",
+        description="Get all cross-references FROM a specific address (not just functions).",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Source address (hex, e.g., '0x401000')"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum references to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address"]
+        }
+    ),
+    types.Tool(
+        name="set_bookmark",
+        description="Create a bookmark at an address with a category and comment.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Address to bookmark (hex)"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Bookmark category (e.g., 'Analysis', 'TODO', 'Suspicious')"
+                },
+                "comment": {
+                    "type": "string",
+                    "description": "Bookmark comment/description"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address", "category"]
+        }
+    ),
+    types.Tool(
+        name="list_bookmarks",
+        description="List all bookmarks, optionally filtered by category.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Filter by category (optional)"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum bookmarks to return (default: 100)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
 ]
 
 
@@ -2307,6 +2532,23 @@ async def handle_call_tool(
             return await handle_delete_data_type(arguments)
         elif name == "get_function_variables":
             return await handle_get_function_variables(arguments)
+        # Symbols, Labels & Bookmarks (Phase 3)
+        elif name == "create_label":
+            return await handle_create_label(arguments)
+        elif name == "delete_label":
+            return await handle_delete_label(arguments)
+        elif name == "rename_label":
+            return await handle_rename_label(arguments)
+        elif name == "list_labels":
+            return await handle_list_labels(arguments)
+        elif name == "get_xrefs_to":
+            return await handle_get_xrefs_to(arguments)
+        elif name == "get_xrefs_from":
+            return await handle_get_xrefs_from(arguments)
+        elif name == "set_bookmark":
+            return await handle_set_bookmark(arguments)
+        elif name == "list_bookmarks":
+            return await handle_list_bookmarks(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -10489,6 +10731,601 @@ else:
         if not params and not locals_list:
             text += "No parameters or local variables found.\n"
 
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+# ============================================================================
+# Symbols, Labels & Bookmarks Tool Handlers (Phase 3)
+# ============================================================================
+
+async def handle_create_label(args: dict) -> Sequence[types.TextContent]:
+    """Create a label/symbol at a specific address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    name = args.get("name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.symbol import SourceType
+
+result = {{"success": False, "message": ""}}
+
+try:
+    addr_str = "{address}"
+    label_name = "{name}"
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["message"] = "Invalid address: " + addr_str
+    else:
+        symbol_table = currentProgram.getSymbolTable()
+        symbol = symbol_table.createLabel(addr, label_name, SourceType.USER_DEFINED)
+        if symbol:
+            result["success"] = True
+            result["message"] = "Created label '{{}}' at {{}}".format(label_name, addr_str)
+        else:
+            result["message"] = "Failed to create label at " + addr_str
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("CreateLabel.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "CreateLabel.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_delete_label(args: dict) -> Sequence[types.TextContent]:
+    """Delete a label/symbol at a specific address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    name = args.get("name")
+    project_name = args.get("project_name", config.default_project)
+
+    name_arg = f"'{name}'" if name else "None"
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+result = {{"success": False, "message": ""}}
+
+try:
+    addr_str = "{address}"
+    label_name = {name_arg}
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["message"] = "Invalid address: " + addr_str
+    else:
+        symbol_table = currentProgram.getSymbolTable()
+        if label_name:
+            # Delete specific named label at address
+            symbols = list(symbol_table.getSymbols(addr))
+            deleted = False
+            for sym in symbols:
+                if _safe_str(sym.getName()) == label_name:
+                    sym.delete()
+                    deleted = True
+                    result["success"] = True
+                    result["message"] = "Deleted label '{{}}' at {{}}".format(label_name, addr_str)
+                    break
+            if not deleted:
+                result["message"] = "Label '{{}}' not found at {{}}".format(label_name, addr_str)
+        else:
+            # Delete primary symbol at address
+            sym = symbol_table.getPrimarySymbol(addr)
+            if sym:
+                sym_name = _safe_str(sym.getName())
+                sym.delete()
+                result["success"] = True
+                result["message"] = "Deleted label '{{}}' at {{}}".format(sym_name, addr_str)
+            else:
+                result["message"] = "No label found at " + addr_str
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("DeleteLabel.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "DeleteLabel.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_rename_label(args: dict) -> Sequence[types.TextContent]:
+    """Rename an existing label/symbol."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    old_name = args.get("old_name")
+    new_name = args.get("new_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.program.model.symbol import SourceType
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+result = {{"success": False, "message": ""}}
+
+try:
+    addr_str = "{address}"
+    old_name = "{old_name}"
+    new_name = "{new_name}"
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["message"] = "Invalid address: " + addr_str
+    else:
+        symbol_table = currentProgram.getSymbolTable()
+        symbols = list(symbol_table.getSymbols(addr))
+        renamed = False
+        for sym in symbols:
+            if _safe_str(sym.getName()) == old_name:
+                sym.setName(new_name, SourceType.USER_DEFINED)
+                renamed = True
+                result["success"] = True
+                result["message"] = "Renamed '{{}}' to '{{}}' at {{}}".format(old_name, new_name, addr_str)
+                break
+        if not renamed:
+            result["message"] = "Label '{{}}' not found at {{}}".format(old_name, addr_str)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("RenameLabel.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "RenameLabel.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_list_labels(args: dict) -> Sequence[types.TextContent]:
+    """List labels/symbols with optional filter and address range."""
+    binary_name = args.get("binary_name")
+    filter_str = args.get("filter", "")
+    start_addr = args.get("start_address", "")
+    end_addr = args.get("end_address", "")
+    limit = args.get("limit", 100)
+    project_name = args.get("project_name", config.default_project)
+
+    filter_json = json.dumps(filter_str).replace("'", "\\'")
+    start_json = json.dumps(start_addr).replace("'", "\\'")
+    end_json = json.dumps(end_addr).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+filter_str = json.loads('{filter_json}').lower()
+start_str = json.loads('{start_json}')
+end_str = json.loads('{end_json}')
+limit = {limit}
+
+symbol_table = currentProgram.getSymbolTable()
+af = currentProgram.getAddressFactory()
+
+start_addr = af.getAddress(start_str) if start_str else None
+end_addr = af.getAddress(end_str) if end_str else None
+
+results = []
+for sym in symbol_table.getAllSymbols(True):
+    if len(results) >= limit:
+        break
+
+    name = _safe_str(sym.getName())
+    addr = sym.getAddress()
+
+    # Apply filters
+    if filter_str and filter_str not in name.lower():
+        continue
+    if start_addr and addr.compareTo(start_addr) < 0:
+        continue
+    if end_addr and addr.compareTo(end_addr) > 0:
+        continue
+
+    results.append({{
+        "name": name,
+        "address": str(addr),
+        "type": _safe_str(sym.getSymbolType()),
+        "source": _safe_str(sym.getSource()),
+        "namespace": _safe_str(sym.getParentNamespace().getName())
+    }})
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "count": len(results), "labels": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ListLabels.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ListLabels.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        labels = result.get("labels", [])
+        text = f"Labels ({result.get('count', len(labels))} results):\n\n"
+        for lb in labels:
+            text += f"  {lb['address']}: {lb['name']} ({lb['type']}, {lb['source']}, ns={lb['namespace']})\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_get_xrefs_to(args: dict) -> Sequence[types.TextContent]:
+    """Get all cross-references TO a specific address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    limit = args.get("limit", 100)
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+addr_str = "{address}"
+limit = {limit}
+
+addr = currentProgram.getAddressFactory().getAddress(addr_str)
+if addr is None:
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{"success": False, "error": "Invalid address: " + addr_str}}))
+    print("=== MCP_RESULT_END ===")
+else:
+    ref_mgr = currentProgram.getReferenceManager()
+    refs = []
+    for ref in ref_mgr.getReferencesTo(addr):
+        if len(refs) >= limit:
+            break
+        from_addr = ref.getFromAddress()
+        func = getFunctionContaining(from_addr)
+        refs.append({{
+            "from_address": str(from_addr),
+            "from_function": _safe_str(func.getName()) if func else None,
+            "type": _safe_str(ref.getReferenceType()),
+            "is_call": ref.getReferenceType().isCall(),
+            "is_data": ref.getReferenceType().isData()
+        }})
+
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{"success": True, "address": addr_str, "count": len(refs), "references": refs}}))
+    print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetXrefsTo.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetXrefsTo.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        refs = result.get("references", [])
+        text = f"Cross-references TO {result['address']} ({result.get('count', len(refs))}):\n\n"
+        for r in refs:
+            func_info = f" in {r['from_function']}" if r.get("from_function") else ""
+            call_info = " [CALL]" if r.get("is_call") else (" [DATA]" if r.get("is_data") else "")
+            text += f"  {r['from_address']}{func_info} ({r['type']}{call_info})\n"
+        if not refs:
+            text += "  No references found.\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_get_xrefs_from(args: dict) -> Sequence[types.TextContent]:
+    """Get all cross-references FROM a specific address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    limit = args.get("limit", 100)
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+addr_str = "{address}"
+limit = {limit}
+
+addr = currentProgram.getAddressFactory().getAddress(addr_str)
+if addr is None:
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{"success": False, "error": "Invalid address: " + addr_str}}))
+    print("=== MCP_RESULT_END ===")
+else:
+    ref_mgr = currentProgram.getReferenceManager()
+    refs = []
+    for ref in ref_mgr.getReferencesFrom(addr):
+        if len(refs) >= limit:
+            break
+        to_addr = ref.getToAddress()
+        func = getFunctionAt(to_addr)
+        if not func:
+            func = getFunctionContaining(to_addr)
+        refs.append({{
+            "to_address": str(to_addr),
+            "to_function": _safe_str(func.getName()) if func else None,
+            "type": _safe_str(ref.getReferenceType()),
+            "is_call": ref.getReferenceType().isCall(),
+            "is_data": ref.getReferenceType().isData()
+        }})
+
+    print("=== MCP_RESULT_JSON ===")
+    print(json.dumps({{"success": True, "address": addr_str, "count": len(refs), "references": refs}}))
+    print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetXrefsFrom.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetXrefsFrom.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        refs = result.get("references", [])
+        text = f"Cross-references FROM {result['address']} ({result.get('count', len(refs))}):\n\n"
+        for r in refs:
+            func_info = f" -> {r['to_function']}" if r.get("to_function") else ""
+            call_info = " [CALL]" if r.get("is_call") else (" [DATA]" if r.get("is_data") else "")
+            text += f"  {r['to_address']}{func_info} ({r['type']}{call_info})\n"
+        if not refs:
+            text += "  No references found.\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_set_bookmark(args: dict) -> Sequence[types.TextContent]:
+    """Create a bookmark at an address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    category = args.get("category", "MCP")
+    comment = args.get("comment", "")
+    project_name = args.get("project_name", config.default_project)
+
+    comment_arg = f"'{comment}'" if comment else "''"
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+result = {{"success": False, "message": ""}}
+
+try:
+    addr_str = "{address}"
+    category = "{category}"
+    comment = {comment_arg}
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["message"] = "Invalid address: " + addr_str
+    else:
+        bm_mgr = currentProgram.getBookmarkManager()
+        bm_mgr.setBookmark(addr, "Note", category, comment)
+        result["success"] = True
+        result["message"] = "Set bookmark at {{}} [{{}}]: {{}}".format(addr_str, category, comment)
+except Exception as e:
+    result["message"] = str(e)
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("SetBookmark.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", str(binary_name),
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "SetBookmark.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+    if result.get("success"):
+        return [types.TextContent(type="text", text=f"✓ {result.get('message')}")]
+    else:
+        return [types.TextContent(type="text", text=f"✗ {result.get('message', 'Unknown error')}")]
+
+
+async def handle_list_bookmarks(args: dict) -> Sequence[types.TextContent]:
+    """List all bookmarks, optionally filtered by category."""
+    binary_name = args.get("binary_name")
+    category = args.get("category", "")
+    limit = args.get("limit", 100)
+    project_name = args.get("project_name", config.default_project)
+
+    category_json = json.dumps(category).replace("'", "\\'")
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+category_filter = json.loads('{category_json}')
+limit = {limit}
+
+bm_mgr = currentProgram.getBookmarkManager()
+results = []
+
+for bm in bm_mgr.getBookmarksIterator():
+    if len(results) >= limit:
+        break
+
+    bm_category = _safe_str(bm.getCategory())
+    if category_filter and bm_category != category_filter:
+        continue
+
+    results.append({{
+        "address": str(bm.getAddress()),
+        "type": _safe_str(bm.getTypeString()),
+        "category": bm_category,
+        "comment": _safe_str(bm.getComment())
+    }})
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "count": len(results), "bookmarks": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ListBookmarks.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ListBookmarks.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        bookmarks = result.get("bookmarks", [])
+        text = f"Bookmarks ({result.get('count', len(bookmarks))}):\n\n"
+        for bm in bookmarks:
+            text += f"  {bm['address']}: [{bm['category']}] {bm['comment']} ({bm['type']})\n"
+        if not bookmarks:
+            text += "  No bookmarks found.\n"
         return [types.TextContent(type="text", text=text)]
     else:
         return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]

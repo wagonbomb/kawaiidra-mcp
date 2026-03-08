@@ -2,7 +2,7 @@
 """
 Comprehensive Test Runner for Kawaiidra MCP
 
-Runs all 55 tools with real binaries and reports results.
+Runs all 81 tools with real binaries and reports results.
 """
 
 import sys
@@ -163,6 +163,15 @@ class KawaiidraTestRunner:
                 "apply_data_type": "handle_apply_data_type",
                 "delete_data_type": "handle_delete_data_type",
                 "get_function_variables": "handle_get_function_variables",
+                # Phase 3: Symbols, Labels & Bookmarks
+                "create_label": "handle_create_label",
+                "delete_label": "handle_delete_label",
+                "rename_label": "handle_rename_label",
+                "list_labels": "handle_list_labels",
+                "get_xrefs_to": "handle_get_xrefs_to",
+                "get_xrefs_from": "handle_get_xrefs_from",
+                "set_bookmark": "handle_set_bookmark",
+                "list_bookmarks": "handle_list_bookmarks",
             }
 
             handler_name = handler_map.get(tool_name)
@@ -526,9 +535,72 @@ class KawaiidraTestRunner:
 
         return suite
 
-    def run_phase7_ios_tools(self) -> TestSuite:
-        """Phase 7: iOS Security Tools (macOS only)."""
-        suite = TestSuite("Phase 7: iOS Security Tools (macOS)")
+    def run_phase7_symbols_labels_bookmarks(self) -> TestSuite:
+        """Phase 7: Symbols, Labels & Bookmarks (Roadmap Phase 3)."""
+        suite = TestSuite("Phase 7: Symbols, Labels & Bookmarks")
+
+        print("\n" + "=" * 50)
+        print("PHASE 7: Symbols, Labels & Bookmarks")
+        print("=" * 50)
+
+        tests = [
+            # Create a label at a known address (.text section)
+            ("LABEL-001", "create_label", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+                "name": "mcp_test_label",
+            }),
+            # List labels to verify creation
+            ("LABEL-002", "list_labels", {
+                "binary_name": "putty.exe",
+                "filter": "mcp_test",
+                "limit": 20
+            }),
+            # Rename the label
+            ("LABEL-003", "rename_label", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+                "new_name": "mcp_renamed_label",
+            }),
+            # Get xrefs TO the entry function address
+            ("LABEL-004", "get_xrefs_to", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+            }),
+            # Get xrefs FROM the entry point
+            ("LABEL-005", "get_xrefs_from", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+            }),
+            # Set a bookmark
+            ("LABEL-006", "set_bookmark", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+                "category": "MCP_Test",
+                "comment": "Test bookmark from MCP"
+            }),
+            # List bookmarks
+            ("LABEL-007", "list_bookmarks", {
+                "binary_name": "putty.exe",
+                "category": "MCP_Test"
+            }),
+            # Delete the label (cleanup)
+            ("LABEL-008", "delete_label", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+                "name": "mcp_renamed_label",
+            }),
+        ]
+
+        for test_id, tool, args in tests:
+            result = self.run_test(test_id, tool, args)
+            suite.results.append(result)
+
+        return suite
+
+    def run_phase8_ios_tools(self) -> TestSuite:
+        """Phase 8: iOS Security Tools (macOS only)."""
+        suite = TestSuite("Phase 8: iOS Security Tools (macOS)")
 
         print("\n" + "=" * 50)
         print("PHASE 7: iOS Security Tools")
@@ -592,12 +664,13 @@ class KawaiidraTestRunner:
         self.suites.append(self.run_phase4_gui_tools())
         self.suites.append(self.run_phase5_new_batch_tools())
         self.suites.append(self.run_phase6_data_type_tools())
+        self.suites.append(self.run_phase7_symbols_labels_bookmarks())
 
         if not skip_ios:
-            self.suites.append(self.run_phase7_ios_tools())
+            self.suites.append(self.run_phase8_ios_tools())
         else:
             print("\n" + "=" * 50)
-            print("PHASE 7: iOS Security Tools - SKIPPED (use --ios flag)")
+            print("PHASE 8: iOS Security Tools - SKIPPED (use --ios flag)")
             print("=" * 50)
 
         return self.print_summary()
@@ -608,7 +681,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Kawaiidra MCP Comprehensive Test Runner")
     parser.add_argument("--ios", action="store_true", help="Include iOS security tools tests")
-    parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6, 7], help="Run specific phase only")
+    parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8], help="Run specific phase only")
     args = parser.parse_args()
 
     runner = KawaiidraTestRunner()
@@ -621,7 +694,8 @@ def main():
             4: runner.run_phase4_gui_tools,
             5: runner.run_phase5_new_batch_tools,
             6: runner.run_phase6_data_type_tools,
-            7: runner.run_phase7_ios_tools,
+            7: runner.run_phase7_symbols_labels_bookmarks,
+            8: runner.run_phase8_ios_tools,
         }
 
         # For phases 2+, ensure base binary is analyzed first
