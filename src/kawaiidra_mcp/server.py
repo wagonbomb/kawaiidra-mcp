@@ -2526,6 +2526,181 @@ TOOLS = [
             "required": ["binary_name", "function_name"]
         }
     ),
+    # Phase 5: Function Analysis Extras
+    types.Tool(
+        name="get_function_signature",
+        description="Get the prototype/signature string of a function (lighter than full decompile). Returns return type, name, and parameters.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Function name or entry address"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name"]
+        }
+    ),
+    types.Tool(
+        name="get_function_hash",
+        description="Get SHA-256 hash of a function's instruction bytes. Useful for identifying identical functions across binaries.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Function name or entry address"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name"]
+        }
+    ),
+    types.Tool(
+        name="get_function_metrics",
+        description="Get complexity metrics for a function: cyclomatic complexity, basic block count, instruction count, and size in bytes.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Function name or entry address"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name"]
+        }
+    ),
+    types.Tool(
+        name="disassemble_bytes",
+        description="Disassemble raw bytes at any address (not function-bound). Useful for examining data regions, padding, or unanalyzed code.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "address": {
+                    "type": "string",
+                    "description": "Start address (hex, e.g., '0x401000')"
+                },
+                "count": {
+                    "type": "integer",
+                    "description": "Number of instructions to disassemble (default: 20, max: 200)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "address"]
+        }
+    ),
+    types.Tool(
+        name="find_dead_code",
+        description="Find unreachable or orphaned functions — functions with no callers (xrefs to). Helps identify unused code, compiler artifacts, or hidden functionality.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Maximum functions to return (default: 50)"
+                },
+                "exclude_entry": {
+                    "type": "boolean",
+                    "description": "Exclude entry point and known startup functions (default: true)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="diff_functions",
+        description="Compare two functions by showing a side-by-side diff of their decompiled code. Functions can be in the same or different binaries.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary (for function A, and for B if binary_name_b not specified)"
+                },
+                "function_a": {
+                    "type": "string",
+                    "description": "First function name or address"
+                },
+                "function_b": {
+                    "type": "string",
+                    "description": "Second function name or address"
+                },
+                "binary_name_b": {
+                    "type": "string",
+                    "description": "Binary for function B (optional, defaults to same binary)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_a", "function_b"]
+        }
+    ),
+    types.Tool(
+        name="set_function_no_return",
+        description="Mark or unmark a function as non-returning (e.g., exit(), abort()). Non-returning functions affect control flow analysis.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "function_name": {
+                    "type": "string",
+                    "description": "Function name or entry address"
+                },
+                "no_return": {
+                    "type": "boolean",
+                    "description": "Set to true to mark as non-returning, false to unmark (default: true)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name", "function_name"]
+        }
+    ),
 ]
 
 
@@ -2735,6 +2910,21 @@ async def handle_call_tool(
             return await handle_batch_set_types(arguments)
         elif name == "clear_comments":
             return await handle_clear_comments(arguments)
+        # Phase 5: Function Analysis Extras
+        elif name == "get_function_signature":
+            return await handle_get_function_signature(arguments)
+        elif name == "get_function_hash":
+            return await handle_get_function_hash(arguments)
+        elif name == "get_function_metrics":
+            return await handle_get_function_metrics(arguments)
+        elif name == "disassemble_bytes":
+            return await handle_disassemble_bytes(arguments)
+        elif name == "find_dead_code":
+            return await handle_find_dead_code(arguments)
+        elif name == "diff_functions":
+            return await handle_diff_functions(arguments)
+        elif name == "set_function_no_return":
+            return await handle_set_function_no_return(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -12144,6 +12334,709 @@ print("=== MCP_RESULT_END ===")
 
     if result.get("success"):
         return [types.TextContent(type="text", text=f"Cleared {result.get('cleared', 0)} comments from {result.get('function', function_name)} ({', '.join(result.get('comment_types', []))})")]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+# ============================================================================
+# Phase 5: Function Analysis Extras Handlers
+# ============================================================================
+
+
+async def handle_get_function_signature(args: dict) -> Sequence[types.TextContent]:
+    """Get the prototype/signature string of a function."""
+    binary_name = args.get("binary_name")
+    function_name = args.get("function_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+result = {{"success": False}}
+
+try:
+    func_name = '{function_name}'
+    func = None
+    func_mgr = currentProgram.getFunctionManager()
+
+    if func_name.startswith("0x") or func_name.startswith("0X"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        if addr:
+            func = func_mgr.getFunctionAt(addr)
+    if func is None:
+        for f in func_mgr.getFunctions(True):
+            if f.getName() == func_name:
+                func = f
+                break
+
+    if func:
+        sig = func.getSignature()
+        params = []
+        for p in func.getParameters():
+            params.append({{
+                "name": _safe_str(p.getName()),
+                "type": _safe_str(p.getDataType().getName()),
+                "ordinal": p.getOrdinal(),
+                "size": p.getLength()
+            }})
+
+        result["success"] = True
+        result["function"] = _safe_str(func.getName())
+        result["address"] = str(func.getEntryPoint())
+        result["signature"] = _safe_str(sig.getPrototypeString())
+        result["return_type"] = _safe_str(func.getReturnType().getName())
+        result["calling_convention"] = _safe_str(func.getCallingConventionName())
+        result["parameter_count"] = len(params)
+        result["parameters"] = params
+    else:
+        result["error"] = "Function not found: " + func_name
+except:
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetFunctionSignature.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetFunctionSignature.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"Function: {result.get('function')}\n"
+        text += f"Address: {result.get('address')}\n"
+        text += f"Signature: {result.get('signature')}\n"
+        text += f"Return type: {result.get('return_type')}\n"
+        text += f"Calling convention: {result.get('calling_convention')}\n"
+        text += f"Parameters ({result.get('parameter_count', 0)}):\n"
+        for p in result.get("parameters", []):
+            text += f"  [{p['ordinal']}] {p['type']} {p['name']} ({p['size']} bytes)\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_get_function_hash(args: dict) -> Sequence[types.TextContent]:
+    """Get SHA-256 hash of a function's instruction bytes."""
+    binary_name = args.get("binary_name")
+    function_name = args.get("function_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+import hashlib
+import jarray
+
+result = {{"success": False}}
+
+try:
+    func_name = '{function_name}'
+    func = None
+    func_mgr = currentProgram.getFunctionManager()
+
+    if func_name.startswith("0x") or func_name.startswith("0X"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        if addr:
+            func = func_mgr.getFunctionAt(addr)
+    if func is None:
+        for f in func_mgr.getFunctions(True):
+            if f.getName() == func_name:
+                func = f
+                break
+
+    if func:
+        body = func.getBody()
+        memory = currentProgram.getMemory()
+        all_bytes = bytearray()
+
+        ranges = body.getAddressRanges()
+        while ranges.hasNext():
+            r = ranges.next()
+            length = int(r.getLength())
+            buf = jarray.zeros(length, "b")
+            try:
+                memory.getBytes(r.getMinAddress(), buf)
+                for b in buf:
+                    all_bytes.append(b & 0xFF)
+            except:
+                pass
+
+        h = hashlib.sha256(bytes(all_bytes)).hexdigest()
+
+        result["success"] = True
+        result["function"] = func.getName()
+        result["address"] = str(func.getEntryPoint())
+        result["sha256"] = h
+        result["size_bytes"] = len(all_bytes)
+    else:
+        result["error"] = "Function not found: " + func_name
+except:
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetFunctionHash.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetFunctionHash.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"Function: {result.get('function')}\n"
+        text += f"Address: {result.get('address')}\n"
+        text += f"SHA-256: {result.get('sha256')}\n"
+        text += f"Size: {result.get('size_bytes')} bytes\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_get_function_metrics(args: dict) -> Sequence[types.TextContent]:
+    """Get complexity metrics for a function."""
+    binary_name = args.get("binary_name")
+    function_name = args.get("function_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+result = {{"success": False}}
+
+try:
+    func_name = '{function_name}'
+    func = None
+    func_mgr = currentProgram.getFunctionManager()
+
+    if func_name.startswith("0x") or func_name.startswith("0X"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        if addr:
+            func = func_mgr.getFunctionAt(addr)
+    if func is None:
+        for f in func_mgr.getFunctions(True):
+            if f.getName() == func_name:
+                func = f
+                break
+
+    if func:
+        from ghidra.program.model.block import BasicBlockModel
+
+        body = func.getBody()
+        listing = currentProgram.getListing()
+
+        # Count instructions
+        instr_count = 0
+        instr_iter = listing.getInstructions(body, True)
+        while instr_iter.hasNext():
+            instr_iter.next()
+            instr_count += 1
+
+        # Count basic blocks and edges for cyclomatic complexity
+        block_model = BasicBlockModel(currentProgram)
+        block_iter = block_model.getCodeBlocksContaining(body, monitor)
+        blocks = []
+        while block_iter.hasNext():
+            blocks.append(block_iter.next())
+
+        num_blocks = len(blocks)
+        num_edges = 0
+        for block in blocks:
+            dest_iter = block.getDestinations(monitor)
+            while dest_iter.hasNext():
+                dest = dest_iter.next()
+                # Only count edges within function
+                dest_addr = dest.getDestinationAddress()
+                if body.contains(dest_addr):
+                    num_edges += 1
+
+        # Cyclomatic complexity: E - N + 2P (P=1 for single function)
+        cyclomatic = num_edges - num_blocks + 2
+
+        # Size in bytes
+        size_bytes = 0
+        ranges = body.getAddressRanges()
+        while ranges.hasNext():
+            r = ranges.next()
+            size_bytes += int(r.getLength())
+
+        result["success"] = True
+        result["function"] = _safe_str(func.getName())
+        result["address"] = str(func.getEntryPoint())
+        result["cyclomatic_complexity"] = cyclomatic
+        result["basic_block_count"] = num_blocks
+        result["instruction_count"] = instr_count
+        result["size_bytes"] = size_bytes
+        result["edge_count"] = num_edges
+    else:
+        result["error"] = "Function not found: " + func_name
+except:
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetFunctionMetrics.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetFunctionMetrics.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"Function: {result.get('function')}\n"
+        text += f"Address: {result.get('address')}\n"
+        text += f"Cyclomatic complexity: {result.get('cyclomatic_complexity')}\n"
+        text += f"Basic blocks: {result.get('basic_block_count')}\n"
+        text += f"Instructions: {result.get('instruction_count')}\n"
+        text += f"Edges: {result.get('edge_count')}\n"
+        text += f"Size: {result.get('size_bytes')} bytes\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_disassemble_bytes(args: dict) -> Sequence[types.TextContent]:
+    """Disassemble raw bytes at any address."""
+    binary_name = args.get("binary_name")
+    address = args.get("address")
+    count = min(args.get("count", 20), 200)
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+result = {{"success": False}}
+
+try:
+    addr_str = '{address}'
+    max_count = {count}
+
+    addr = currentProgram.getAddressFactory().getAddress(addr_str)
+    if addr is None:
+        result["error"] = "Invalid address: " + addr_str
+    else:
+        listing = currentProgram.getListing()
+        instructions = []
+        current = addr
+        count = 0
+
+        while count < max_count and current is not None:
+            instr = listing.getInstructionAt(current)
+            if instr is None:
+                # Try to disassemble at this address
+                from ghidra.app.cmd.disassemble import DisassembleCommand
+                cmd = DisassembleCommand(current, None, True)
+                cmd.applyTo(currentProgram)
+                instr = listing.getInstructionAt(current)
+
+            if instr is None:
+                # Can't disassemble, show raw bytes instead
+                memory = currentProgram.getMemory()
+                if memory.contains(current):
+                    b = memory.getByte(current) & 0xFF
+                    instructions.append({{
+                        "address": str(current),
+                        "bytes": "%02x" % b,
+                        "mnemonic": "db",
+                        "operands": "0x%02x" % b
+                    }})
+                    current = current.add(1)
+                else:
+                    break
+            else:
+                byte_str = ""
+                for i in range(instr.getLength()):
+                    byte_str += "%02x " % (instr.getByte(i) & 0xFF)
+
+                instructions.append({{
+                    "address": str(instr.getAddress()),
+                    "bytes": byte_str.strip(),
+                    "mnemonic": _safe_str(instr.getMnemonicString()),
+                    "operands": _safe_str(instr.getDefaultOperandRepresentation(0)) if instr.getNumOperands() > 0 else ""
+                }})
+                current = instr.getAddress().add(instr.getLength())
+
+            count += 1
+
+        result["success"] = True
+        result["start_address"] = addr_str
+        result["instruction_count"] = len(instructions)
+        result["instructions"] = instructions
+except:
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("DisassembleBytes.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "DisassembleBytes.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        text = f"Disassembly at {result.get('start_address')} ({result.get('instruction_count')} instructions):\n\n"
+        for instr in result.get("instructions", []):
+            text += f"  {instr['address']}:  {instr['bytes']:<24s} {instr['mnemonic']} {instr.get('operands', '')}\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_find_dead_code(args: dict) -> Sequence[types.TextContent]:
+    """Find unreachable or orphaned functions with no callers."""
+    binary_name = args.get("binary_name")
+    limit = args.get("limit", 50)
+    exclude_entry = args.get("exclude_entry", True)
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+limit = {limit}
+exclude_entry = {"True" if exclude_entry else "False"}
+
+func_mgr = currentProgram.getFunctionManager()
+ref_mgr = currentProgram.getReferenceManager()
+entry_points = set()
+
+if exclude_entry:
+    sym_table = currentProgram.getSymbolTable()
+    for sym in sym_table.getExternalEntryPointIterator():
+        entry_points.add(str(sym))
+
+dead_funcs = []
+for func in func_mgr.getFunctions(True):
+    if len(dead_funcs) >= limit:
+        break
+
+    entry = func.getEntryPoint()
+
+    # Skip entry points and thunks
+    if exclude_entry:
+        if str(entry) in entry_points:
+            continue
+        if func.isThunk():
+            continue
+        name = func.getName()
+        if name in ("entry", "_start", "main", "WinMain", "DllMain", "wmain", "_main"):
+            continue
+
+    # Check for references TO this function
+    refs = ref_mgr.getReferencesTo(entry)
+    has_callers = False
+    for r in refs:
+        has_callers = True
+        break
+
+    if not has_callers:
+        body = func.getBody()
+        size = 0
+        ranges = body.getAddressRanges()
+        while ranges.hasNext():
+            rng = ranges.next()
+            size += int(rng.getLength())
+
+        dead_funcs.append({{
+            "name": _safe_str(func.getName()),
+            "address": str(entry),
+            "size_bytes": size,
+            "is_thunk": func.isThunk()
+        }})
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "count": len(dead_funcs), "functions": dead_funcs}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("FindDeadCode.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "FindDeadCode.py"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        funcs = result.get("functions", [])
+        text = f"Dead code: {result.get('count')} orphaned functions\n\n"
+        for f in funcs:
+            text += f"  {f['address']}: {f['name']} ({f['size_bytes']} bytes)\n"
+        if not funcs:
+            text += "  No orphaned functions found.\n"
+        return [types.TextContent(type="text", text=text)]
+    else:
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+async def handle_diff_functions(args: dict) -> Sequence[types.TextContent]:
+    """Compare two functions by diffing their decompiled code."""
+    binary_name = args.get("binary_name")
+    function_a = args.get("function_a")
+    function_b = args.get("function_b")
+    binary_name_b = args.get("binary_name_b", binary_name)
+    project_name = args.get("project_name", config.default_project)
+
+    # Decompile function A
+    script_a = f'''# @category MCP
+# @runtime Jython
+import json
+from ghidra.app.decompiler import DecompInterface
+
+def _safe_str(val):
+    try:
+        return str(val)
+    except UnicodeEncodeError:
+        try:
+            return val.encode("ascii", "ignore")
+        except:
+            return ""
+
+result = {{"success": False}}
+
+try:
+    func_name = '{function_a}'
+    func = None
+    func_mgr = currentProgram.getFunctionManager()
+
+    if func_name.startswith("0x") or func_name.startswith("0X"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        if addr:
+            func = func_mgr.getFunctionAt(addr)
+    if func is None:
+        for f in func_mgr.getFunctions(True):
+            if f.getName() == func_name:
+                func = f
+                break
+
+    if func:
+        decomp = DecompInterface()
+        decomp.openProgram(currentProgram)
+        res = decomp.decompileFunction(func, 60, monitor)
+        if res and res.decompileCompleted():
+            result["success"] = True
+            result["name"] = _safe_str(func.getName())
+            result["code"] = _safe_str(res.getDecompiledFunction().getC())
+        else:
+            result["error"] = "Decompilation failed"
+        decomp.dispose()
+    else:
+        result["error"] = "Function not found: " + func_name
+except:
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("DiffFuncA.py", script_a)
+    project_path = config.get_project_path(project_name)
+    stdout_a, _, _ = run_ghidra_headless([
+        str(project_path), project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "DiffFuncA.py"
+    ], timeout=config.decompile_timeout)
+    result_a = parse_ghidra_json_output(stdout_a)
+
+    if not result_a.get("success"):
+        return [types.TextContent(type="text", text=f"Error decompiling {function_a}: {result_a.get('error', 'Unknown error')}")]
+
+    # Decompile function B
+    script_b = script_a.replace(f"'{function_a}'", f"'{function_b}'")
+    write_ghidra_script("DiffFuncB.py", script_b)
+    stdout_b, _, _ = run_ghidra_headless([
+        str(project_path), project_name,
+        "-process", binary_name_b,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "DiffFuncB.py"
+    ], timeout=config.decompile_timeout)
+    result_b = parse_ghidra_json_output(stdout_b)
+
+    if not result_b.get("success"):
+        return [types.TextContent(type="text", text=f"Error decompiling {function_b}: {result_b.get('error', 'Unknown error')}")]
+
+    # Compute unified diff
+    import difflib
+    lines_a = result_a.get("code", "").splitlines(keepends=True)
+    lines_b = result_b.get("code", "").splitlines(keepends=True)
+
+    diff = difflib.unified_diff(
+        lines_a, lines_b,
+        fromfile=f"{binary_name}:{result_a.get('name', function_a)}",
+        tofile=f"{binary_name_b}:{result_b.get('name', function_b)}"
+    )
+    diff_text = "".join(diff)
+
+    if not diff_text:
+        diff_text = "(functions are identical)"
+
+    text = f"Diff: {result_a.get('name', function_a)} vs {result_b.get('name', function_b)}\n\n{diff_text}"
+    return [types.TextContent(type="text", text=text)]
+
+
+async def handle_set_function_no_return(args: dict) -> Sequence[types.TextContent]:
+    """Mark or unmark a function as non-returning."""
+    binary_name = args.get("binary_name")
+    function_name = args.get("function_name")
+    no_return = args.get("no_return", True)
+    project_name = args.get("project_name", config.default_project)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+result = {{"success": False}}
+
+txn = currentProgram.startTransaction("set_no_return")
+try:
+    func_name = '{function_name}'
+    no_return = {"True" if no_return else "False"}
+
+    func = None
+    func_mgr = currentProgram.getFunctionManager()
+    if func_name.startswith("0x") or func_name.startswith("0X"):
+        addr = currentProgram.getAddressFactory().getAddress(func_name)
+        if addr:
+            func = func_mgr.getFunctionAt(addr)
+    if func is None:
+        for f in func_mgr.getFunctions(True):
+            if f.getName() == func_name:
+                func = f
+                break
+
+    if func:
+        func.setNoReturn(no_return)
+        result["success"] = True
+        result["function"] = func.getName()
+        result["address"] = str(func.getEntryPoint())
+        result["no_return"] = no_return
+    else:
+        result["error"] = "Function not found: " + func_name
+
+    currentProgram.endTransaction(txn, True)
+except:
+    currentProgram.endTransaction(txn, False)
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("SetFunctionNoReturn.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "SetFunctionNoReturn.py",
+        "-save"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("success"):
+        status = "non-returning" if result.get("no_return") else "normal (may return)"
+        return [types.TextContent(type="text", text=f"Set {result.get('function')} @ {result.get('address')} as {status}")]
     else:
         return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
 

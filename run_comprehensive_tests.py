@@ -2,7 +2,7 @@
 """
 Comprehensive Test Runner for Kawaiidra MCP
 
-Runs all 87 tools with real binaries and reports results.
+Runs all 94 tools with real binaries and reports results.
 """
 
 import sys
@@ -179,6 +179,14 @@ class KawaiidraTestRunner:
                 "set_pre_comment": "handle_set_pre_comment",
                 "batch_set_types": "handle_batch_set_types",
                 "clear_comments": "handle_clear_comments",
+                # Phase 5: Function Analysis Extras
+                "get_function_signature": "handle_get_function_signature",
+                "get_function_hash": "handle_get_function_hash",
+                "get_function_metrics": "handle_get_function_metrics",
+                "disassemble_bytes": "handle_disassemble_bytes",
+                "find_dead_code": "handle_find_dead_code",
+                "diff_functions": "handle_diff_functions",
+                "set_function_no_return": "handle_set_function_no_return",
             }
 
             handler_name = handler_map.get(tool_name)
@@ -683,12 +691,66 @@ class KawaiidraTestRunner:
 
         return suite
 
-    def run_phase9_ios_tools(self) -> TestSuite:
-        """Phase 9: iOS Security Tools (macOS only)."""
-        suite = TestSuite("Phase 9: iOS Security Tools (macOS)")
+    def run_phase9_function_analysis(self) -> TestSuite:
+        """Phase 9: Function Analysis Extras (Roadmap Phase 5)."""
+        suite = TestSuite("Phase 9: Function Analysis Extras")
 
         print("\n" + "=" * 50)
-        print("PHASE 9: iOS Security Tools")
+        print("PHASE 9: Function Analysis Extras")
+        print("=" * 50)
+
+        tests = [
+            ("FUNC-001", "get_function_signature", {
+                "binary_name": "putty.exe",
+                "function_name": "entry"
+            }),
+            ("FUNC-002", "get_function_hash", {
+                "binary_name": "putty.exe",
+                "function_name": "entry"
+            }),
+            ("FUNC-003", "get_function_metrics", {
+                "binary_name": "putty.exe",
+                "function_name": "entry"
+            }),
+            ("FUNC-004", "disassemble_bytes", {
+                "binary_name": "putty.exe",
+                "address": "0x140001000",
+                "count": 10
+            }),
+            ("FUNC-005", "find_dead_code", {
+                "binary_name": "putty.exe",
+                "limit": 10
+            }),
+            ("FUNC-006", "diff_functions", {
+                "binary_name": "putty.exe",
+                "function_a": "entry",
+                "function_b": "entry"
+            }),
+            # Mark entry as no-return, then unmark it
+            ("FUNC-007", "set_function_no_return", {
+                "binary_name": "putty.exe",
+                "function_name": "entry",
+                "no_return": True
+            }),
+            ("FUNC-008", "set_function_no_return", {
+                "binary_name": "putty.exe",
+                "function_name": "entry",
+                "no_return": False
+            }),
+        ]
+
+        for test_id, tool, args in tests:
+            result = self.run_test(test_id, tool, args)
+            suite.results.append(result)
+
+        return suite
+
+    def run_phase10_ios_tools(self) -> TestSuite:
+        """Phase 10: iOS Security Tools (macOS only)."""
+        suite = TestSuite("Phase 10: iOS Security Tools (macOS)")
+
+        print("\n" + "=" * 50)
+        print("PHASE 10: iOS Security Tools")
         print("=" * 50)
 
         # These will likely fail on Windows without iOS binaries
@@ -751,12 +813,13 @@ class KawaiidraTestRunner:
         self.suites.append(self.run_phase6_data_type_tools())
         self.suites.append(self.run_phase7_symbols_labels_bookmarks())
         self.suites.append(self.run_phase8_batch_ops_comments())
+        self.suites.append(self.run_phase9_function_analysis())
 
         if not skip_ios:
-            self.suites.append(self.run_phase9_ios_tools())
+            self.suites.append(self.run_phase10_ios_tools())
         else:
             print("\n" + "=" * 50)
-            print("PHASE 9: iOS Security Tools - SKIPPED (use --ios flag)")
+            print("PHASE 10: iOS Security Tools - SKIPPED (use --ios flag)")
             print("=" * 50)
 
         return self.print_summary()
@@ -767,7 +830,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Kawaiidra MCP Comprehensive Test Runner")
     parser.add_argument("--ios", action="store_true", help="Include iOS security tools tests")
-    parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9], help="Run specific phase only")
+    parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], help="Run specific phase only")
     args = parser.parse_args()
 
     runner = KawaiidraTestRunner()
@@ -782,7 +845,8 @@ def main():
             6: runner.run_phase6_data_type_tools,
             7: runner.run_phase7_symbols_labels_bookmarks,
             8: runner.run_phase8_batch_ops_comments,
-            9: runner.run_phase9_ios_tools,
+            9: runner.run_phase9_function_analysis,
+            10: runner.run_phase10_ios_tools,
         }
 
         # For phases 2+, ensure base binary is analyzed first

@@ -114,7 +114,7 @@ Target: +6 tools → 87 total.
 
 ---
 
-### Phase 5 — Function Analysis Extras
+### Phase 5 — Function Analysis Extras ✅ DONE
 
 **Gap: Function hashing, metrics, signatures, disassemble_bytes**
 
@@ -221,7 +221,7 @@ These competitor features are **not planned** due to architectural differences:
 | 2 | Data types & structures | 12 | 73 | Large |
 | 3 ✅ | Symbols, labels, bookmarks | 8 | 81 | Done |
 | 4 ✅ | Batch ops & comment types | 6 | 87 | Done |
-| 5 | Function analysis extras | 7 | 94 | Medium |
+| 5 ✅ | Function analysis extras | 7 | 94 | Done |
 | 6 | Script management & analysis control | 6 | 100 | Small |
 | 7 | Security & malware analysis | 4 | 104 | Medium |
 | 8 | Project & multi-binary management | 5 | 109 | Small |
