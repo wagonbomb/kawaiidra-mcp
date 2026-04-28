@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/wagonbomb-kawaiidra-mcp-badge.png)](https://mseep.ai/app/wagonbomb-kawaiidra-mcp)
+
 # Kawaiidra MCP
 
 > A Ghidra MCP Server for Claude Code - Binary Analysis Made Adorable
