@@ -2957,6 +2957,11 @@ TOOLS = [
 ]
 
 
+from . import parity as _parity  # noqa: E402
+
+TOOLS.extend(_parity.mcp_tools({t.name for t in TOOLS}))
+
+
 @server.list_tools()
 async def handle_list_tools() -> list[types.Tool]:
     """List available Ghidra analysis tools."""
@@ -2994,6 +2999,13 @@ async def handle_call_tool(
             type="text",
             text=f"Error: missing required argument(s) for {name}: {', '.join(missing)}"
         )]
+
+    if name in _parity.REGISTRY:
+        try:
+            return await _parity.handle(name, arguments)
+        except Exception as e:
+            log(f"Error in {name}: {e}")
+            return [types.TextContent(type="text", text=f"Error: {str(e)}")]
 
     try:
         if name == "analyze_binary":

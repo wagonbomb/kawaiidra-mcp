@@ -195,21 +195,27 @@ Target: +5 tools → 109 total.
 
 ---
 
-### Deferred / Out of Scope
+### Parity Track (Phases 9–17) — target: bethington/ghidra-mcp v7.0.0 (209 endpoints)
 
-These competitor features are **not planned** due to architectural differences:
+The earlier "deferred" list is retired: the competitor now ships a headless
+server too, so every endpoint is in scope. Parity tools live in
+`src/kawaiidra_mcp/parity/` as declarative `JTool`s (schema + Jython body,
+arguments passed as base64 JSON). Program tools run via analyzeHeadless;
+project / multi-program tools run via `support/jythonRun`.
 
-| Category | Tools | Reason |
-|----------|-------|--------|
-| Ghidra Server | 7 tools | Requires running Ghidra Server; we're headless |
-| Version Control | 4 tools | Tied to Ghidra Server |
-| Admin | 3 tools | Tied to Ghidra Server |
-| Version History | 2 tools | Tied to Ghidra Server |
-| Knowledge Database | 5 tools | Custom persistence layer; could be future work |
-| Cross-Binary Documentation | 6 tools | Depends on knowledge DB |
-| GUI-only features | `save_program`, `exit_ghidra` | Not applicable to headless |
+| Phase | Focus | Status |
+|-------|-------|--------|
+| 9 | Framework + program metadata, options, property maps, memory blocks, analyzer config, utilities | ✅ |
+| 10 | Advanced data types (unions, derived types, categories, resize/recreate, validation, GDT import, field usage) | ⏳ |
+| 11 | Globals, listings, symbols, comments & xrefs | ⏳ |
+| 12 | Function editing: tags, this-type, storage, bulk variables, flow repair, P-code, dataflow | ⏳ |
+| 13 | Documentation workflow & cross-binary matching | ⏳ |
+| 14 | P-code emulation | ⏳ |
+| 15 | Project & program lifecycle (folders, .gzf/.gar, sessions) | ⏳ |
+| 16 | GUI-bridge tools: debugger, UI cursor, running tools | ⏳ |
+| 17 | Ghidra Server & version control | ⏳ |
 
-**Total deferred: 27 tools** — these account for the remaining gap after Phase 8.
+See `PARITY.md` for the endpoint-by-endpoint mapping.
 
 ---
 
@@ -225,6 +231,6 @@ These competitor features are **not planned** due to architectural differences:
 | 6 ✅ | Script management & analysis control | 6 | 100 | Done |
 | 7 ✅ | Security & malware analysis | 4 | 104 | Done |
 | 8 ✅ | Project & multi-binary management | 5 | 109 | Done |
-| — | Deferred (server/VCS/KB) | 27 | — | N/A |
+| 9 ✅ | Parity framework, program/memory/options/properties | 22 | 131 | Done |
 
-**Target: 109 tools** (56% of competitor count) covering 100% of headless-compatible functionality, plus ~20 unique tools they don't have.
+**Target:** every bethington/ghidra-mcp endpoint covered, plus the Apple/iOS/kernel tools they lack.

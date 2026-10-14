@@ -30,7 +30,9 @@ class TestToolCount:
 
     def test_total_tool_count_is_109(self):
         from kawaiidra_mcp.server import TOOLS
-        assert len(TOOLS) == 109, f"Expected 109 tools, got {len(TOOLS)}"
+        from kawaiidra_mcp.parity import REGISTRY
+        core = [t for t in TOOLS if t.name not in REGISTRY]
+        assert len(core) == 109, f"Expected 109 core tools, got {len(core)}"
 
 
 class TestPhaseToolsExist:
