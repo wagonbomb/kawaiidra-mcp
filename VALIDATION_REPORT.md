@@ -420,6 +420,7 @@ python run_comprehensive_tests.py --parity 9 10     # selected phases
 | 9 | Program, Memory, Options & Utilities | 28 | 28 | PASS* |
 | 10 | Advanced Data Types | 26 | 26 | PASS |
 | 11 | Globals, Listings, Symbols, Comments & Xrefs | 32 | 32 | PASS |
+| 12 | Function Editing, P-code & Dataflow | 24 | 24 | PASS* |
 
 \*P9-019 initially failed because the test passed a symbol name to the older
 core `set_bookmark`, which only accepts hex addresses; the test was corrected
@@ -428,3 +429,8 @@ to use `0x1400be504` and the set/delete round-trip re-verified.
 Spot checks after Phase 10: `McpS1` resized 32 → 12 bytes with `force` (field
 `b` at +8 clipped), `McpU2` cloned → moved to `/mcp_smoke/pk` → renamed `McpU3`,
 `mcp_pkt_hdr`/`mcp_pkt_kind` imported from `tests/fixtures/mcp_smoke_types.h`.
+
+\*P12-018 (`set_variable_storage`) first failed with `ArrayStoreException`: Jython
+picked the `VariableStorage(program, Varnode...)` varargs overload for a
+register list. Fixed by using the explicit `(program, address, size)`
+constructor; re-run with `--ids P12-018` passes and asserts storage `R9`.

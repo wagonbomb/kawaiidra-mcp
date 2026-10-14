@@ -9,6 +9,7 @@ from .framework import REGISTRY, JTool, execute, handle, register  # noqa: F401
 from . import tools_program  # noqa: F401  Phase 9
 from . import tools_datatypes  # noqa: F401  Phase 10
 from . import tools_listing  # noqa: F401  Phase 11
+from . import tools_function  # noqa: F401  Phase 12
 
 
 def mcp_tools(existing: set[str]) -> list:
