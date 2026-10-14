@@ -2,11 +2,12 @@
 
 ## Competitive Baseline
 
-| Metric | Kawaiidra | Competitor (bethington/ghidra-mcp) |
+| Metric | Kawaiidra | Competitor (bethington/ghidra-mcp v7.0.0) |
 |--------|-----------|-------------------------------------|
-| Tool count | 109 | 193 |
-| Architecture | Headless subprocess + JPype bridge | GUI plugin (Java bridge) |
-| Unique strengths | Apple/iOS kernel tools (8), semantic code search, crypto constants, JNI analysis, hardcoded secrets, API endpoint extraction, exhaustive report generator, caching, CVE vuln detection | Ghidra Server integration, version control, knowledge DB, project lifecycle, data type CRUD |
+| Tool count | 266 (109 core + 157 parity) | 209 endpoints |
+| Endpoint coverage | 209/209 (see `PARITY.md`, verified by `tools/gen_parity.py`) | — |
+| Architecture | Headless analyzeHeadless/jythonRun + JPype bridge + GUI bridge (ghidra_bridge) | GUI plugin + headless server (Java) |
+| Unique strengths | Apple/iOS/kernel tools, JNI analysis, semantic code search, CVE vuln detection, hardcoded secrets, API endpoint extraction, report generator, caching | — (no capability without a kawaiidra equivalent) |
 
 ## What We Have That They Don't
 
@@ -191,7 +192,7 @@ Target: +5 tools → 109 total.
 **Implementation notes:**
 - Most project lifecycle tools are filesystem operations on our `project_dir`
 - Multi-program tools (switch_program, open_program) are less relevant in headless mode since we specify binary_name per call
-- Server connection, version control, and admin tools (18 tools) are **out of scope** — they require Ghidra Server infrastructure we don't target
+- Server connection, version control, and admin tools were later delivered in Phase 17 (validated against a local Ghidra Server)
 
 ---
 

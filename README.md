@@ -12,6 +12,17 @@ A general-purpose **Ghidra MCP server** that brings the power of Ghidra's headle
 
 ## Features
 
+**266 tools.** Kawaiidra covers every endpoint of
+[bethington/ghidra-mcp](https://github.com/bethington/ghidra-mcp) v7.0.0
+(209/209, see [PARITY.md](PARITY.md)) and adds Apple/iOS/kernel, JNI and
+other analysis tools it does not have. Parity tools live in
+`src/kawaiidra_mcp/parity/` and cover: program options and property maps,
+memory blocks, advanced data types, globals auditing, function tags and
+bulk variable editing, P-code and dataflow, the documentation workflow with
+cross-binary matching, P-code emulation, project/.gzf/.gar lifecycle, a
+session "current program", GUI-mode debugger tools, and Ghidra Server
+version control. Smoke results: [VALIDATION_REPORT.md](VALIDATION_REPORT.md).
+
 ### Core Features
 - **Analyze any binary**: PE (Windows), ELF (Linux), Mach-O (macOS), and raw firmware
 - **Decompile functions**: Get C code from compiled binaries
