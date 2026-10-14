@@ -23,7 +23,7 @@ def _p(desc: str, base: dict = S, **extra) -> dict:
 
 
 GUI_PRELUDE = r'''
-import json, traceback
+import json, traceback, time
 from java.lang import Throwable
 from java.util.concurrent import TimeUnit
 def _s(v):
@@ -51,13 +51,63 @@ def target():
     if t is None or not t.isValid():
         raise Fail("No live target for the current trace")
     return t
+def process_state():
+    """Process-wide state. Debuggers here (dbgeng, gdb default) are all-stop, so
+    any STOPPED thread means the process is stopped; agents may leave a stale
+    RUNNING on other threads after an interrupt."""
+    c = traces().getCurrent()
+    t = c.getTarget() if c is not None else None
+    if t is None or not t.isValid():
+        return "TERMINATED"
+    states = set()
+    try:
+        snap = max(c.getSnap(), latest_snap())
+        for th in c.getTrace().getThreadManager().getLiveThreads(snap):
+            states.add(_s(t.getThreadExecutionState(th)))
+    except (Exception, Throwable):
+        pass
+    if not states and c.getThread() is not None:
+        states.add(_s(t.getThreadExecutionState(c.getThread())))
+    if "STOPPED" in states:
+        return "STOPPED"
+    if "RUNNING" in states:
+        return "RUNNING"
+    return ",".join(sorted(x for x in states if x)) or None
+def latest_snap():
+    c = traces().getCurrent()
+    try:
+        return c.getTrace().getTimeManager().getMaxSnap()
+    except (Exception, Throwable):
+        return c.getSnap()
+def wait_state(want, secs, after_snap=None):
+    """Wait for process state `want`; with after_snap, also require a newer snapshot."""
+    deadline = time.time() + secs
+    while True:
+        st = process_state()
+        fresh = after_snap is None or latest_snap() > after_snap
+        if (st == want and fresh) or time.time() > deadline:
+            return st if fresh else "PENDING"
+        time.sleep(0.2)
 def wait(fut, secs=30):
     return fut.get(secs, TimeUnit.SECONDS) if fut is not None else None
 def dyn_addr(text):
-    v = coords().getView()
-    a = v.getAddressFactory().getAddress(_s(text))
+    """Dynamic address from hex text, or the value of a register (e.g. RIP)."""
+    c = coords()
+    v = c.getView()
+    a = None
+    try:
+        a = v.getAddressFactory().getAddress(_s(text))
+    except (Exception, Throwable):
+        a = None
     if a is None:
-        raise Fail("Invalid address: " + _s(text))
+        reg = c.getPlatform().getLanguage().getRegister(_s(text).upper()) or c.getPlatform().getLanguage().getRegister(_s(text))
+        if reg is not None and c.getThread() is not None:
+            rs = c.getTrace().getMemoryManager().getMemoryRegisterSpace(c.getThread(), c.getFrame(), False)
+            val = rs.getValue(c.getSnap(), reg) if rs else None
+            if val is not None and val.hasValue():
+                a = v.getAddressFactory().getDefaultAddressSpace().getAddress(long(val.getUnsignedValue()))
+    if a is None:
+        raise Fail("Invalid address or register: " + _s(text))
     return a
 def run_action(name, prompt=None):
     if prompt is None:
@@ -70,11 +120,18 @@ def run_action(name, prompt=None):
         if "CURRENT" in p.name():
             pol = p
             break
-    acts = target().collectActions(an, None, pol)
+    # Enablement follows the target state (e.g. Interrupt only while running),
+    # which lags just-issued commands: retry briefly before giving up.
     best = None
-    for e in acts.values():
-        if e.isEnabled() and (best is None or e.specificity() > best.specificity()):
-            best = e
+    deadline = time.time() + 5
+    while True:
+        acts = target().collectActions(an, None, pol)
+        for e in acts.values():
+            if e.isEnabled() and (best is None or e.specificity() > best.specificity()):
+                best = e
+        if best is not None or time.time() > deadline:
+            break
+        time.sleep(0.2)
     if best is None:
         raise Fail("Action %s not available for this target" % name)
     wait(best.invokeAsync(prompt), 60)
@@ -155,6 +212,7 @@ register(
                 "snap": c.getSnap(), "frame": c.getFrame(), "target_alive": bool(t is not None and t.isValid()),
                 "target": _s(t.describe()) if t is not None else None,
                 "execution_state": _s(t.getThreadExecutionState(th)) if (t is not None and th is not None) else None,
+                "process_state": process_state(),
                 "module_count": mods}
     '''),
     _gui_tool("debugger_traces", "List all open debug traces.", '''
@@ -179,7 +237,9 @@ register(
         if not offers:
             raise Fail("No launch offers for this program/platform")
         want = (ARGS.get("offer") or "").lower()
-        offer = offers[0]
+        local = [o for o in offers if o.supportsImage() and not any(
+            k in _s(o.getConfigName()).lower() for k in ("kernel", "attach", "remote", "svrcx", "-ext", "-trace"))]
+        offer = local[0] if local else offers[0]
         if want:
             m = [o for o in offers if want in _s(o.getTitle()).lower() or want in _s(o.getConfigName()).lower()]
             if not m:
@@ -196,32 +256,81 @@ register(
                         m2.put(k, p.decode(ARGS["executable_path"]))
                     elif ARGS.get("args") and ("args" in lk):
                         m2.put(k, p.decode(ARGS["args"]))
-                    elif ARGS.get("cwd") and ("cwd" in lk or "dir" in lk):
+                    elif ARGS.get("windbg_dir") and "windbg" in lk:
+                        m2.put(k, p.decode(ARGS["windbg_dir"]))
+                    elif ARGS.get("cwd") and "cwd" in lk:
                         m2.put(k, p.decode(ARGS["cwd"]))
                     elif ARGS.get("python_executable") and "python" in lk:
                         m2.put(k, p.decode(ARGS["python_executable"]))
                 return m2
+        import time
+        try:
+            traces().closeDeadTraces()
+        except (Exception, Throwable):
+            pass
         res = offer.launchProgram(TaskMonitor.DUMMY, Cfg())
         exc = res.exception()
         if exc is not None:
             raise Fail("Launch failed: " + _s(exc))
         tr = res.trace()
-        return {"success": True, "offer": _s(offer.getTitle()), "trace": _s(tr.getName()) if tr else None}
+        if tr is not None:
+            traces().activateTrace(tr)
+        # Ready = thread present, program image statically mapped, and the
+        # module list stable for ~1s (the agent populates the trace async).
+        from ghidra.program.util import ProgramLocation
+        ms = svc("ghidra.app.services.DebuggerStaticMappingService")
+        ready = False
+        last_mods, stable = -1, 0
+        deadline = time.time() + float(ARGS.get("timeout_seconds") or 30)
+        while time.time() < deadline:
+            c = traces().getCurrent()
+            if c is not None and c.getThread() is not None and c.getTarget() is not None:
+                try:
+                    mods = len(list(c.getTrace().getModuleManager().getLoadedModules(c.getSnap())))
+                    mapped = ms.getOpenMappedLocation(c.getTrace(), ProgramLocation(
+                        currentProgram, currentProgram.getImageBase()), c.getSnap()) is not None
+                    stable = stable + 1 if (mods == last_mods and mods > 0) else 0
+                    last_mods = mods
+                    if mapped and stable >= 4:
+                        ready = True
+                        break
+                except (Exception, Throwable):
+                    pass
+            time.sleep(0.25)
+        return {"success": True, "offer": _s(offer.getTitle()), "trace": _s(tr.getName()) if tr else None,
+                "ready": ready}
     ''', {"executable_path": _p("Executable (default: current program's image)"), "args": _p("Command-line arguments"),
           "cwd": _p("Working directory"), "offer": _p("Offer title/config substring (debugger_launch_offers)"),
-          "python_executable": _p("Python for the Trace RMI agent"), "timeout_seconds": _p("Timeout", I)}),
-    _gui_tool("debugger_interrupt", "Interrupt (break into) the running target.", '''
-        return {"success": True, "action": run_action("INTERRUPT")}
+          "python_executable": _p("Python for the Trace RMI agent"),
+          "windbg_dir": _p("dbgeng.dll directory (Windows dbgeng offers)"), "timeout_seconds": _p("Timeout", I)}),
+    _gui_tool("debugger_interrupt", "Interrupt (break into) the running target and wait (up to 10s) until it reports STOPPED.", '''
+        import time
+        before = latest_snap()
+        act = run_action("INTERRUPT")
+        return {"success": True, "action": act, "process_state": wait_state("STOPPED", 10, before)}
     '''),
-    _gui_tool("debugger_resume", "Resume execution of the target.", '''
-        return {"success": True, "action": run_action("RESUME")}
-    '''),
+    _gui_tool("debugger_resume", "Resume execution of the target; with wait_seconds, block until it stops again (e.g. at a breakpoint).", '''
+        before = latest_snap()
+        act = run_action("RESUME")
+        res = {"success": True, "action": act}
+        if ARGS.get("wait_seconds"):
+            state = wait_state("STOPPED", float(ARGS["wait_seconds"]), before)
+            res["process_state"] = state
+            res["stopped"] = state == "STOPPED"
+        return res
+    ''', {"wait_seconds": _p("Wait up to N seconds for the target to stop", I)}),
     _gui_tool("debugger_step", "Single-step the target: into (follows calls), over, or out (run to return).", '''
         kind = (ARGS.get("kind") or "into").lower()
         name = {"into": "STEP_INTO", "over": "STEP_OVER", "out": "STEP_OUT", "skip": "STEP_SKIP"}.get(kind)
         if name is None:
             raise Fail("kind must be into, over, out or skip")
+        import time
+        before = coords().getSnap()
         act = run_action(name)
+        for _ in range(100):
+            if traces().getCurrent().getSnap() > before:
+                break
+            time.sleep(0.1)
         c = coords()
         pc = None
         try:
@@ -282,7 +391,27 @@ register(
     ''', {"address": _p("Dynamic address"), "size": _p("Bytes (default 64)", I)}, ["address"]),
     _gui_tool("debugger_stack_trace", "Call stack of the current thread.", '''
         c = coords()
-        st = c.getTrace().getStackManager().getLatestStack(c.getThread(), c.getSnap())
+        if c.getThread() is None:
+            raise Fail("No current thread")
+        # The agent records the stack asynchronously after a stop: wait until
+        # frame 0 agrees with the live program counter.
+        pc_now = None
+        try:
+            preg = c.getPlatform().getLanguage().getProgramCounter()
+            rs = c.getTrace().getMemoryManager().getMemoryRegisterSpace(c.getThread(), c.getFrame(), False)
+            v = rs.getValue(c.getSnap(), preg) if rs else None
+            pc_now = long(v.getUnsignedValue()) if (v is not None and v.hasValue()) else None
+        except (Exception, Throwable):
+            pass
+        st = None
+        for _ in range(15):
+            c = coords()
+            st = c.getTrace().getStackManager().getLatestStack(c.getThread(), c.getSnap())
+            fr = st.getFrames(c.getSnap()) if st is not None else []
+            if pc_now is None or (fr and fr[0].getProgramCounter(c.getSnap()) is not None
+                                  and fr[0].getProgramCounter(c.getSnap()).getOffset() == pc_now):
+                break
+            time.sleep(0.2)
         if st is None:
             return {"frames": []}
         frames = []
@@ -314,7 +443,9 @@ register(
     '''),
     _gui_tool("debugger_list_breakpoints", "List all logical breakpoints (static and dynamic) with state.", '''
         out = []
-        for lb in svc("ghidra.app.services.DebuggerLogicalBreakpointService").getAllBreakpoints():
+        bsvc = svc("ghidra.app.services.DebuggerLogicalBreakpointService")
+        wait(bsvc.changesSettled(), 10)
+        for lb in bsvc.getAllBreakpoints():
             loc = lb.getProgramLocation()
             out.append({"name": _s(lb.getName()), "static": _s(loc.getAddress()) if loc else None,
                         "length": lb.getLength(), "kinds": sorted(_s(k) for k in lb.getKinds()),
@@ -333,6 +464,7 @@ register(
             c = coords()
             a = dyn_addr(ARGS["address"])
             wait(bs.placeBreakpointAt(c.getTrace(), a, 1, kinds, ARGS.get("name") or ""))
+        wait(bs.changesSettled(), 10)
         return {"success": True, "address": _s(a)}
     ''', {"address": _p("Address"), "static": _p("Address is a static program address", B), "name": _p("Name")}, ["address"]),
     _gui_tool("debugger_remove_breakpoint", "Remove breakpoints at an address (dynamic, or static=true).", '''
@@ -349,6 +481,7 @@ register(
         if not lbs:
             raise Fail("No breakpoint at " + _s(a))
         wait(bs.deleteAll(lbs, tr))
+        wait(bs.changesSettled(), 10)
         return {"success": True, "removed": len(lbs), "address": _s(a)}
     ''', {"address": _p("Address"), "static": _p("Address is a static program address", B)}, ["address"]),
     _gui_tool("debugger_static_to_dynamic", "Translate a static program address to the runtime address in the current trace.", '''

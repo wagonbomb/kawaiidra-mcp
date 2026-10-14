@@ -424,7 +424,7 @@ python run_comprehensive_tests.py --parity 9 10     # selected phases
 | 13 | Documentation Workflow & Cross-Binary | 19 | 19 | PASS |
 | 14 | P-code Emulation | 5 | 5 | PASS* |
 | 15 | Project & Program Lifecycle | 24 | 24 | PASS |
-| 16 | GUI Bridge (headless bridge server) | 6 | 6 | PARTIAL† |
+| 16 | GUI Bridge & live Debugger | 27 | 27 | PASS† |
 | 17 | Ghidra Server & Version Control | 25 | 25 | PASS‡ |
 
 \*P9-019 initially failed because the test passed a symbol name to the older
@@ -497,3 +497,28 @@ emitting their JSON; fixed by using `unicode()`. Two other templates that
 silently skipped non-ASCII strings were fixed the same way. Spot check on the
 `ipsw` universal Mach-O: `detect_entitlement_checks` finds the embedded
 entitlements plist and the functions that check it.
+
+### Phase 16 — live debugger validation (supersedes the note above)
+
+The `debugger_*` tools were then validated against a **live** target: the real
+Ghidra 12.0.3 GUI was booted by `tools/gui_harness` with the Debugger tool open
+on Windows `PING.EXE` (imported into `parity_smoke`), the ghidra_bridge server
+running inside that tool, and dbgeng (System32 `dbgeng.dll`) as the Trace RMI
+agent. Suite P16-001..029 (27 tests, all with output assertions) passed
+**27/27 on three consecutive runs**: launch → modules (ntdll) → registers →
+static↔dynamic mapping (`0x140001300` ↔ `0x7ff6…1300`) → static breakpoint →
+resume-and-wait stops at `entry` → stack trace frame 0 = `entry` → memory at
+RIP (`48 83 ec 28`) → step into/over → remove breakpoint → resume → interrupt
+→ process STOPPED.
+
+Live testing found real bugs, now fixed: launch returned before the agent had
+populated the trace (now waits for thread, static mapping and a stable module
+list, and picks a local launch offer by default instead of "dbgeng kernel");
+breakpoint set/list raced the logical-breakpoint service (now waits for
+`changesSettled`); step reported the pre-step PC and stack trace returned the
+previous stop's stack (both now wait for fresh trace data); actions were
+issued before Ghidra enabled them (e.g. Interrupt right after Resume — now
+retried briefly); stop detection used one thread's possibly-stale state
+(now process-wide, all-stop semantics, gated on a new snapshot); `cwd` was
+mapped onto `WINDBG_DIR`. Addresses may also be given as a register name
+(e.g. `RIP`).

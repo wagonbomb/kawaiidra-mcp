@@ -245,32 +245,48 @@ PARITY_TESTS = {
 
 # Phase 16 needs the GUI bridge: KAWAIIDRA_GUI_MODE=true and a ghidra_bridge
 # server running inside Ghidra (GUI, or headless for the non-debugger tools).
+# The live-debugger subset (KAWAIIDRA_SMOKE_DEBUGGER=1) expects the GUI's
+# Debugger tool to have the target program open and a working dbgeng agent:
+#   KAWAIIDRA_SMOKE_DEBUGGER_PYTHON  python with ghidradbg/ghidratrace/pybag
+#   KAWAIIDRA_SMOKE_DEBUGGER_ENTRY   static entry of that program (default
+#                                    0x140001300 = Windows PING.EXE)
+#   KAWAIIDRA_SMOKE_DEBUGGER_ARGS    target arguments (default ping -n 120)
 if os.environ.get("KAWAIIDRA_GUI_MODE", "").lower() in ("1", "true", "yes"):
     _live_debugger = bool(os.environ.get("KAWAIIDRA_SMOKE_DEBUGGER"))
+    _dbg_entry = os.environ.get("KAWAIIDRA_SMOKE_DEBUGGER_ENTRY", "0x140001300")
+    _launch = {"_raw": True, "args": os.environ.get("KAWAIIDRA_SMOKE_DEBUGGER_ARGS", "-n 120 127.0.0.1"),
+               "windbg_dir": os.environ.get("WINDBG_DIR", "C:/Windows/System32")}
+    if os.environ.get("KAWAIIDRA_SMOKE_DEBUGGER_PYTHON"):
+        _launch["python_executable"] = os.environ["KAWAIIDRA_SMOKE_DEBUGGER_PYTHON"]
     PARITY_TESTS[16] = ("GUI Bridge & Debugger", [
         ("P16-001", "get_ui_cursor", {"_raw": True}, "program"),
         ("P16-002", "get_ui_cursor", {"_raw": True, "type": "address"}, "address"),
-        ("P16-003", "goto_address", {"_raw": True, "address": "entry"}, "1400be504"),
+        ("P16-003", "goto_address", {"_raw": True, "address": "entry"}, '"address"'),
         ("P16-004", "prompt_policy", {"_raw": True, "action": "enable", "reason": "smoke"}, "true"),
         ("P16-005", "prompt_policy", {"_raw": True, "action": "disable"}, "false"),
         ("P16-006", "debugger_status", {"_raw": True}, "available"),
     ] + ([
-        ("P16-010", "debugger_launch_offers", {"_raw": True}, "offers"),
-        ("P16-011", "debugger_launch", {"_raw": True}, "trace"),
-        ("P16-012", "debugger_traces", {"_raw": True}, "current"),
-        ("P16-013", "debugger_modules", {"_raw": True}, "putty"),
-        ("P16-014", "debugger_registers", {"_raw": True}, "registers"),
-        ("P16-015", "debugger_static_to_dynamic", {"_raw": True, "address": ENTRY}, "dynamic"),
-        ("P16-016", "debugger_set_breakpoint", {"_raw": True, "address": ENTRY, "static": True}, "success"),
-        ("P16-017", "debugger_list_breakpoints", {"_raw": True}, "breakpoints"),
-        ("P16-018", "debugger_resume", {"_raw": True}, "success"),
-        ("P16-019", "debugger_interrupt", {"_raw": True}, "success"),
-        ("P16-020", "debugger_stack_trace", {"_raw": True}, "frames"),
-        ("P16-021", "debugger_step", {"_raw": True, "kind": "into"}, "pc"),
-        ("P16-022", "debugger_read_memory", {"_raw": True, "address": ENTRY, "size": 16}, "hex"),
-        ("P16-023", "debugger_dynamic_to_static", {"_raw": True, "address": ENTRY}, "static"),
-        ("P16-024", "debugger_remove_breakpoint", {"_raw": True, "address": ENTRY, "static": True}, "removed"),
-        ("P16-025", "running_tools", {"_raw": True}, "tools"),
+        ("P16-010", "running_tools", {"_raw": True}, "Debugger"),
+        ("P16-011", "debugger_launch_offers", {"_raw": True}, "local-dbgeng.bat"),
+        ("P16-012", "debugger_launch", _launch, '"ready": true'),
+        ("P16-013", "debugger_traces", {"_raw": True}, '"current": true'),
+        ("P16-014", "debugger_status", {"_raw": True}, '"target_alive": true'),
+        ("P16-015", "debugger_modules", {"_raw": True}, "ntdll"),
+        ("P16-016", "debugger_registers", {"_raw": True, "registers": "RIP,RSP"}, "RIP"),
+        ("P16-017", "debugger_static_to_dynamic", {"_raw": True, "address": _dbg_entry}, "dynamic"),
+        ("P16-018", "debugger_set_breakpoint", {"_raw": True, "address": _dbg_entry, "static": True}, "success"),
+        ("P16-019", "debugger_list_breakpoints", {"_raw": True}, "SW_EXECUTE"),
+        ("P16-020", "debugger_resume", {"_raw": True, "wait_seconds": 15}, '"stopped": true'),
+        ("P16-021", "debugger_stack_trace", {"_raw": True, "depth": 5}, '"function": "entry"'),
+        ("P16-022", "debugger_registers", {"_raw": True, "registers": "RIP"}, "RIP"),
+        ("P16-023", "debugger_read_memory", {"_raw": True, "address": "RIP", "size": 16}, "hex"),
+        ("P16-023b", "debugger_dynamic_to_static", {"_raw": True, "address": "RIP"}, _dbg_entry[2:].lower()),
+        ("P16-024", "debugger_step", {"_raw": True, "kind": "into"}, "Step Into"),
+        ("P16-025", "debugger_step", {"_raw": True, "kind": "over"}, "Step Over"),
+        ("P16-026", "debugger_remove_breakpoint", {"_raw": True, "address": _dbg_entry, "static": True}, '"removed": 1'),
+        ("P16-027", "debugger_resume", {"_raw": True}, "Go"),
+        ("P16-028", "debugger_interrupt", {"_raw": True}, '"process_state": "STOPPED"'),
+        ("P16-029", "debugger_status", {"_raw": True}, '"process_state": "STOPPED"'),
     ] if _live_debugger else []))
 
 # Phase 17 needs a Ghidra Server, e.g. a throwaway local one:
