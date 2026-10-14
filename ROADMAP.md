@@ -4,7 +4,7 @@
 
 | Metric | Kawaiidra | Competitor (bethington/ghidra-mcp) |
 |--------|-----------|-------------------------------------|
-| Tool count | 61 | 193 |
+| Tool count | 109 | 193 |
 | Architecture | Headless subprocess + JPype bridge | GUI plugin (Java bridge) |
 | Unique strengths | Apple/iOS kernel tools (8), semantic code search, crypto constants, JNI analysis, hardcoded secrets, API endpoint extraction, exhaustive report generator, caching, CVE vuln detection | Ghidra Server integration, version control, knowledge DB, project lifecycle, data type CRUD |
 
@@ -132,7 +132,7 @@ Target: +7 tools → 94 total.
 
 ---
 
-### Phase 6 — Script Management & Analysis Control
+### Phase 6 — Script Management & Analysis Control ✅ DONE
 
 **Gap: They have 9 script tools and 3 analysis control tools**
 
@@ -154,7 +154,7 @@ Target: +6 tools → 100 total.
 
 ---
 
-### Phase 7 — Security & Malware Analysis
+### Phase 7 — Security & Malware Analysis ✅ DONE
 
 **Gap: They have malware detection, anti-analysis, IOC extraction**
 
@@ -174,7 +174,7 @@ Target: +4 tools → 104 total.
 
 ---
 
-### Phase 8 — Project & Multi-Binary Management
+### Phase 8 — Project & Multi-Binary Management ✅ DONE
 
 **Gap: They have 5 project lifecycle + 5 multi-program + 4 organization tools**
 
@@ -218,13 +218,13 @@ These competitor features are **not planned** due to architectural differences:
 | Phase | Focus | New Tools | Running Total | Effort |
 |-------|-------|-----------|---------------|--------|
 | 1 ✅ | Batch ops, low-level, pagination | 6 | 61 | Done |
-| 2 | Data types & structures | 12 | 73 | Large |
+| 2 ✅ | Data types & structures | 12 | 73 | Done |
 | 3 ✅ | Symbols, labels, bookmarks | 8 | 81 | Done |
 | 4 ✅ | Batch ops & comment types | 6 | 87 | Done |
 | 5 ✅ | Function analysis extras | 7 | 94 | Done |
-| 6 | Script management & analysis control | 6 | 100 | Small |
-| 7 | Security & malware analysis | 4 | 104 | Medium |
-| 8 | Project & multi-binary management | 5 | 109 | Small |
+| 6 ✅ | Script management & analysis control | 6 | 100 | Done |
+| 7 ✅ | Security & malware analysis | 4 | 104 | Done |
+| 8 ✅ | Project & multi-binary management | 5 | 109 | Done |
 | — | Deferred (server/VCS/KB) | 27 | — | N/A |
 
 **Target: 109 tools** (56% of competitor count) covering 100% of headless-compatible functionality, plus ~20 unique tools they don't have.

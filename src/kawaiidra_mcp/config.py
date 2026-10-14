@@ -60,6 +60,10 @@ class Config:
             str(self._project_root / "logs")
         ))
         self.scripts_dir = self._package_root / "scripts"
+        self.user_scripts_dir = Path(os.environ.get(
+            "KAWAIIDRA_USER_SCRIPTS_DIR",
+            str(self._project_root / "user_scripts")
+        ))
 
         # Timeouts
         self.analysis_timeout = int(os.environ.get("KAWAIIDRA_TIMEOUT", "300"))
@@ -333,7 +337,8 @@ class Config:
     def ensure_directories(self) -> None:
         """Create required directories if they don't exist."""
         for directory in [self.project_dir, self.binaries_dir,
-                          self.exports_dir, self.log_dir]:
+                          self.exports_dir, self.log_dir,
+                          self.user_scripts_dir]:
             directory.mkdir(parents=True, exist_ok=True)
 
     def get_project_path(self, project_name: Optional[str] = None) -> Path:

@@ -25,3 +25,6 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Jython scripts are generated at runtime by write_ghidra_script()
+src/kawaiidra_mcp/scripts/*.py

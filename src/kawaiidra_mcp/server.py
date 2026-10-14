@@ -126,6 +126,9 @@ def run_ghidra_headless(
     """
     timeout = timeout or config.analysis_timeout
 
+    if any(arg is None for arg in command_args):
+        return "", "Error: missing required argument (e.g. binary_name)", 1
+
     try:
         analyze_headless = config.analyze_headless
     except FileNotFoundError as e:
@@ -2701,6 +2704,256 @@ TOOLS = [
             "required": ["binary_name", "function_name"]
         }
     ),
+    # Phase 6: Script Management & Analysis Control
+    types.Tool(
+        name="list_scripts",
+        description="List saved user Jython scripts. Shows name, size, and a preview of each script.",
+        inputSchema={
+            "type": "object",
+            "properties": {}
+        }
+    ),
+    types.Tool(
+        name="save_script",
+        description="Save a named Jython script for later re-use via run_script. Scripts are stored in the user_scripts directory.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Script name (alphanumeric + underscores). '.py' is appended automatically if missing."
+                },
+                "code": {
+                    "type": "string",
+                    "description": "Jython script source code"
+                }
+            },
+            "required": ["name", "code"]
+        }
+    ),
+    types.Tool(
+        name="get_script",
+        description="Read the full contents of a saved user script.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Script name (with or without .py extension)"
+                }
+            },
+            "required": ["name"]
+        }
+    ),
+    types.Tool(
+        name="delete_script",
+        description="Delete a saved user script.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Script name (with or without .py extension)"
+                }
+            },
+            "required": ["name"]
+        }
+    ),
+    types.Tool(
+        name="list_analyzers",
+        description="List available Ghidra auto-analyzers and their enabled status for a binary.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="run_analysis",
+        description="Re-run Ghidra auto-analysis on an already-imported binary. Optionally enable/disable specific analyzers.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "analyzers": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of analyzer names to enable (optional, runs all enabled analyzers if not specified)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    # Phase 7: Security & Malware Analysis
+    types.Tool(
+        name="detect_malware_behaviors",
+        description="Detect suspicious malware behavior categories: C2 communication, persistence mechanisms, credential theft, process injection, evasion techniques, and data exfiltration.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "categories": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["c2", "persistence", "credential_theft", "injection", "evasion", "exfiltration", "all"]},
+                    "description": "Behavior categories to scan for (default: all)"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="find_anti_analysis",
+        description="Find anti-debugging, anti-VM, anti-sandbox, and anti-disassembly techniques in a binary.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="extract_iocs",
+        description="Extract Indicators of Compromise (IOCs) from binary strings: IP addresses, domains, URLs, email addresses, file paths, registry keys, and crypto wallet addresses.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="analyze_api_chains",
+        description="Detect dangerous API call sequences within functions, such as VirtualAlloc+WriteProcessMemory+CreateRemoteThread (process injection) or socket+connect+send (data exfiltration).",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    # Phase 8: Project & Multi-Binary Management
+    types.Tool(
+        name="list_projects",
+        description="List Ghidra projects in the projects directory.",
+        inputSchema={
+            "type": "object",
+            "properties": {}
+        }
+    ),
+    types.Tool(
+        name="delete_project",
+        description="Delete a Ghidra project and all its data. This is irreversible.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_name": {
+                    "type": "string",
+                    "description": "Name of the project to delete"
+                },
+                "confirm": {
+                    "type": "boolean",
+                    "description": "Must be true to confirm deletion"
+                }
+            },
+            "required": ["project_name", "confirm"]
+        }
+    ),
+    types.Tool(
+        name="list_project_binaries",
+        description="List all binaries in a project with file details. Alias for list_analyzed_binaries with richer output.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            }
+        }
+    ),
+    types.Tool(
+        name="get_entry_points",
+        description="Get entry point addresses of a binary (main entry, TLS callbacks, exported entries).",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
+    types.Tool(
+        name="get_function_count",
+        description="Get a quick function count for a binary without listing all functions. Faster than list_functions for large binaries.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "binary_name": {
+                    "type": "string",
+                    "description": "Name of the analyzed binary"
+                },
+                "project_name": {
+                    "type": "string",
+                    "description": "Ghidra project name (default: 'default')"
+                }
+            },
+            "required": ["binary_name"]
+        }
+    ),
 ]
 
 
@@ -2714,6 +2967,18 @@ async def handle_list_tools() -> list[types.Tool]:
 # Tool Handlers
 # ============================================================================
 
+_TOOL_REQUIRED: dict[str, list[str]] = {}
+
+
+def _missing_required_args(name: str, arguments: dict) -> list[str]:
+    """Return required inputSchema fields that are absent or empty."""
+    if not _TOOL_REQUIRED:
+        for tool in TOOLS:
+            _TOOL_REQUIRED[tool.name] = list((tool.inputSchema or {}).get("required", []))
+    return [k for k in _TOOL_REQUIRED.get(name, [])
+            if arguments.get(k) is None or arguments.get(k) == ""]
+
+
 @server.call_tool()
 async def handle_call_tool(
     name: str,
@@ -2722,6 +2987,13 @@ async def handle_call_tool(
     """Handle tool execution."""
     arguments = arguments or {}
     log(f"Tool call: {name} with {arguments}")
+
+    missing = _missing_required_args(name, arguments)
+    if missing:
+        return [types.TextContent(
+            type="text",
+            text=f"Error: missing required argument(s) for {name}: {', '.join(missing)}"
+        )]
 
     try:
         if name == "analyze_binary":
@@ -2925,6 +3197,39 @@ async def handle_call_tool(
             return await handle_diff_functions(arguments)
         elif name == "set_function_no_return":
             return await handle_set_function_no_return(arguments)
+        # Phase 6: Script Management & Analysis Control
+        elif name == "list_scripts":
+            return handle_list_scripts(arguments)
+        elif name == "save_script":
+            return handle_save_script(arguments)
+        elif name == "get_script":
+            return handle_get_script(arguments)
+        elif name == "delete_script":
+            return handle_delete_script(arguments)
+        elif name == "list_analyzers":
+            return await handle_list_analyzers(arguments)
+        elif name == "run_analysis":
+            return await handle_run_analysis(arguments)
+        # Phase 7: Security & Malware Analysis
+        elif name == "detect_malware_behaviors":
+            return await handle_detect_malware_behaviors(arguments)
+        elif name == "find_anti_analysis":
+            return await handle_find_anti_analysis(arguments)
+        elif name == "extract_iocs":
+            return await handle_extract_iocs(arguments)
+        elif name == "analyze_api_chains":
+            return await handle_analyze_api_chains(arguments)
+        # Phase 8: Project & Multi-Binary Management
+        elif name == "list_projects":
+            return handle_list_projects(arguments)
+        elif name == "delete_project":
+            return handle_delete_project(arguments)
+        elif name == "list_project_binaries":
+            return handle_list_project_binaries(arguments)
+        elif name == "get_entry_points":
+            return await handle_get_entry_points(arguments)
+        elif name == "get_function_count":
+            return await handle_get_function_count(arguments)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     except Exception as e:
@@ -13039,6 +13344,1046 @@ print("=== MCP_RESULT_END ===")
         return [types.TextContent(type="text", text=f"Set {result.get('function')} @ {result.get('address')} as {status}")]
     else:
         return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+
+# ============================================================================
+# Script Management & Analysis Control (Phase 6)
+# ============================================================================
+
+def handle_list_scripts(args: dict) -> Sequence[types.TextContent]:
+    """List saved user scripts."""
+    scripts_dir = config.user_scripts_dir
+    if not scripts_dir.exists():
+        return [types.TextContent(type="text", text="No user scripts directory yet. Use `save_script` to create your first script.")]
+
+    scripts = sorted(scripts_dir.glob("*.py"))
+    if not scripts:
+        return [types.TextContent(type="text", text="No saved scripts found. Use `save_script` to create one.")]
+
+    lines = [f"# User Scripts ({len(scripts)})\n"]
+    for script_path in scripts:
+        size = script_path.stat().st_size
+        # Read first 3 lines as preview
+        try:
+            with open(script_path, "r", encoding="utf-8") as f:
+                preview_lines = []
+                for i, line in enumerate(f):
+                    if i >= 3:
+                        break
+                    preview_lines.append(line.rstrip())
+            preview = "\n".join(preview_lines)
+        except Exception:
+            preview = "(unable to read)"
+
+        lines.append(f"## {script_path.name}")
+        lines.append(f"**Size**: {size} bytes\n")
+        lines.append(f"```python\n{preview}\n```\n")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+def handle_save_script(args: dict) -> Sequence[types.TextContent]:
+    """Save a named Jython script to the user scripts directory."""
+    name = args.get("name", "")
+    code = args.get("code", "")
+
+    if not name:
+        return [types.TextContent(type="text", text="Error: script name is required")]
+    if not code:
+        return [types.TextContent(type="text", text="Error: script code is required")]
+
+    # Auto-append .py if missing
+    if not name.endswith(".py"):
+        name = name + ".py"
+
+    # Validate name: alphanumeric + underscores + .py, no path traversal
+    stem = name[:-3]  # remove .py
+    if not re.match(r'^[A-Za-z0-9_]+$', stem):
+        return [types.TextContent(type="text", text="Error: script name must contain only alphanumeric characters and underscores")]
+    if ".." in name or "/" in name or "\\" in name:
+        return [types.TextContent(type="text", text="Error: invalid script name (path traversal not allowed)")]
+
+    # Ensure directory exists
+    scripts_dir = config.user_scripts_dir
+    scripts_dir.mkdir(parents=True, exist_ok=True)
+
+    script_path = scripts_dir / name
+    script_path.write_text(code, encoding="utf-8")
+
+    return [types.TextContent(type="text", text=f"Saved script `{name}` ({len(code)} bytes) to {script_path}")]
+
+
+def handle_get_script(args: dict) -> Sequence[types.TextContent]:
+    """Read the full contents of a saved user script."""
+    name = args.get("name", "")
+    if not name:
+        return [types.TextContent(type="text", text="Error: script name is required")]
+
+    if not name.endswith(".py"):
+        name = name + ".py"
+
+    script_path = config.user_scripts_dir / name
+    if not script_path.exists():
+        return [types.TextContent(type="text", text=f"Error: script `{name}` not found")]
+
+    try:
+        content = script_path.read_text(encoding="utf-8")
+    except Exception as e:
+        return [types.TextContent(type="text", text=f"Error reading script: {e}")]
+
+    return [types.TextContent(type="text", text=f"# {name}\n\n```python\n{content}\n```")]
+
+
+def handle_delete_script(args: dict) -> Sequence[types.TextContent]:
+    """Delete a saved user script."""
+    name = args.get("name", "")
+    if not name:
+        return [types.TextContent(type="text", text="Error: script name is required")]
+
+    if not name.endswith(".py"):
+        name = name + ".py"
+
+    script_path = config.user_scripts_dir / name
+    if not script_path.exists():
+        return [types.TextContent(type="text", text=f"Error: script `{name}` not found")]
+
+    try:
+        script_path.unlink()
+    except Exception as e:
+        return [types.TextContent(type="text", text=f"Error deleting script: {e}")]
+
+    return [types.TextContent(type="text", text=f"Deleted script `{name}`")]
+
+
+async def handle_list_analyzers(args: dict) -> Sequence[types.TextContent]:
+    """List available Ghidra auto-analyzers for a binary."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = '''# @category MCP
+# @runtime Jython
+import json
+
+result = {"analyzers": []}
+
+try:
+    options = currentProgram.getOptions("Analyzers")
+    option_names = list(options.getOptionNames())
+    option_names.sort()
+
+    for name in option_names:
+        # Only include top-level analyzer enable/disable options (not sub-options)
+        if "." not in name:
+            try:
+                enabled = options.getBoolean(name, False)
+                result["analyzers"].append({
+                    "name": name,
+                    "enabled": enabled
+                })
+            except:
+                pass
+
+    result["count"] = len(result["analyzers"])
+except:
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ListAnalyzers.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ListAnalyzers.py",
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("error"):
+        return [types.TextContent(type="text", text=f"Error: {result['error']}")]
+
+    analyzers = result.get("analyzers", [])
+    if not analyzers:
+        return [types.TextContent(type="text", text="No analyzers found.")]
+
+    enabled_count = sum(1 for a in analyzers if a.get("enabled"))
+    lines = [f"# Analyzers ({enabled_count} enabled / {len(analyzers)} total)\n"]
+    lines.append("| Status | Analyzer |")
+    lines.append("|--------|----------|")
+    for a in analyzers:
+        status = "ON" if a.get("enabled") else "OFF"
+        lines.append(f"| {status} | {a['name']} |")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+async def handle_run_analysis(args: dict) -> Sequence[types.TextContent]:
+    """Re-run auto-analysis on an already-imported binary."""
+    binary_name = args.get("binary_name")
+    analyzers = args.get("analyzers")
+    project_name = args.get("project_name", config.default_project)
+
+    project_path = config.get_project_path(project_name)
+
+    cmd_args = [
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-save"
+    ]
+
+    # Add specific analyzer flags if provided
+    if analyzers:
+        for analyzer_name in analyzers:
+            cmd_args.extend(["-analyzer", analyzer_name])
+
+    stdout, stderr, code = run_ghidra_headless(cmd_args, timeout=config.analysis_timeout)
+
+    # Invalidate cache for this binary since analysis changed it
+    clear_cache(binary_name=binary_name, project_name=project_name)
+
+    if code != 0:
+        error_msg = stderr or stdout or "Unknown error"
+        # Truncate long error messages
+        if len(error_msg) > 2000:
+            error_msg = error_msg[:2000] + "\n... (truncated)"
+        return [types.TextContent(type="text", text=f"Analysis failed (exit code {code}):\n\n{error_msg}")]
+
+    text = f"Analysis completed for `{binary_name}`"
+    if analyzers:
+        text += f" with analyzers: {', '.join(analyzers)}"
+    text += "\n\nCache cleared for this binary. Subsequent queries will reflect updated analysis."
+
+    return [types.TextContent(type="text", text=text)]
+
+
+# ============================================================================
+# Security & Malware Analysis (Phase 7)
+# ============================================================================
+
+async def handle_detect_malware_behaviors(args: dict) -> Sequence[types.TextContent]:
+    """Detect suspicious malware behavior categories."""
+    binary_name = args.get("binary_name")
+    categories = args.get("categories") or ["all"]
+    project_name = args.get("project_name", config.default_project)
+
+    categories_json = json.dumps(categories)
+
+    script = f'''# @category MCP
+# @runtime Jython
+import json
+
+BEHAVIOR_PATTERNS = {{
+    "c2": {{
+        "label": "C2 / Command & Control",
+        "functions": ["InternetOpen", "InternetConnect", "HttpOpenRequest", "HttpSendRequest",
+                     "URLDownloadToFile", "WinHttpOpen", "WinHttpConnect", "WinHttpOpenRequest",
+                     "WSAStartup", "socket", "connect", "send", "recv", "getaddrinfo",
+                     "gethostbyname", "DnsQuery", "InternetReadFile", "HttpQueryInfo",
+                     "WSASocketA", "WSASocketW", "WSASend", "WSARecv"]
+    }},
+    "persistence": {{
+        "label": "Persistence",
+        "functions": ["RegSetValue", "RegSetValueEx", "RegCreateKey", "RegCreateKeyEx",
+                     "CreateService", "StartService", "ChangeServiceConfig",
+                     "SetWindowsHookEx", "SHSetValue", "WritePrivateProfileString",
+                     "CreateFileMapping", "MoveFileEx", "CopyFile", "SHFileOperation",
+                     "CoCreateInstance", "OleRun", "TaskScheduler", "SchRpcRegisterTask",
+                     "RegOpenKeyEx", "RegSetKeyValue"]
+    }},
+    "credential_theft": {{
+        "label": "Credential Theft",
+        "functions": ["CredEnumerate", "CredRead", "CredFree", "LsaRetrievePrivateData",
+                     "CryptUnprotectData", "LookupAccountSid", "LookupAccountName",
+                     "LogonUser", "LsaLogonUser", "SamConnect", "SamEnumerateUsersInDomain",
+                     "NetUserEnum", "NetUserGetInfo", "LsaEnumerateAccountRights",
+                     "NtQuerySystemInformation", "OpenProcessToken", "GetTokenInformation"]
+    }},
+    "injection": {{
+        "label": "Process Injection",
+        "functions": ["VirtualAllocEx", "WriteProcessMemory", "CreateRemoteThread",
+                     "NtCreateThreadEx", "RtlCreateUserThread", "QueueUserAPC",
+                     "SetThreadContext", "NtUnmapViewOfSection", "NtMapViewOfSection",
+                     "NtQueueApcThread", "NtWriteVirtualMemory", "OpenProcess",
+                     "NtOpenProcess", "ZwAllocateVirtualMemory", "LoadLibrary",
+                     "GetProcAddress", "VirtualProtectEx"]
+    }},
+    "evasion": {{
+        "label": "Evasion / Defense Bypass",
+        "functions": ["VirtualProtect", "NtProtectVirtualMemory", "AmsiScanBuffer",
+                     "EtwEventWrite", "NtSetInformationThread", "NtSetInformationProcess",
+                     "SetProcessMitigationPolicy", "DeleteFile", "SHDeleteKey",
+                     "MoveFileEx", "NtDeleteFile", "ZwDeleteFile",
+                     "SetFileAttributes", "NtSetInformationFile"]
+    }},
+    "exfiltration": {{
+        "label": "Data Exfiltration",
+        "functions": ["InternetWriteFile", "FtpPutFile", "HttpSendRequest",
+                     "TransmitFile", "sendto", "send", "WSASend",
+                     "CryptEncrypt", "CryptExportKey", "CertOpenStore",
+                     "GetClipboardData", "OpenClipboard", "ReadFile",
+                     "FindFirstFile", "FindNextFile", "GetFileSize"]
+    }}
+}}
+
+categories = {categories_json}
+if "all" in categories:
+    categories = list(BEHAVIOR_PATTERNS.keys())
+
+results = {{}}
+fm = currentProgram.getFunctionManager()
+ref_mgr = currentProgram.getReferenceManager()
+
+for cat in categories:
+    if cat not in BEHAVIOR_PATTERNS:
+        continue
+    pattern = BEHAVIOR_PATTERNS[cat]
+    hits = []
+    search_terms = [t.lower() for t in pattern["functions"]]
+
+    for func in fm.getFunctions(True):
+        func_hits = []
+        for addr in func.getBody().getAddresses(True):
+            for ref in ref_mgr.getReferencesFrom(addr):
+                if ref.getReferenceType().isCall():
+                    target = getFunctionAt(ref.getToAddress())
+                    if target:
+                        tname = target.getName()
+                        for term in search_terms:
+                            if term.lower() in tname.lower():
+                                func_hits.append({{"target": tname, "address": str(addr)}})
+                                break
+        if func_hits:
+            hits.append({{
+                "function": func.getName(),
+                "entry": str(func.getEntryPoint()),
+                "calls": func_hits[:10]
+            }})
+        if len(hits) >= 50:
+            break
+
+    results[cat] = {{"label": pattern["label"], "hits": hits}}
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({{"success": True, "results": results}}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("DetectMalwareBehaviors.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "DetectMalwareBehaviors.py"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if not result.get("success"):
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+    results = result.get("results", {})
+    total_hits = sum(len(r.get("hits", [])) for r in results.values())
+    lines = [f"# Malware Behavior Analysis: {binary_name}\n"]
+    lines.append(f"**Total suspicious functions**: {total_hits}\n")
+
+    for cat, data in results.items():
+        hits = data.get("hits", [])
+        label = data.get("label", cat)
+        lines.append(f"## {label} ({len(hits)} hits)\n")
+        if not hits:
+            lines.append("No matches found.\n")
+            continue
+        for h in hits[:20]:
+            lines.append(f"- **{h['function']}** @ `{h['entry']}`")
+            for c in h.get("calls", [])[:3]:
+                lines.append(f"  - calls `{c['target']}` at `{c['address']}`")
+        lines.append("")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+async def handle_find_anti_analysis(args: dict) -> Sequence[types.TextContent]:
+    """Find anti-debugging, anti-VM, anti-sandbox techniques."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = '''# @category MCP
+# @runtime Jython
+import json
+
+ANTI_PATTERNS = {
+    "anti_debug": {
+        "label": "Anti-Debugging",
+        "functions": ["IsDebuggerPresent", "CheckRemoteDebuggerPresent",
+                     "NtQueryInformationProcess", "OutputDebugString",
+                     "GetTickCount", "QueryPerformanceCounter",
+                     "NtSetInformationThread", "DebugActiveProcess",
+                     "ZwQueryInformationProcess", "NtClose",
+                     "CloseHandle", "RtlQueryProcessHeapInformation"],
+        "strings": ["OllyDbg", "x64dbg", "x32dbg", "IDA", "Immunity",
+                    "WinDbg", "dnSpy", "HxD", "Ghidra", "Cheat Engine"]
+    },
+    "anti_vm": {
+        "label": "Anti-VM / Anti-Virtualization",
+        "functions": ["GetSystemFirmwareTable", "EnumSystemFirmwareEntries",
+                     "NtQuerySystemInformation", "GetAdaptersInfo",
+                     "GetSystemInfo", "GlobalMemoryStatusEx"],
+        "strings": ["vmware", "virtualbox", "vbox", "qemu", "xen",
+                    "parallels", "hyper-v", "virtual", "KVMKVMKVM",
+                    "VMwareVMware", "Microsoft Hv",
+                    "0005446C7370", "000C29", "001C14"]
+    },
+    "anti_sandbox": {
+        "label": "Anti-Sandbox",
+        "functions": ["GetCursorPos", "GetForegroundWindow", "GetUserName",
+                     "GetComputerName", "GetModuleFileName",
+                     "SleepEx", "WaitForSingleObject",
+                     "NtDelayExecution", "SetTimer", "timeSetEvent"],
+        "strings": ["sandbox", "sample", "malware", "virus", "test",
+                    "cuckoomon", "SbieDll", "sbiedll", "snxhk", "avghooka"]
+    },
+    "anti_disassembly": {
+        "label": "Anti-Disassembly",
+        "functions": ["VirtualProtect", "VirtualAlloc", "NtProtectVirtualMemory",
+                     "FlushInstructionCache", "IsProcessorFeaturePresent"],
+        "strings": []
+    }
+}
+
+results = {}
+fm = currentProgram.getFunctionManager()
+ref_mgr = currentProgram.getReferenceManager()
+
+# Check function calls
+for cat, pattern in ANTI_PATTERNS.items():
+    hits = {"api_calls": [], "string_refs": []}
+    search_terms = [t.lower() for t in pattern["functions"]]
+
+    for func in fm.getFunctions(True):
+        func_hits = []
+        for addr in func.getBody().getAddresses(True):
+            for ref in ref_mgr.getReferencesFrom(addr):
+                if ref.getReferenceType().isCall():
+                    target = getFunctionAt(ref.getToAddress())
+                    if target:
+                        tname = target.getName()
+                        for term in search_terms:
+                            if term.lower() in tname.lower():
+                                func_hits.append({"target": tname, "address": str(addr)})
+                                break
+        if func_hits:
+            hits["api_calls"].append({
+                "function": func.getName(),
+                "entry": str(func.getEntryPoint()),
+                "calls": func_hits[:5]
+            })
+        if len(hits["api_calls"]) >= 30:
+            break
+
+    # Check strings
+    if pattern.get("strings"):
+        search_strs = [s.lower() for s in pattern["strings"]]
+        listing = currentProgram.getListing()
+        data_iter = listing.getDefinedData(True)
+        count = 0
+        while data_iter.hasNext() and count < 5000:
+            data = data_iter.next()
+            count += 1
+            if data.hasStringValue():
+                try:
+                    val = data.getValue()
+                    if val:
+                        val_lower = str(val).lower()
+                        for s in search_strs:
+                            if s in val_lower:
+                                hits["string_refs"].append({
+                                    "string": str(val)[:100],
+                                    "address": str(data.getAddress()),
+                                    "match": s
+                                })
+                                break
+                except:
+                    pass
+            if len(hits["string_refs"]) >= 30:
+                break
+
+    results[cat] = {"label": pattern["label"], "hits": hits}
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({"success": True, "results": results}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("FindAntiAnalysis.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "FindAntiAnalysis.py"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if not result.get("success"):
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+    results = result.get("results", {})
+    lines = [f"# Anti-Analysis Detection: {binary_name}\n"]
+
+    for cat, data in results.items():
+        label = data.get("label", cat)
+        hits = data.get("hits", {})
+        api_hits = hits.get("api_calls", [])
+        str_hits = hits.get("string_refs", [])
+        total = len(api_hits) + len(str_hits)
+        lines.append(f"## {label} ({total} indicators)\n")
+
+        if api_hits:
+            lines.append("**API Calls:**")
+            for h in api_hits[:15]:
+                lines.append(f"- `{h['function']}` @ `{h['entry']}`")
+                for c in h.get("calls", [])[:3]:
+                    lines.append(f"  - calls `{c['target']}` at `{c['address']}`")
+            lines.append("")
+
+        if str_hits:
+            lines.append("**Suspicious Strings:**")
+            for s in str_hits[:15]:
+                lines.append(f"- `{s['string']}` @ `{s['address']}` (matches: {s['match']})")
+            lines.append("")
+
+        if not api_hits and not str_hits:
+            lines.append("No indicators found.\n")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+async def handle_extract_iocs(args: dict) -> Sequence[types.TextContent]:
+    """Extract Indicators of Compromise from binary strings."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = '''# @category MCP
+# @runtime Jython
+import json
+import re
+
+iocs = {
+    "ip_addresses": [],
+    "urls": [],
+    "domains": [],
+    "emails": [],
+    "file_paths": [],
+    "registry_keys": [],
+}
+
+# Collect all strings
+strings = []
+listing = currentProgram.getListing()
+data_iter = listing.getDefinedData(True)
+count = 0
+while data_iter.hasNext() and count < 20000:
+    data = data_iter.next()
+    count += 1
+    if data.hasStringValue():
+        try:
+            val = data.getValue()
+            if val and len(str(val)) >= 4:
+                strings.append({"value": str(val), "address": str(data.getAddress())})
+        except:
+            pass
+
+# Regex patterns
+ip_re = re.compile(r'\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b')
+url_re = re.compile(r'https?://[^\\s<>"{}|\\\\^`\\[\\]]+')
+domain_re = re.compile(r'\\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+(?:com|net|org|io|ru|cn|tk|xyz|top|info|biz|cc|pw|su|ws)\\b')
+email_re = re.compile(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b')
+path_win_re = re.compile(r'[A-Za-z]:\\\\(?:[^\\\\/:*?"<>|\\r\\n]+\\\\)*[^\\\\/:*?"<>|\\r\\n]*')
+path_unix_re = re.compile(r'(?:/(?:tmp|etc|var|usr|home|root|opt|bin|sbin|dev|proc|sys)/[^\\s<>"{}|^`]+)')
+reg_re = re.compile(r'(?:HKEY_[A-Z_]+|HKLM|HKCU|HKCR|HKU|HKCC)\\\\[^\\s"]+')
+
+# Skip known false-positive IPs
+skip_ips = {"0.0.0.0", "127.0.0.1", "255.255.255.255", "255.255.255.0"}
+
+for s in strings:
+    val = s["value"]
+    addr = s["address"]
+
+    for m in ip_re.findall(val):
+        if m not in skip_ips and len(iocs["ip_addresses"]) < 100:
+            iocs["ip_addresses"].append({"value": m, "address": addr, "context": val[:120]})
+
+    for m in url_re.findall(val):
+        if len(iocs["urls"]) < 100:
+            iocs["urls"].append({"value": m[:200], "address": addr})
+
+    for m in domain_re.findall(val):
+        if len(iocs["domains"]) < 100:
+            iocs["domains"].append({"value": m, "address": addr})
+
+    for m in email_re.findall(val):
+        if len(iocs["emails"]) < 50:
+            iocs["emails"].append({"value": m, "address": addr})
+
+    for m in reg_re.findall(val):
+        if len(iocs["registry_keys"]) < 50:
+            iocs["registry_keys"].append({"value": m[:200], "address": addr})
+
+    for m in path_win_re.findall(val):
+        if len(iocs["file_paths"]) < 50:
+            iocs["file_paths"].append({"value": m[:200], "address": addr})
+    for m in path_unix_re.findall(val):
+        if len(iocs["file_paths"]) < 50:
+            iocs["file_paths"].append({"value": m[:200], "address": addr})
+
+# Deduplicate by value
+for key in iocs:
+    seen = set()
+    deduped = []
+    for item in iocs[key]:
+        if item["value"] not in seen:
+            seen.add(item["value"])
+            deduped.append(item)
+    iocs[key] = deduped
+
+total = sum(len(v) for v in iocs.values())
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({"success": True, "iocs": iocs, "total": total}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("ExtractIOCs.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "ExtractIOCs.py"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if not result.get("success"):
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+    iocs = result.get("iocs", {})
+    total = result.get("total", 0)
+    lines = [f"# IOC Extraction: {binary_name}", f"**Total IOCs**: {total}\n"]
+
+    section_labels = {
+        "ip_addresses": "IP Addresses",
+        "urls": "URLs",
+        "domains": "Domains",
+        "emails": "Email Addresses",
+        "file_paths": "File Paths",
+        "registry_keys": "Registry Keys",
+    }
+
+    for key, label in section_labels.items():
+        items = iocs.get(key, [])
+        lines.append(f"## {label} ({len(items)})\n")
+        if not items:
+            lines.append("None found.\n")
+            continue
+        for item in items[:30]:
+            lines.append(f"- `{item['value']}` @ `{item['address']}`")
+        if len(items) > 30:
+            lines.append(f"- ... and {len(items) - 30} more")
+        lines.append("")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+async def handle_analyze_api_chains(args: dict) -> Sequence[types.TextContent]:
+    """Detect dangerous API call sequences within functions."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = '''# @category MCP
+# @runtime Jython
+import json
+
+CHAINS = [
+    {
+        "name": "Process Injection (Classic)",
+        "severity": "critical",
+        "apis": ["OpenProcess", "VirtualAllocEx", "WriteProcessMemory", "CreateRemoteThread"],
+        "min_match": 3
+    },
+    {
+        "name": "Process Hollowing",
+        "severity": "critical",
+        "apis": ["CreateProcess", "NtUnmapViewOfSection", "VirtualAllocEx", "WriteProcessMemory", "SetThreadContext", "ResumeThread"],
+        "min_match": 4
+    },
+    {
+        "name": "DLL Injection",
+        "severity": "high",
+        "apis": ["OpenProcess", "VirtualAllocEx", "WriteProcessMemory", "GetProcAddress", "CreateRemoteThread"],
+        "min_match": 3
+    },
+    {
+        "name": "Shellcode Execution",
+        "severity": "high",
+        "apis": ["VirtualAlloc", "memcpy", "VirtualProtect", "CreateThread"],
+        "min_match": 3
+    },
+    {
+        "name": "Data Exfiltration (HTTP)",
+        "severity": "high",
+        "apis": ["InternetOpen", "InternetConnect", "HttpOpenRequest", "HttpSendRequest"],
+        "min_match": 3
+    },
+    {
+        "name": "Data Exfiltration (Socket)",
+        "severity": "high",
+        "apis": ["WSAStartup", "socket", "connect", "send"],
+        "min_match": 3
+    },
+    {
+        "name": "File Drop & Execute",
+        "severity": "high",
+        "apis": ["CreateFile", "WriteFile", "CloseHandle", "CreateProcess"],
+        "min_match": 3
+    },
+    {
+        "name": "Credential Dumping",
+        "severity": "critical",
+        "apis": ["OpenProcessToken", "LookupPrivilegeValue", "AdjustTokenPrivileges", "OpenProcess", "ReadProcessMemory"],
+        "min_match": 3
+    },
+    {
+        "name": "Service Persistence",
+        "severity": "high",
+        "apis": ["OpenSCManager", "CreateService", "StartService"],
+        "min_match": 2
+    },
+    {
+        "name": "Registry Persistence",
+        "severity": "medium",
+        "apis": ["RegOpenKeyEx", "RegSetValueEx", "RegCloseKey"],
+        "min_match": 2
+    },
+    {
+        "name": "APC Injection",
+        "severity": "critical",
+        "apis": ["OpenThread", "VirtualAllocEx", "WriteProcessMemory", "QueueUserAPC"],
+        "min_match": 3
+    },
+    {
+        "name": "Named Pipe C2",
+        "severity": "high",
+        "apis": ["CreateNamedPipe", "ConnectNamedPipe", "ReadFile", "WriteFile"],
+        "min_match": 3
+    }
+]
+
+results = []
+fm = currentProgram.getFunctionManager()
+ref_mgr = currentProgram.getReferenceManager()
+
+for func in fm.getFunctions(True):
+    # Collect all API calls from this function
+    called_apis = {}
+    for addr in func.getBody().getAddresses(True):
+        for ref in ref_mgr.getReferencesFrom(addr):
+            if ref.getReferenceType().isCall():
+                target = getFunctionAt(ref.getToAddress())
+                if target:
+                    tname = target.getName()
+                    if tname not in called_apis:
+                        called_apis[tname] = str(addr)
+
+    if not called_apis:
+        continue
+
+    called_lower = {k.lower(): k for k in called_apis.keys()}
+
+    # Check each chain
+    for chain in CHAINS:
+        matched = []
+        for api in chain["apis"]:
+            for cl, original in called_lower.items():
+                if api.lower() in cl:
+                    matched.append({"api": original, "address": called_apis[original]})
+                    break
+
+        if len(matched) >= chain["min_match"]:
+            results.append({
+                "chain": chain["name"],
+                "severity": chain["severity"],
+                "function": func.getName(),
+                "entry": str(func.getEntryPoint()),
+                "matched_apis": matched
+            })
+
+    if len(results) >= 100:
+        break
+
+# Sort by severity
+sev_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+results.sort(key=lambda x: sev_order.get(x["severity"], 99))
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({"success": True, "chains": results}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("AnalyzeApiChains.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "AnalyzeApiChains.py"
+    ], timeout=config.analysis_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if not result.get("success"):
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+    chains = result.get("chains", [])
+    lines = [f"# API Chain Analysis: {binary_name}", f"**Dangerous chains detected**: {len(chains)}\n"]
+
+    if not chains:
+        lines.append("No dangerous API call chains detected.")
+    else:
+        for c in chains:
+            sev = c["severity"].upper()
+            lines.append(f"## [{sev}] {c['chain']}")
+            lines.append(f"**Function**: `{c['function']}` @ `{c['entry']}`\n")
+            lines.append("**Matched APIs**:")
+            for api in c.get("matched_apis", []):
+                lines.append(f"- `{api['api']}` at `{api['address']}`")
+            lines.append("")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+# ============================================================================
+# Project & Multi-Binary Management (Phase 8)
+# ============================================================================
+
+def handle_list_projects(args: dict) -> Sequence[types.TextContent]:
+    """List Ghidra projects in the projects directory."""
+    projects_dir = config.project_dir
+    if not projects_dir.exists():
+        return [types.TextContent(type="text", text="No projects directory found.")]
+
+    projects = []
+    for item in sorted(projects_dir.iterdir()):
+        if item.is_dir():
+            # Check if it has a .rep directory (Ghidra project marker)
+            rep_dirs = list(item.glob("*.rep"))
+            if rep_dirs:
+                # Count binaries
+                binaries = get_analyzed_binaries(item.name)
+                projects.append({
+                    "name": item.name,
+                    "binaries": len(binaries),
+                    "binary_names": binaries[:10],
+                })
+
+    if not projects:
+        return [types.TextContent(type="text", text="No Ghidra projects found. Use `analyze_binary` to create one.")]
+
+    lines = [f"# Projects ({len(projects)})\n"]
+    lines.append("| Project | Binaries |")
+    lines.append("|---------|----------|")
+    for p in projects:
+        names = ", ".join(p["binary_names"][:5])
+        if len(p["binary_names"]) > 5:
+            names += ", ..."
+        lines.append(f"| {p['name']} | {p['binaries']} ({names}) |")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+def handle_delete_project(args: dict) -> Sequence[types.TextContent]:
+    """Delete a Ghidra project and all its data."""
+    project_name = args.get("project_name")
+    confirm = args.get("confirm", False)
+
+    if not project_name:
+        return [types.TextContent(type="text", text="Error: project_name is required")]
+
+    if not confirm:
+        return [types.TextContent(type="text", text="Error: set `confirm: true` to confirm deletion. This action is irreversible.")]
+
+    project_path = config.get_project_path(project_name)
+    if not project_path.exists():
+        return [types.TextContent(type="text", text=f"Error: project `{project_name}` not found")]
+
+    import shutil
+    try:
+        shutil.rmtree(project_path)
+    except Exception as e:
+        return [types.TextContent(type="text", text=f"Error deleting project: {e}")]
+
+    # Clear cache for this project
+    clear_cache(project_name=project_name)
+
+    return [types.TextContent(type="text", text=f"Deleted project `{project_name}` and cleared its cache.")]
+
+
+def handle_list_project_binaries(args: dict) -> Sequence[types.TextContent]:
+    """List all binaries in a project with details."""
+    project_name = args.get("project_name", config.default_project)
+
+    binaries = get_analyzed_binaries(project_name)
+
+    if not binaries:
+        return [types.TextContent(type="text", text=f"No binaries in project `{project_name}`. Use `analyze_binary` to import one.")]
+
+    lines = [f"# Binaries in `{project_name}` ({len(binaries)})\n"]
+    for i, name in enumerate(binaries, 1):
+        lines.append(f"{i}. `{name}`")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+async def handle_get_entry_points(args: dict) -> Sequence[types.TextContent]:
+    """Get entry point addresses of a binary."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+
+    script = '''# @category MCP
+# @runtime Jython
+import json
+
+result = {"entry_points": []}
+
+try:
+    sm = currentProgram.getSymbolTable()
+
+    # Get entry points from the symbol table
+    for sym in sm.getExternalEntryPointIterator():
+        func = getFunctionAt(sym)
+        name = func.getName() if func else str(sym)
+        result["entry_points"].append({
+            "address": str(sym),
+            "name": name,
+            "type": "entry"
+        })
+
+    # Also check the program's defined entry point
+    entry = currentProgram.getMinAddress()
+    exec_format = currentProgram.getExecutableFormat()
+    if exec_format:
+        result["format"] = str(exec_format)
+
+    result["count"] = len(result["entry_points"])
+except:
+    import traceback
+    result["error"] = traceback.format_exc().split(chr(10))[-2]
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps(result))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetEntryPoints.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetEntryPoints.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("error"):
+        return [types.TextContent(type="text", text=f"Error: {result['error']}")]
+
+    entries = result.get("entry_points", [])
+    fmt = result.get("format", "unknown")
+    lines = [f"# Entry Points: {binary_name}", f"**Format**: {fmt}", f"**Count**: {len(entries)}\n"]
+
+    if not entries:
+        lines.append("No entry points found.")
+    else:
+        lines.append("| Address | Name | Type |")
+        lines.append("|---------|------|------|")
+        for e in entries:
+            lines.append(f"| `{e['address']}` | {e['name']} | {e.get('type', '')} |")
+
+    return [types.TextContent(type="text", text="\n".join(lines))]
+
+
+async def handle_get_function_count(args: dict) -> Sequence[types.TextContent]:
+    """Get a quick function count without listing all functions."""
+    binary_name = args.get("binary_name")
+    project_name = args.get("project_name", config.default_project)
+
+    # Try fast bridge path first
+    backend = get_backend()
+    if backend is not None:
+        result = backend.list_functions(binary_name, project_name, 1)
+        if result is not None and result.get("success"):
+            total = result.get("total", 0)
+            return [types.TextContent(type="text", text=f"Function count for `{binary_name}`: **{total}**")]
+
+    script = '''# @category MCP
+# @runtime Jython
+import json
+
+count = 0
+fm = currentProgram.getFunctionManager()
+for f in fm.getFunctions(True):
+    count += 1
+
+print("=== MCP_RESULT_JSON ===")
+print(json.dumps({"count": count}))
+print("=== MCP_RESULT_END ===")
+'''
+
+    write_ghidra_script("GetFunctionCount.py", script)
+
+    project_path = config.get_project_path(project_name)
+    stdout, stderr, code = run_ghidra_headless([
+        str(project_path),
+        project_name,
+        "-process", binary_name,
+        "-noanalysis",
+        "-scriptPath", str(config.scripts_dir),
+        "-postScript", "GetFunctionCount.py"
+    ], timeout=config.decompile_timeout)
+
+    result = parse_ghidra_json_output(stdout)
+
+    if result.get("error"):
+        return [types.TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
+
+    count = result.get("count", 0)
+    return [types.TextContent(type="text", text=f"Function count for `{binary_name}`: **{count}**")]
 
 
 # ============================================================================
