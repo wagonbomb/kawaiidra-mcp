@@ -211,7 +211,7 @@ project / multi-program tools run via `support/jythonRun`.
 | 12 | Function editing: tags, this-type, storage, bulk variables, flow repair, P-code, dataflow | ✅ |
 | 13 | Documentation workflow & cross-binary matching | ✅ |
 | 14 | P-code emulation | ✅ |
-| 15 | Project & program lifecycle (folders, .gzf/.gar, sessions) | ⏳ |
+| 15 | Project & program lifecycle (folders, .gzf/.gar, sessions) | ✅ |
 | 16 | GUI-bridge tools: debugger, UI cursor, running tools | ⏳ |
 | 17 | Ghidra Server & version control | ⏳ |
 
@@ -237,5 +237,6 @@ See `PARITY.md` for the endpoint-by-endpoint mapping.
 | 12 ✅ | Function editing, P-code & dataflow | 17 | 190 | Done |
 | 13 ✅ | Documentation workflow & cross-binary matching | 14 | 204 | Done |
 | 14 ✅ | P-code emulation | 2 | 206 | Done |
+| 15 ✅ | Project & program lifecycle, session, scripts | 21 | 227 | Done |
 
 **Target:** every bethington/ghidra-mcp endpoint covered, plus the Apple/iOS/kernel tools they lack.

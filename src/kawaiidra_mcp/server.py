@@ -2993,6 +2993,11 @@ async def handle_call_tool(
     arguments = arguments or {}
     log(f"Tool call: {name} with {arguments}")
 
+    tool_def = next((t for t in TOOLS if t.name == name), None)
+    if tool_def is not None:
+        from .parity.tools_project import apply_session
+        arguments = apply_session(arguments, tool_def.inputSchema)
+
     missing = _missing_required_args(name, arguments)
     if missing:
         return [types.TextContent(

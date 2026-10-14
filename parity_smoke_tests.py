@@ -10,6 +10,7 @@ Usage:
     python run_comprehensive_tests.py --parity 10 11    # selected phases
 """
 
+import os
 import shutil
 from pathlib import Path
 
@@ -205,5 +206,35 @@ PARITY_TESTS = {
                                            "candidates": "GetProcAddress,LoadLibraryA,VirtualAlloc"},
          '"LoadLibraryA"'),
         ("P14-005", "emulate_function", {"function": "entry", "max_steps": 200}, "status"),
+    ]),
+    15: ("Project & Program Lifecycle", [
+        ("P15-001", "create_project", {"_raw": True, "name": "mcp_smoke_proj"}, "mcp_smoke_proj"),
+        ("P15-002", "export_program", {"program_name": "putty_b.exe"}, ".gzf"),
+        ("P15-003", "import_program", {"project_name": "mcp_smoke_proj", "gzf_path": str(EXPORTS / "putty_b.exe.gzf"),
+                                       "target_folder": "/fw/v1", "target_name": "putty_imported"}, "/fw/v1/putty_imported"),
+        ("P15-004", "create_folder", {"project_name": "mcp_smoke_proj", "path": "/archive/old"}, "/archive/old"),
+        ("P15-005", "move_file", {"project_name": "mcp_smoke_proj", "filePath": "putty_imported",
+                                  "destFolder": "/archive"}, "/archive/putty_imported"),
+        ("P15-006", "move_folder", {"project_name": "mcp_smoke_proj", "sourcePath": "/fw",
+                                    "destPath": "/archive"}, "/archive/fw"),
+        ("P15-007", "list_project_files", {"project_name": "mcp_smoke_proj", "folder": "/archive"}, "putty_imported"),
+        ("P15-008", "get_project_info", {"project_name": "mcp_smoke_proj"}, "putty_imported"),
+        ("P15-009", "archive_project", {"project_name": "mcp_smoke_proj"}, ".gar"),
+        ("P15-010", "restore_project", {"_raw": True, "project_name": "mcp_smoke_restored",
+                                        "gar_path": str(EXPORTS / "mcp_smoke_proj.gar")}, "putty_imported"),
+        ("P15-011", "delete_file", {"project_name": "mcp_smoke_proj", "filePath": "/archive/putty_imported"}, "deleted"),
+        ("P15-012", "open_project", {"_raw": True, "path": "parity_smoke"}, "putty.exe"),
+        ("P15-013", "open_program", {"_raw": True, "path": "putty.exe"}, "putty.exe"),
+        ("P15-014", "analysis_status", {"_raw": True}, "function_count"),
+        ("P15-015", "switch_program", {"_raw": True, "program": "putty_b.exe"}, "putty_b.exe"),
+        ("P15-016", "list_open_programs", {"_raw": True}, "putty_b.exe"),
+        ("P15-017", "close_program", {"_raw": True}, "putty.exe"),
+        ("P15-018", "save_program", {"_raw": True}, "saved"),
+        ("P15-019", "save_all_programs", {"_raw": True}, "saved"),
+        ("P15-020", "close_project", {"_raw": True}, "parity_smoke"),
+        ("P15-021", "run_ghidra_script", {"script_name": "HelloWorldScript.java"}, "Hello"),
+        ("P15-022", "delete_project", {"_raw": True, "project_name": "mcp_smoke_restored", "confirm": True}),
+        ("P15-023", "delete_project", {"_raw": True, "project_name": "mcp_smoke_proj", "confirm": True}),
+        ("P15-024", "exit_ghidra", {"_raw": True}, "success"),
     ]),
 }
