@@ -425,6 +425,7 @@ python run_comprehensive_tests.py --parity 9 10     # selected phases
 | 14 | P-code Emulation | 5 | 5 | PASS* |
 | 15 | Project & Program Lifecycle | 24 | 24 | PASS |
 | 16 | GUI Bridge (headless bridge server) | 6 | 6 | PARTIAL† |
+| 17 | Ghidra Server & Version Control | 25 | 25 | PASS‡ |
 
 \*P9-019 initially failed because the test passed a symbol name to the older
 core `set_bookmark`, which only accepts hex addresses; the test was corrected
@@ -469,3 +470,19 @@ connections (remote handlers now run inside a function, and `GUIBridge`
 no longer mirrors the remote namespace); and Ghidra 12 refuses to run the
 stock bridge server scripts without `# @runtime Jython`
 (new `python -m kawaiidra_mcp.install_bridge_server`).
+
+‡Phase 17 ran against a real, throwaway Ghidra Server 12.0.3 started locally
+(`ghidra.server.remote.GhidraServer -a0 -u -ip 127.0.0.1 -i 127.0.0.1
+-p13100 <scratch repos>`, loopback-only) with a test user: create
+repository, share a project, add to version control (v1), checkout, edit via
+analyzeHeadless, checkin (v2), history, checkouts, undo/terminate checkouts,
+permissions, disconnect — all with output assertions. Credentials are kept
+in server memory for the session and handed to Ghidra subprocesses through
+environment variables, never written into generated scripts.
+
+```
+set KAWAIIDRA_SMOKE_GHIDRA_SERVER=127.0.0.1:13100
+set KAWAIIDRA_SMOKE_GHIDRA_USER=<user>
+set KAWAIIDRA_SMOKE_GHIDRA_PASSWORD=<password>
+python run_comprehensive_tests.py --parity 17
+```

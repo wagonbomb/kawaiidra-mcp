@@ -81,6 +81,10 @@ class JTool:
 
 REGISTRY: dict[str, JTool] = {}
 
+# Extra environment for Ghidra subprocesses (e.g. Ghidra Server credentials,
+# kept out of generated script files).
+EXTRA_ENV: dict[str, str] = {}
+
 
 def register(*tools: JTool) -> None:
     for t in tools:
@@ -137,7 +141,8 @@ def _run(cmd_args: list[str], executable: Path, timeout: int) -> tuple[str, str,
             cmd = [str(executable)] + cmd_args
             shell = False
         srv.log(f"Running: {cmd}")
-        r = subprocess.run(cmd, capture_output=True, timeout=timeout, shell=shell, stdin=subprocess.DEVNULL,
+        env = {**os.environ, **EXTRA_ENV} if EXTRA_ENV else None
+        r = subprocess.run(cmd, capture_output=True, timeout=timeout, shell=shell, stdin=subprocess.DEVNULL, env=env,
                            cwd=str(config.project_dir), encoding="utf-8", errors="replace")
         return r.stdout or "", r.stderr or "", r.returncode
     except subprocess.TimeoutExpired:

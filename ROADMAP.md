@@ -213,7 +213,7 @@ project / multi-program tools run via `support/jythonRun`.
 | 14 | P-code emulation | ✅ |
 | 15 | Project & program lifecycle (folders, .gzf/.gar, sessions) | ✅ |
 | 16 | GUI-bridge tools: debugger, UI cursor, running tools | ✅ |
-| 17 | Ghidra Server & version control | ⏳ |
+| 17 | Ghidra Server & version control | ✅ |
 
 See `PARITY.md` for the endpoint-by-endpoint mapping.
 
@@ -239,5 +239,6 @@ See `PARITY.md` for the endpoint-by-endpoint mapping.
 | 14 ✅ | P-code emulation | 2 | 206 | Done |
 | 15 ✅ | Project & program lifecycle, session, scripts | 21 | 227 | Done |
 | 16 ✅ | GUI bridge: debugger, UI cursor, running tools | 20 | 247 | Done |
+| 17 ✅ | Ghidra Server & version control | 19 | 266 | Done |
 
 **Target:** every bethington/ghidra-mcp endpoint covered, plus the Apple/iOS/kernel tools they lack.

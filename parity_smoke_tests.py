@@ -272,3 +272,49 @@ if os.environ.get("KAWAIIDRA_GUI_MODE", "").lower() in ("1", "true", "yes"):
         ("P16-024", "debugger_remove_breakpoint", {"_raw": True, "address": ENTRY, "static": True}, "removed"),
         ("P16-025", "running_tools", {"_raw": True}, "tools"),
     ] if _live_debugger else []))
+
+# Phase 17 needs a Ghidra Server, e.g. a throwaway local one:
+#   KAWAIIDRA_SMOKE_GHIDRA_SERVER=127.0.0.1:13100
+#   KAWAIIDRA_SMOKE_GHIDRA_USER=<user>  KAWAIIDRA_SMOKE_GHIDRA_PASSWORD=<password>
+# (server started with -a0 -u so the client may supply the user name)
+if os.environ.get("KAWAIIDRA_SMOKE_GHIDRA_SERVER"):
+    _host, _, _port = os.environ["KAWAIIDRA_SMOKE_GHIDRA_SERVER"].partition(":")
+    _repo, _proj = "mcp_smoke_repo", "mcp_smoke_vcs"
+    PARITY_TESTS[17] = ("Ghidra Server & Version Control", [
+        ("P17-001", "server_authenticate", {"_raw": True, "username": os.environ.get("KAWAIIDRA_SMOKE_GHIDRA_USER", ""),
+                                            "password": os.environ.get("KAWAIIDRA_SMOKE_GHIDRA_PASSWORD", "")}, "success"),
+        ("P17-002", "server_connect", {"_raw": True, "host": _host, "port": int(_port or 13100)}, '"connected": true'),
+        ("P17-003", "server_status", {"_raw": True}, "repository_count"),
+        ("P17-004", "server_repository_create", {"_raw": True, "name": _repo}, _repo),
+        ("P17-005", "server_repositories", {"_raw": True}, _repo),
+        ("P17-006", "server_admin_users", {"_raw": True}, "users"),
+        ("P17-007", "create_project", {"_raw": True, "name": _proj}, _proj),
+        ("P17-008", "export_program", {"program_name": "putty_b.exe", "output_name": "vcs_smoke.gzf"}, ".gzf"),
+        ("P17-009", "import_program", {"_raw": True, "project_name": _proj, "gzf_path": str(EXPORTS / "vcs_smoke.gzf"),
+                                       "target_name": "putty.exe"}, "/putty.exe"),
+        ("P17-010", "server_share_project", {"_raw": True, "project_name": _proj, "repo": _repo}, _repo),
+        ("P17-011", "server_version_control_add", {"_raw": True, "project_name": _proj, "path": "putty.exe",
+                                                   "comment": "initial import"}, '"version": 1'),
+        ("P17-012", "server_repository_files", {"_raw": True, "repo": _repo}, "/putty.exe"),
+        ("P17-013", "server_version_control_checkout", {"_raw": True, "project_name": _proj, "path": "putty.exe"},
+         '"checked_out": true'),
+        ("P17-014", "set_program_option", {"project_name": _proj, "binary_name": "putty.exe", "group": "MCP VCS",
+                                           "name": "note", "value": "edited", "type": "string"}, "edited"),
+        ("P17-015", "checkin_program", {"_raw": True, "project_name": _proj, "path": "putty.exe", "dry_run": True},
+         '"modified_since_checkout": true'),
+        ("P17-016", "checkin_program", {"_raw": True, "project_name": _proj, "path": "putty.exe",
+                                        "comment": "edit", "keep_checked_out": True}, '"new_version": 2'),
+        ("P17-017", "server_version_history", {"_raw": True, "project_name": _proj, "path": "putty.exe"}, "initial import"),
+        ("P17-018", "server_repository_file", {"_raw": True, "repo": _repo, "path": "/putty.exe"}, "checkouts"),
+        ("P17-019", "server_checkouts", {"_raw": True, "repo": _repo}, "checkout_id"),
+        ("P17-020", "server_version_control_undo_checkout", {"_raw": True, "project_name": _proj, "path": "putty.exe"},
+         '"checked_out": false'),
+        ("P17-021", "server_version_control_checkout", {"_raw": True, "project_name": _proj, "path": "putty.exe"},
+         '"checked_out": true'),
+        ("P17-022", "server_admin_terminate_all_checkouts", {"_raw": True, "repo": _repo}, '"count": 1'),
+        ("P17-023", "server_admin_set_permissions", {"_raw": True, "repo": _repo,
+                                                     "user": os.environ.get("KAWAIIDRA_SMOKE_GHIDRA_USER", ""),
+                                                     "access_level": "admin"}, "success"),
+        ("P17-024", "server_disconnect", {"_raw": True}, '"connected": false'),
+        ("P17-025", "delete_project", {"_raw": True, "project_name": _proj, "confirm": True}),
+    ])
