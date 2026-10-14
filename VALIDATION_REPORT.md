@@ -422,6 +422,7 @@ python run_comprehensive_tests.py --parity 9 10     # selected phases
 | 11 | Globals, Listings, Symbols, Comments & Xrefs | 32 | 32 | PASS |
 | 12 | Function Editing, P-code & Dataflow | 24 | 24 | PASS* |
 | 13 | Documentation Workflow & Cross-Binary | 19 | 19 | PASS |
+| 14 | P-code Emulation | 5 | 5 | PASS* |
 
 \*P9-019 initially failed because the test passed a symbol name to the older
 core `set_bookmark`, which only accepts hex addresses; the test was corrected
@@ -435,3 +436,10 @@ Spot checks after Phase 10: `McpS1` resized 32 → 12 bytes with `force` (field
 picked the `VariableStorage(program, Varnode...)` varargs overload for a
 register list. Fixed by using the explicit `(program, address, size)`
 constructor; re-run with `--ids P12-018` passes and asserts storage `R9`.
+
+\*Phase 14 uses a hand-assembled x64 djb2 routine injected into a scratch
+block of putty.exe. P14-003/004/005 first failed because Jython converts Java
+`BigInteger` register values to Python `long`; fixed, then re-verified with
+assertions: `emulate_function` returns djb2("abc") = `0xb885c8b`, and
+`emulate_hash_batch` resolves `0x5fbff0fb` to `LoadLibraryA` from
+{GetProcAddress, LoadLibraryA, VirtualAlloc}.

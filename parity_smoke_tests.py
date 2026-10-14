@@ -194,4 +194,16 @@ PARITY_TESTS = {
                                                 "dry_run": True}, "created"),
         ("P13-018", "archive_ingest_program", {"limit": 5, "dry_run": True}, "functions"),
     ]),
+    14: ("P-code Emulation", [
+        ("P14-001", "create_memory_block", {"name": "mcp_emu", "address": "0x210000000",
+                                            "bytes_hex": DJB2_X64, "execute": True}),
+        ("P14-002", "create_function", {"address": "0x210000000", "name": "mcp_djb2"}),
+        ("P14-003", "emulate_function", {"function": "mcp_djb2", "registers": {"RCX": "0xe0000000"},
+                                         "memory": [{"address": "0xe0000000", "string": "abc"}]},
+         ["returned", "0xb885c8b"]),
+        ("P14-004", "emulate_hash_batch", {"hash_function_address": "mcp_djb2", "target_hash": "0x5fbff0fb",
+                                           "candidates": "GetProcAddress,LoadLibraryA,VirtualAlloc"},
+         '"LoadLibraryA"'),
+        ("P14-005", "emulate_function", {"function": "entry", "max_steps": 200}, "status"),
+    ]),
 }

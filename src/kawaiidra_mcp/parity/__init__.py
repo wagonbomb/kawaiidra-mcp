@@ -11,6 +11,7 @@ from . import tools_datatypes  # noqa: F401  Phase 10
 from . import tools_listing  # noqa: F401  Phase 11
 from . import tools_function  # noqa: F401  Phase 12
 from . import tools_docs  # noqa: F401  Phase 13
+from . import tools_emulation  # noqa: F401  Phase 14
 
 
 def mcp_tools(existing: set[str]) -> list:
