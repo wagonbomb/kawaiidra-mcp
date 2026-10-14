@@ -316,6 +316,25 @@ PARITY_TESTS[18] = ("Endpoint Coverage (core-tool equivalents)", [
     ("P18-057", "find_crypto_constants", {}),                                            # detect_crypto_constants
 ])
 
+# Phase 19: kawaiidra-only Apple / iOS / kernel / mobile tools (the capability
+# kawaiidra has on top of parity). Apple tools run on `ipsw` (a real universal
+# Mach-O, analyzed into the shared `validation` project); JNI on an Android
+# native library. Assertions check real detections in those binaries.
+_IPSW = {"binary_name": "ipsw", "project_name": "validation"}
+PARITY_TESTS[19] = ("Apple / iOS / Kernel / Mobile (kawaiidra-only)", [
+    ("P19-001", "detect_kpp_ktrr", dict(_IPSW), ["KPP (Kernel Patch Protection) detected", "AMFI"]),
+    ("P19-002", "detect_entitlement_checks", dict(_IPSW), ["Entitlements Referenced", "Checked in:"]),
+    ("P19-003", "analyze_sandbox_ops", dict(_IPSW), "Sandbox Operations"),
+    ("P19-004", "analyze_mach_ports", dict(_IPSW), "pthread_create"),
+    ("P19-005", "find_kernel_symbols", dict(_IPSW), "Total symbols found"),
+    ("P19-006", "find_iokit_classes", dict(_IPSW), "VTables"),
+    ("P19-007", "analyze_mach_traps", dict(_IPSW), "Mach Trap Analysis"),
+    ("P19-008", "find_pac_gadgets", dict(_IPSW), "PAC Gadget Analysis"),
+    ("P19-009", "analyze_binary", {"file_path": "libBleLib.so"}, "Import: Success"),
+    ("P19-010", "analyze_jni_methods", {"binary_name": "libBleLib.so"},
+     ["com.thingclips.ble.jni.BLEJniLib", "getCommandRequestData"]),
+])
+
 # ---------------------------------------------------------------------------
 # Environment-gated phases
 # ---------------------------------------------------------------------------

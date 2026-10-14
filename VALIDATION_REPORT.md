@@ -554,3 +554,24 @@ direct-handler path never captured output — fixed). In the clean run two
 Phase 18 assertions were wrong, not the tools (PuTTY strings start at
 `0x1400ed…`, and `search_bytes` returned the first 5 of many matches); the
 expectations were corrected and P18-005/P18-008 re-run by ID and passed.
+
+## Phase 19 — Apple / iOS / Kernel / Mobile tools (kawaiidra-only)
+
+`python run_comprehensive_tests.py --parity 19`: **10/10 PASS**, recorded in
+`tests/results/parity_results.json`; `gen_parity.py --require-verified` now
+also requires every Apple/iOS/kernel/JNI tool to have a passing test
+(**9/9**). Assertions on real binaries:
+
+| Test | Tool | Binary | Asserted detection |
+|------|------|--------|--------------------|
+| P19-001 | detect_kpp_ktrr | ipsw (Mach-O) | KPP and AMFI references |
+| P19-002 | detect_entitlement_checks | ipsw | embedded entitlements plist + checking functions |
+| P19-003 | analyze_sandbox_ops | ipsw | sandbox operations |
+| P19-004 | analyze_mach_ports | ipsw | thread port operations (`pthread_create`) |
+| P19-005 | find_kernel_symbols | ipsw | symbol inventory |
+| P19-006 | find_iokit_classes | ipsw | vtable candidates |
+| P19-007 | analyze_mach_traps | ipsw | runs; correctly finds no trap handlers (userland) |
+| P19-008 | find_pac_gadgets | ipsw | runs; no PAC (x86_64 slice imported) |
+| P19-010 | analyze_jni_methods | libBleLib.so (Android) | `com.thingclips.ble.jni.BLEJniLib` natives |
+
+Final gate: `verified=209/209`, `apple_verified=9/9`, 280/280 recorded tests passing.

@@ -1693,6 +1693,76 @@
   "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
   "time": "2026-10-14T12:36:24"
  },
+ "P19-001": {
+  "tool": "detect_kpp_ktrr",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:08:12"
+ },
+ "P19-002": {
+  "tool": "detect_entitlement_checks",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:08:29"
+ },
+ "P19-003": {
+  "tool": "analyze_sandbox_ops",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:08:45"
+ },
+ "P19-004": {
+  "tool": "analyze_mach_ports",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:08:59"
+ },
+ "P19-005": {
+  "tool": "find_kernel_symbols",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:09:11"
+ },
+ "P19-006": {
+  "tool": "find_iokit_classes",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:09:35"
+ },
+ "P19-007": {
+  "tool": "analyze_mach_traps",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:09:53"
+ },
+ "P19-008": {
+  "tool": "find_pac_gadgets",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:10:47"
+ },
+ "P19-009": {
+  "tool": "analyze_binary",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:10:57"
+ },
+ "P19-010": {
+  "tool": "analyze_jni_methods",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 19: Apple / iOS / Kernel / Mobile (kawaiidra-only)",
+  "time": "2026-10-14T13:11:07"
+ },
  "P9-001": {
   "tool": "get_address_spaces",
   "success": true,

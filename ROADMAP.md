@@ -215,6 +215,8 @@ project / multi-program tools run via `support/jythonRun`.
 | 15 | Project & program lifecycle (folders, .gzf/.gar, sessions) | ✅ |
 | 16 | GUI-bridge tools: debugger, UI cursor, running tools | ✅ |
 | 17 | Ghidra Server & version control | ✅ |
+| 18 | Endpoint coverage: asserted test per competitor endpoint (209/209 verified) | ✅ |
+| 19 | Apple/iOS/kernel/JNI tools verified on top (9/9) | ✅ |
 
 See `PARITY.md` for the endpoint-by-endpoint mapping.
 

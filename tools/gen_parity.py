@@ -96,6 +96,7 @@ def main() -> int:
 
     extras = sorted(tools - used)
     apple = [t for t in extras if any(k in t for k in ("mach", "kpp", "pac_", "iokit", "sandbox", "entitlement", "kernel", "jni"))]
+    apple_unverified = [t for t in apple if not passing_by_tool.get(t)]
     other = [t for t in extras if t not in apple]
 
     out = [
@@ -129,7 +130,12 @@ def main() -> int:
         "",
         "### Apple / iOS / kernel / mobile",
         "",
-        ", ".join(f"`{t}`" for t in apple),
+        f"{len(apple) - len(apple_unverified)}/{len(apple)} verified by passing tests (Phase 19, on the `ipsw` Mach-O "
+        "and an Android JNI library).",
+        "",
+        "| Tool | Verified by |",
+        "|------|-------------|",
+        *[f"| `{t}` | {', '.join(sorted(passing_by_tool.get(t, []))) or '**none**'} |" for t in apple],
         "",
         "### Other",
         "",
@@ -142,9 +148,12 @@ def main() -> int:
     print(f"verified={len(data['endpoints']) - len(unverified)}/{len(data['endpoints'])}")
     for ep, absent in missing:
         print(f"MISSING: {ep} -> {absent}")
+    print(f"apple_verified={len(apple) - len(apple_unverified)}/{len(apple)}")
     for ep in unverified:
         print(f"UNVERIFIED: {ep}")
-    return 1 if missing or (require_verified and unverified) else 0
+    for t in apple_unverified:
+        print(f"UNVERIFIED (kawaiidra-only): {t}")
+    return 1 if missing or (require_verified and (unverified or apple_unverified)) else 0
 
 
 if __name__ == "__main__":
