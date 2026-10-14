@@ -421,6 +421,7 @@ python run_comprehensive_tests.py --parity 9 10     # selected phases
 | 10 | Advanced Data Types | 26 | 26 | PASS |
 | 11 | Globals, Listings, Symbols, Comments & Xrefs | 32 | 32 | PASS |
 | 12 | Function Editing, P-code & Dataflow | 24 | 24 | PASS* |
+| 13 | Documentation Workflow & Cross-Binary | 19 | 19 | PASS |
 
 \*P9-019 initially failed because the test passed a symbol name to the older
 core `set_bookmark`, which only accepts hex addresses; the test was corrected
