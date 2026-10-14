@@ -5953,7 +5953,7 @@ for data in listing.getDefinedData(True):
     if data.hasStringValue():
         val = data.getValue()
         if val:
-            str_val = str(val)
+            str_val = unicode(val)
             for indicator in KPP_INDICATORS["strings"]:
                 if indicator.lower() in str_val.lower():
                     results["protection_strings"].append({{
@@ -6387,7 +6387,7 @@ for data in listing.getDefinedData(True):
     if data.hasStringValue():
         val = data.getValue()
         if val:
-            str_val = str(val)
+            str_val = unicode(val)
 
             # Check if it's a sandbox operation
             for op in SANDBOX_OPS:
@@ -6671,7 +6671,7 @@ for data in listing.getDefinedData(True):
     if data.hasStringValue():
         val = data.getValue()
         if val:
-            str_val = str(val)
+            str_val = unicode(val)
 
             is_entitlement = False
             if str_val.startswith("com.apple."):
@@ -7283,7 +7283,7 @@ try:
             try:
                 val = data.getValue()
                 if val is not None:
-                    value_repr = str(val)[:100]  # Limit value string length
+                    value_repr = unicode(val)[:100]  # Limit value string length
             except:
                 pass
 
@@ -8119,7 +8119,7 @@ try:
     for data in listing.getDefinedData(True):
         if data.hasStringValue():
             try:
-                val = str(data.getValue())
+                val = unicode(data.getValue())
                 if len(val) >= 4:
                     str_entry = {{
                         "address": str(data.getAddress()),

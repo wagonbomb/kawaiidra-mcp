@@ -486,3 +486,14 @@ set KAWAIIDRA_SMOKE_GHIDRA_USER=<user>
 set KAWAIIDRA_SMOKE_GHIDRA_PASSWORD=<password>
 python run_comprehensive_tests.py --parity 17
 ```
+
+## Apple / iOS / Kernel Tools — Regression (after parity work)
+
+`python run_comprehensive_tests.py --phase 10` on putty.exe: **8/8 PASS**
+(previously 4/8). `detect_kpp_ktrr`, `analyze_sandbox_ops` and
+`detect_entitlement_checks` (the original "JSON parsing issue") crashed in
+Jython on non-ASCII string data (`str(u'\xa9')` → `UnicodeEncodeError`) before
+emitting their JSON; fixed by using `unicode()`. Two other templates that
+silently skipped non-ASCII strings were fixed the same way. Spot check on the
+`ipsw` universal Mach-O: `detect_entitlement_checks` finds the embedded
+entitlements plist and the functions that check it.
