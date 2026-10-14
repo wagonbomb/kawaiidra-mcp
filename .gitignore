@@ -28,3 +28,18 @@ Thumbs.db
 
 # Jython scripts are generated at runtime by write_ghidra_script()
 src/kawaiidra_mcp/scripts/*.py
+
+# User-saved Ghidra scripts (save_script) — may contain private analysis
+user_scripts/
+
+# Analysis artifacts and sample binaries, wherever they end up
+*.gzf
+*.gar
+*.exe
+*.dll
+*.dylib
+*.apk
+*.dex
+*.ipsw
+*.dmg
+*.bin
