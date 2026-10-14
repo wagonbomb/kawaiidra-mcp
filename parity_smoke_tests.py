@@ -15,7 +15,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 FIXTURES = ROOT / "tests" / "fixtures"
-F = "FUN_140001000"  # putty.exe: 4 params (RCX,RDX,R8,R9), 6 locals
+EXPORTS = ROOT / "exports"
+F = "0x140001000"  # putty.exe FUN_140001000: 4 params (RCX,RDX,R8,R9), 6 locals
 ENTRY = "0x1400be504"
 
 # Second binary for cross-program tools (identical code, different program)
@@ -94,5 +95,41 @@ PARITY_TESTS = {
                                                   "name": "g_mcpBlk", "comment": "smoke"}),
         ("P10-025", "analyze_struct_field_usage", {"address": "0x200000000", "max_functions": 5}),
         ("P10-026", "import_data_types", {"source": str(FIXTURES / "mcp_smoke_types.h")}),
+    ]),
+    11: ("Globals, Listings, Symbols, Comments & Xrefs", [
+        ("P11-001", "list_globals", {"limit": 10}),
+        ("P11-002", "list_globals", {"min_xrefs": 3, "limit": 5, "undocumented_only": True}),
+        ("P11-003", "list_shadowed_globals", {"limit": 10}),
+        ("P11-004", "list_data_items_by_xrefs", {"limit": 10}),
+        ("P11-005", "list_program_items", {"kind": "segments"}),
+        ("P11-006", "list_program_items", {"kind": "imports", "limit": 10}),
+        ("P11-007", "list_program_items", {"kind": "exports"}),
+        ("P11-008", "list_program_items", {"kind": "external_locations", "limit": 5}),
+        ("P11-009", "list_program_items", {"kind": "namespaces", "limit": 5}),
+        ("P11-010", "audit_global", {"address": "0x140132000"}),
+        ("P11-011", "set_global", {"address": "0x140132010", "name": "g_mcpSmoke", "type_name": "dword",
+                                   "array_length": 2, "plate_comment": "smoke global"}),
+        ("P11-012", "analyze_global_completeness", {"address": "g_mcpSmoke"}),
+        ("P11-013", "audit_globals_in_function", {"function": "entry"}),
+        ("P11-014", "can_rename_at_address", {"address": "0x140132010"}),
+        ("P11-015", "rename_symbol", {"target": "0x140132010", "new_name": "g_mcpSmoke2"}),
+        ("P11-016", "rename_symbol", {"target": "g_mcpSmoke2", "new_name": "g_mcpSmoke"}),
+        ("P11-017", "set_repeatable_comment", {"address": "0x140132010", "comment": "repeat me"}),
+        ("P11-018", "get_comment", {"address": "0x140132010"}),
+        ("P11-019", "get_comment", {"addresses": "0x140132010,entry", "only_with_comments": True}),
+        ("P11-020", "add_memory_reference", {"from_address": "0x140132010", "to_address": "entry"}),
+        ("P11-021", "get_xrefs_to", {"address": "0x1400be504"}),
+        ("P11-022", "remove_reference", {"from_address": "0x140132010", "to_address": "entry"}),
+        ("P11-023", "get_assembly_context", {"xref_sources": "entry", "context_instructions": 3}),
+        ("P11-024", "get_full_call_graph", {"limit": 50, "format": "mermaid"}),
+        ("P11-025", "analyze_call_graph", {"analysis_type": "stats", "limit": 5}),
+        ("P11-026", "analyze_call_graph", {"analysis_type": "cycles", "limit": 5}),
+        ("P11-027", "analyze_call_graph", {"analysis_type": "path", "start_function": "entry",
+                                           "end_function": "entry"}),
+        ("P11-028", "search_instructions", {"mnemonic": "call", "limit": 5}),
+        ("P11-029", "search_instructions", {"operand_pattern": "[rsp+0x", "function": "entry", "limit": 5}),
+        ("P11-030", "find_code_gaps", {"min_size": 32, "limit": 5}),
+        ("P11-031", "find_next_undefined_function", {}),
+        ("P11-032", "list_class_members", {"class_name": "std"}),
     ]),
 }

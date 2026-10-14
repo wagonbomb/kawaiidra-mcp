@@ -64,6 +64,7 @@ class KawaiidraTestRunner:
         self.analyzed_binaries: set = set()
         self.include_parity = False
         self._last_text = ""
+        self.only_ids: set = set()
 
         # Import after setting GHIDRA_INSTALL_DIR
         from kawaiidra_mcp.server import TOOLS
@@ -848,8 +849,15 @@ class KawaiidraTestRunner:
         base = {"binary_name": self.PARITY_BINARY, "project_name": self.PARITY_PROJECT}
         for test in tests:
             test_id, tool, args = test[:3]
+            if self.only_ids and test_id not in self.only_ids:
+                continue
             expect = test[3] if len(test) > 3 else None
-            full = dict(args) if tool in ("convert_number", "check_connection", "mcp_health", "mcp_schema")                 else {**base, **args}
+            if args.get("_raw"):
+                full = {k: v for k, v in args.items() if k != "_raw"}
+            elif tool in ("convert_number", "check_connection", "mcp_health", "mcp_schema"):
+                full = dict(args)
+            else:
+                full = {**base, **args}
             self._last_text = ""
             result = self.run_test(test_id, tool, full)
             if result.success and expect:
@@ -903,10 +911,12 @@ def main():
     parser.add_argument("--parity", type=int, nargs="*", metavar="N",
                         help="Run parity-track phase(s) N (roadmap 9-17); no N = all parity phases only")
     parser.add_argument("--with-parity", action="store_true", help="Include parity phases in a full run")
+    parser.add_argument("--ids", nargs="+", default=[], help="Only run these parity test IDs (e.g. P12-018)")
     args = parser.parse_args()
 
     runner = KawaiidraTestRunner()
     runner.include_parity = args.with_parity
+    runner.only_ids = set(args.ids)
 
     if args.parity is not None:
         from parity_smoke_tests import PARITY_TESTS
