@@ -238,3 +238,37 @@ PARITY_TESTS = {
         ("P15-024", "exit_ghidra", {"_raw": True}, "success"),
     ]),
 }
+
+# ---------------------------------------------------------------------------
+# Environment-gated phases
+# ---------------------------------------------------------------------------
+
+# Phase 16 needs the GUI bridge: KAWAIIDRA_GUI_MODE=true and a ghidra_bridge
+# server running inside Ghidra (GUI, or headless for the non-debugger tools).
+if os.environ.get("KAWAIIDRA_GUI_MODE", "").lower() in ("1", "true", "yes"):
+    _live_debugger = bool(os.environ.get("KAWAIIDRA_SMOKE_DEBUGGER"))
+    PARITY_TESTS[16] = ("GUI Bridge & Debugger", [
+        ("P16-001", "get_ui_cursor", {"_raw": True}, "program"),
+        ("P16-002", "get_ui_cursor", {"_raw": True, "type": "address"}, "address"),
+        ("P16-003", "goto_address", {"_raw": True, "address": "entry"}, "1400be504"),
+        ("P16-004", "prompt_policy", {"_raw": True, "action": "enable", "reason": "smoke"}, "true"),
+        ("P16-005", "prompt_policy", {"_raw": True, "action": "disable"}, "false"),
+        ("P16-006", "debugger_status", {"_raw": True}, "available"),
+    ] + ([
+        ("P16-010", "debugger_launch_offers", {"_raw": True}, "offers"),
+        ("P16-011", "debugger_launch", {"_raw": True}, "trace"),
+        ("P16-012", "debugger_traces", {"_raw": True}, "current"),
+        ("P16-013", "debugger_modules", {"_raw": True}, "putty"),
+        ("P16-014", "debugger_registers", {"_raw": True}, "registers"),
+        ("P16-015", "debugger_static_to_dynamic", {"_raw": True, "address": ENTRY}, "dynamic"),
+        ("P16-016", "debugger_set_breakpoint", {"_raw": True, "address": ENTRY, "static": True}, "success"),
+        ("P16-017", "debugger_list_breakpoints", {"_raw": True}, "breakpoints"),
+        ("P16-018", "debugger_resume", {"_raw": True}, "success"),
+        ("P16-019", "debugger_interrupt", {"_raw": True}, "success"),
+        ("P16-020", "debugger_stack_trace", {"_raw": True}, "frames"),
+        ("P16-021", "debugger_step", {"_raw": True, "kind": "into"}, "pc"),
+        ("P16-022", "debugger_read_memory", {"_raw": True, "address": ENTRY, "size": 16}, "hex"),
+        ("P16-023", "debugger_dynamic_to_static", {"_raw": True, "address": ENTRY}, "static"),
+        ("P16-024", "debugger_remove_breakpoint", {"_raw": True, "address": ENTRY, "static": True}, "removed"),
+        ("P16-025", "running_tools", {"_raw": True}, "tools"),
+    ] if _live_debugger else []))

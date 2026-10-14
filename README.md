@@ -581,12 +581,17 @@ GUI mode allows Kawaiidra to connect to a running Ghidra GUI instance, enabling 
 
 3. **Install the bridge server in Ghidra:**
    ```bash
-   python -m ghidra_bridge.install_server ~/ghidra_scripts
+   python -m kawaiidra_mcp.install_bridge_server ~/ghidra_scripts
    ```
+   Use this instead of `ghidra_bridge.install_server`: it works without
+   `pkg_resources` and marks the server scripts `# @runtime Jython`, which
+   Ghidra 12 requires (otherwise it tries to run them with PyGhidra).
 
 4. **Start the bridge server in Ghidra:**
    - In Ghidra: `Tools > Ghidra Bridge > Run in Background`
-   - Or run the script manually from Script Manager
+   - Or run `ghidra_bridge_server_background.py` from Script Manager
+   - For the `debugger_*` tools, run it from the **Debugger** tool so its
+     trace/breakpoint/launcher services are available
 
 5. **Verify connection:**
    ```

@@ -91,3 +91,58 @@ def test_jython_excepts_catch_java_throwables(name):
     tool = REGISTRY[name]
     for src in (tool.body, tool.helpers):
         assert not re.search(r"except Exception\s*(as \w+)?:", src), name
+
+
+def _gui_tools():
+    return sorted(n for n, t in REGISTRY.items() if getattr(t, "gui_code", None))
+
+
+@pytest.mark.parametrize("name", _gui_tools())
+def test_gui_scripts_parse(name):
+    from kawaiidra_mcp.parity.tools_gui import build_gui_script
+    src = build_gui_script(REGISTRY[name].gui_code, {"address": "0x1000"})
+    ast.parse(src.replace("unicode(", "str("))
+    assert not re.search(r"except Exception\s*(as \w+)?:", REGISTRY[name].gui_code), name
+
+
+@pytest.mark.asyncio
+async def test_gui_tool_reports_bridge_unavailable(monkeypatch):
+    from kawaiidra_mcp.bridge import gui_context
+    gb = gui_context.get_gui_bridge()
+    monkeypatch.setattr(type(gb), "is_connected", property(lambda self: False))
+    monkeypatch.setattr(gb, "connect", lambda: False)
+    out = await server.handle_call_tool("debugger_status", {})
+    assert "GUI bridge not connected" in out[0].text
+
+
+@pytest.mark.asyncio
+async def test_gui_tool_round_trip_with_fake_bridge(monkeypatch):
+    from kawaiidra_mcp.bridge import gui_context
+    gb = gui_context.get_gui_bridge()
+    seen = {}
+
+    class FakeBridge:
+        def remote_exec(self, script):
+            seen["script"] = script
+
+        def remote_eval(self, expr):
+            assert expr == "_mcp_out"
+            return json.dumps({"address": "00401000", "program": "x.exe"})
+
+    monkeypatch.setattr(type(gb), "is_connected", property(lambda self: True))
+    monkeypatch.setattr(gb, "_bridge", FakeBridge(), raising=False)
+    out = await server.handle_call_tool("get_ui_cursor", {"type": "all"})
+    assert json.loads(out[0].text)["address"] == "00401000"
+    assert 'ARGS = json.loads(' in seen["script"] and "currentAddress" in seen["script"]
+
+
+@pytest.mark.asyncio
+async def test_session_fills_binary_name():
+    from kawaiidra_mcp.parity.tools_project import SESSION, apply_session
+    SESSION.update(project="p1", program="bin1", open=["bin1"])
+    try:
+        args = apply_session({}, {"properties": {"binary_name": {}, "project_name": {}}})
+        assert args == {"binary_name": "bin1", "project_name": "p1"}
+        assert apply_session({"binary_name": "x"}, {"properties": {"binary_name": {}}})["binary_name"] == "x"
+    finally:
+        SESSION.update(project=None, program=None, open=[])

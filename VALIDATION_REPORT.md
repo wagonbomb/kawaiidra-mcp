@@ -424,6 +424,7 @@ python run_comprehensive_tests.py --parity 9 10     # selected phases
 | 13 | Documentation Workflow & Cross-Binary | 19 | 19 | PASS |
 | 14 | P-code Emulation | 5 | 5 | PASS* |
 | 15 | Project & Program Lifecycle | 24 | 24 | PASS |
+| 16 | GUI Bridge (headless bridge server) | 6 | 6 | PARTIAL† |
 
 \*P9-019 initially failed because the test passed a symbol name to the older
 core `set_bookmark`, which only accepts hex addresses; the test was corrected
@@ -444,3 +445,27 @@ block of putty.exe. P14-003/004/005 first failed because Jython converts Java
 assertions: `emulate_function` returns djb2("abc") = `0xb885c8b`, and
 `emulate_hash_batch` resolves `0x5fbff0fb` to `LoadLibraryA` from
 {GetProcAddress, LoadLibraryA, VirtualAlloc}.
+
+†Phase 16 ran against a ghidra_bridge server hosted in **headless** Ghidra
+(`analyzeHeadless ... -postScript ghidra_bridge_server.py`), which proves the
+bridge path end-to-end (remote Jython execution, argument passing, symbol
+resolution, JSON results) for `get_ui_cursor`, `goto_address`,
+`prompt_policy` and `debugger_status` (correctly reports no Debugger tool).
+The `debugger_*` tools need a live Ghidra **GUI** Debugger tool and could not
+be exercised here; they were written against the Ghidra 12.0.3 API surface
+(introspected from the installed jars), their scripts are syntax-checked by
+`tests/test_parity.py`, and the env-gated suite P16-010..025 is ready:
+
+```
+set KAWAIIDRA_GUI_MODE=true
+set KAWAIIDRA_SMOKE_DEBUGGER=1
+python run_comprehensive_tests.py --parity 16
+```
+
+Two real bugs were found and fixed while doing this: a module-level
+`except ... as e` in the remote script left an unserializable exception in the
+bridge server's shared `__main__`, breaking later `GhidraBridge(namespace={})`
+connections (remote handlers now run inside a function, and `GUIBridge`
+no longer mirrors the remote namespace); and Ghidra 12 refuses to run the
+stock bridge server scripts without `# @runtime Jython`
+(new `python -m kawaiidra_mcp.install_bridge_server`).

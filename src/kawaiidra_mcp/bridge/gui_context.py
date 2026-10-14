@@ -223,7 +223,9 @@ class GUIBridge:
                 connect_to_host=host,
                 connect_to_port=port,
                 response_timeout=timeout,
-                namespace={}  # Don't pollute global namespace
+                # No namespace: loading the remote flat API breaks if the shared
+                # bridge __main__ holds unserializable objects; we only use
+                # remote_eval/remote_exec.
             )
 
             # Test the connection by accessing currentProgram
