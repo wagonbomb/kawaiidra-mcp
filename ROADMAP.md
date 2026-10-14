@@ -206,7 +206,7 @@ project / multi-program tools run via `support/jythonRun`.
 | Phase | Focus | Status |
 |-------|-------|--------|
 | 9 | Framework + program metadata, options, property maps, memory blocks, analyzer config, utilities | ✅ |
-| 10 | Advanced data types (unions, derived types, categories, resize/recreate, validation, GDT import, field usage) | ⏳ |
+| 10 | Advanced data types (unions, derived types, categories, resize/recreate, validation, GDT import, field usage) | ✅ |
 | 11 | Globals, listings, symbols, comments & xrefs | ⏳ |
 | 12 | Function editing: tags, this-type, storage, bulk variables, flow repair, P-code, dataflow | ⏳ |
 | 13 | Documentation workflow & cross-binary matching | ⏳ |
@@ -232,5 +232,6 @@ See `PARITY.md` for the endpoint-by-endpoint mapping.
 | 7 ✅ | Security & malware analysis | 4 | 104 | Done |
 | 8 ✅ | Project & multi-binary management | 5 | 109 | Done |
 | 9 ✅ | Parity framework, program/memory/options/properties | 22 | 131 | Done |
+| 10 ✅ | Advanced data types | 20 | 151 | Done |
 
 **Target:** every bethington/ghidra-mcp endpoint covered, plus the Apple/iOS/kernel tools they lack.

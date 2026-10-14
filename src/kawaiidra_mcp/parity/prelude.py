@@ -16,16 +16,16 @@ def _s(val):
         return None
     try:
         return unicode(val)
-    except Exception:
+    except (Exception, Throwable):
         try:
             return str(val)
-        except Exception:
+        except (Exception, Throwable):
             return repr(val)
 
 def _hex(v):
     try:
         return "0x%x" % v
-    except Exception:
+    except (Exception, Throwable):
         return _s(v)
 
 def page(items, offset=None, limit=None, default_limit=100):
@@ -110,17 +110,25 @@ def addr(s, program=None):
     if not isinstance(s, basestring):
         s = "0x%x" % s
     s = _s(s).strip()
-    a = p.getAddressFactory().getAddress(s)
-    if a is None and not s.lower().startswith("0x"):
-        a = p.getAddressFactory().getAddress("0x" + s)
+    a = None
+    try:
+        a = p.getAddressFactory().getAddress(s)
+        if a is None and not s.lower().startswith("0x"):
+            a = p.getAddressFactory().getAddress("0x" + s)
+    except (Exception, Throwable):
+        a = None
     if a is None:
-        raise Fail("Invalid address: " + s)
+        # Accept a symbol / function name wherever an address is expected
+        for sym in p.getSymbolTable().getSymbols(s):
+            if not sym.isExternal():
+                return sym.getAddress()
+        raise Fail("Invalid address or unknown symbol: " + s)
     return a
 
 def try_addr(s, program=None):
     try:
         return addr(s, program)
-    except Exception:
+    except (Exception, Throwable):
         return None
 
 def find_func(spec=None, program=None, required=True):
@@ -206,7 +214,7 @@ def find_dt(name, program=None, required=True):
         dt = parser.parse(name)
         if dt is not None:
             return dt
-    except Exception as e:
+    except (Exception, Throwable) as e:
         last = e
     from ghidra.program.model.data import BuiltInDataTypeManager
     bm = BuiltInDataTypeManager.getDataTypeManager()
@@ -321,7 +329,7 @@ def close_all():
     for gp in _OPEN.values():
         try:
             gp.close()
-        except Exception:
+        except (Exception, Throwable):
             pass
     _OPEN.clear()
 

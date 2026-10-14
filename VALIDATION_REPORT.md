@@ -397,3 +397,33 @@ Kawaiidra MCP demonstrates solid core functionality with 77% of tools fully oper
 The identified issues are primarily related to JSON output formatting in some Ghidra scripts, which can be addressed with targeted fixes.
 
 **Validation Status: PASSED with noted issues**
+
+---
+
+# Parity Track Validation (bethington/ghidra-mcp coverage)
+
+Methodology unchanged from the original report: ID-tagged tool calls run by
+`run_comprehensive_tests.py` against open-source binaries. Parity phases use
+`putty.exe` (MIT, PE x64) in a disposable `parity_smoke` project so mutating
+tests never touch the shared `default`/`validation` projects. Test definitions
+live in `parity_smoke_tests.py`; some tests also assert on expected output.
+
+```
+python run_comprehensive_tests.py --parity          # all parity phases
+python run_comprehensive_tests.py --parity 9 10     # selected phases
+```
+
+**Platform:** Windows 11 / Python 3.12 / Ghidra 12.0.3 / JDK 25
+
+| Phase | Category | Passed | Total | Status |
+|-------|----------|--------|-------|--------|
+| 9 | Program, Memory, Options & Utilities | 28 | 28 | PASS* |
+| 10 | Advanced Data Types | 26 | 26 | PASS |
+
+\*P9-019 initially failed because the test passed a symbol name to the older
+core `set_bookmark`, which only accepts hex addresses; the test was corrected
+to use `0x1400be504` and the set/delete round-trip re-verified.
+
+Spot checks after Phase 10: `McpS1` resized 32 → 12 bytes with `force` (field
+`b` at +8 clipped), `McpU2` cloned → moved to `/mcp_smoke/pk` → renamed `McpU3`,
+`mcp_pkt_hdr`/`mcp_pkt_kind` imported from `tests/fixtures/mcp_smoke_types.h`.

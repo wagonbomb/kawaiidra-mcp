@@ -83,3 +83,11 @@ async def test_mcp_schema_lists_everything():
     out = await server.handle_call_tool("mcp_schema", {})
     data = json.loads(out[0].text)
     assert data["total"] == len(server.TOOLS)
+
+
+@pytest.mark.parametrize("name", sorted(n for n, t in REGISTRY.items() if t.mode != "local"))
+def test_jython_excepts_catch_java_throwables(name):
+    """Jython's `except Exception` misses Java exceptions; bodies must use (Exception, Throwable)."""
+    tool = REGISTRY[name]
+    for src in (tool.body, tool.helpers):
+        assert not re.search(r"except Exception\s*(as \w+)?:", src), name

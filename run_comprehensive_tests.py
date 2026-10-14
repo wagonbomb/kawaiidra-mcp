@@ -19,7 +19,8 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 # Set Ghidra path if not set
 if not os.environ.get("GHIDRA_INSTALL_DIR"):
     # Try common Windows paths
-    for path in ["C:/ghidra", "C:/ghidra_11.2_PUBLIC", "C:/ghidra_11.3_PUBLIC"]:
+    for path in ["C:/ghidra", "C:/ghidra_11.2_PUBLIC", "C:/ghidra_11.3_PUBLIC",
+                 str(Path(__file__).parent.parent / "ghidra_12.0.3_PUBLIC")]:
         if Path(path).exists():
             os.environ["GHIDRA_INSTALL_DIR"] = path
             break
@@ -61,6 +62,8 @@ class KawaiidraTestRunner:
     def __init__(self):
         self.suites: List[TestSuite] = []
         self.analyzed_binaries: set = set()
+        self.include_parity = False
+        self._last_text = ""
 
         # Import after setting GHIDRA_INSTALL_DIR
         from kawaiidra_mcp.server import TOOLS
@@ -191,7 +194,16 @@ class KawaiidraTestRunner:
 
             handler_name = handler_map.get(tool_name)
             if not handler_name:
-                return False, "", f"No handler mapping for {tool_name}"
+                # Parity / newer tools: route through the real MCP dispatcher
+                result = asyncio.run(server.handle_call_tool(tool_name, args))
+                text = result[0].text if result else ""
+                self._last_text = text
+                preview = text[:200] + "..." if len(text) > 200 else text
+                if not text:
+                    return False, "", "No result returned"
+                if text.startswith("Error") or text.startswith("✗"):
+                    return False, preview, text.splitlines()[0][:200]
+                return True, preview, ""
 
             handler = getattr(server, handler_name, None)
             if not handler:
@@ -803,6 +815,58 @@ class KawaiidraTestRunner:
 
         return total_failed == 0
 
+    # ------------------------------------------------------------------
+    # Parity track (bethington/ghidra-mcp coverage) — phases 11+ here,
+    # numbered after the roadmap phase (P9..P17). Mutating tests run in a
+    # disposable project so the shared default/validation projects stay clean.
+    # ------------------------------------------------------------------
+    PARITY_PROJECT = "parity_smoke"
+    PARITY_BINARY = "putty.exe"
+
+    def ensure_parity_project(self) -> bool:
+        key = f"{self.PARITY_PROJECT}:{self.PARITY_BINARY}"
+        if key in self.analyzed_binaries:
+            return True
+        from kawaiidra_mcp.server import binary_exists
+        if not binary_exists(self.PARITY_BINARY, self.PARITY_PROJECT):
+            print(f"\n  Analyzing {self.PARITY_BINARY} into {self.PARITY_PROJECT} (one-time)...")
+            ok, _, err = self.run_tool("analyze_binary", {
+                "file_path": self.PARITY_BINARY, "project_name": self.PARITY_PROJECT})
+            if not ok:
+                print(f"  Failed: {err}")
+                return False
+        self.analyzed_binaries.add(key)
+        return True
+
+    def _parity_suite(self, title: str, tests: list) -> TestSuite:
+        suite = TestSuite(title)
+        print("\n" + "=" * 50)
+        print(title.upper())
+        print("=" * 50)
+        if not self.ensure_parity_project():
+            return suite
+        base = {"binary_name": self.PARITY_BINARY, "project_name": self.PARITY_PROJECT}
+        for test in tests:
+            test_id, tool, args = test[:3]
+            expect = test[3] if len(test) > 3 else None
+            full = dict(args) if tool in ("convert_number", "check_connection", "mcp_health", "mcp_schema")                 else {**base, **args}
+            self._last_text = ""
+            result = self.run_test(test_id, tool, full)
+            if result.success and expect:
+                for needle in ([expect] if isinstance(expect, str) else expect):
+                    if needle not in self._last_text:
+                        result.success = False
+                        result.error = f"expected {needle!r} in output"
+                        print(f"      Assertion failed: expected {needle!r}")
+                        break
+            suite.results.append(result)
+        return suite
+
+    def run_parity_phase(self, phase: int) -> TestSuite:
+        from parity_smoke_tests import PARITY_TESTS
+        title, tests = PARITY_TESTS[phase]
+        return self._parity_suite(f"Parity Phase {phase}: {title}", tests)
+
     def run_all(self, skip_ios: bool = True):
         """Run all test phases."""
         self.suites.append(self.run_phase1_core_tools())
@@ -822,6 +886,11 @@ class KawaiidraTestRunner:
             print("PHASE 10: iOS Security Tools - SKIPPED (use --ios flag)")
             print("=" * 50)
 
+        if self.include_parity:
+            from parity_smoke_tests import PARITY_TESTS
+            for phase in sorted(PARITY_TESTS):
+                self.suites.append(self.run_parity_phase(phase))
+
         return self.print_summary()
 
 
@@ -831,9 +900,19 @@ def main():
     parser = argparse.ArgumentParser(description="Kawaiidra MCP Comprehensive Test Runner")
     parser.add_argument("--ios", action="store_true", help="Include iOS security tools tests")
     parser.add_argument("--phase", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], help="Run specific phase only")
+    parser.add_argument("--parity", type=int, nargs="*", metavar="N",
+                        help="Run parity-track phase(s) N (roadmap 9-17); no N = all parity phases only")
+    parser.add_argument("--with-parity", action="store_true", help="Include parity phases in a full run")
     args = parser.parse_args()
 
     runner = KawaiidraTestRunner()
+    runner.include_parity = args.with_parity
+
+    if args.parity is not None:
+        from parity_smoke_tests import PARITY_TESTS
+        for phase in (args.parity or sorted(PARITY_TESTS)):
+            runner.suites.append(runner.run_parity_phase(phase))
+        sys.exit(0 if runner.print_summary() else 1)
 
     if args.phase:
         phase_methods = {

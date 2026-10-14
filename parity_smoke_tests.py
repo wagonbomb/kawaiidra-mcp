@@ -1,0 +1,98 @@
+"""Smoke tests for the parity track, consumed by run_comprehensive_tests.py.
+
+Each phase maps to (title, [(test_id, tool, args), ...]). Tests run in order
+against putty.exe (MIT, PE x64) in the disposable ``parity_smoke`` project, so
+create -> use -> clean up sequences are allowed. binary_name/project_name are
+filled in by the runner.
+
+Usage:
+    python run_comprehensive_tests.py --parity          # all parity phases
+    python run_comprehensive_tests.py --parity 10 11    # selected phases
+"""
+
+import shutil
+from pathlib import Path
+
+ROOT = Path(__file__).parent
+FIXTURES = ROOT / "tests" / "fixtures"
+F = "FUN_140001000"  # putty.exe: 4 params (RCX,RDX,R8,R9), 6 locals
+ENTRY = "0x1400be504"
+
+# Second binary for cross-program tools (identical code, different program)
+_B = ROOT / "binaries"
+if (_B / "putty.exe").exists() and not (_B / "putty_b.exe").exists():
+    shutil.copy(_B / "putty.exe", _B / "putty_b.exe")
+
+# Hand-assembled x64 djb2(RCX=str) -> EAX, used by the emulation tests:
+#   mov eax,5381 / loop: movzx edx,[rcx] / test dl,dl / je done / mov r8d,eax /
+#   shl eax,5 / add eax,r8d / add eax,edx / inc rcx / jmp loop / done: ret
+DJB2_X64 = "b805150000 0fb611 84d2 7410 4189c0 c1e005 4401c0 01d0 48ffc1 ebe9 c3".replace(" ", "")
+
+PARITY_TESTS = {
+    9: ("Program, Memory, Options & Utilities", [
+        ("P9-001", "get_address_spaces", {}),
+        ("P9-002", "get_language_metadata", {"include_registers": True}),
+        ("P9-003", "get_program_options", {}),
+        ("P9-004", "get_program_options", {"group": "Program Information"}),
+        ("P9-005", "set_program_option", {"group": "MCP Smoke", "name": "note", "value": "hi", "type": "string"}),
+        ("P9-006", "remove_program_option", {"group": "MCP Smoke", "name": "note"}),
+        ("P9-007", "create_property_map", {"name": "mcp_smoke_tags", "type": "string"}),
+        ("P9-008", "set_property", {"map": "mcp_smoke_tags", "address": "entry", "value": "entry-point"}),
+        ("P9-009", "get_property", {"map": "mcp_smoke_tags", "address": "entry"}),
+        ("P9-010", "list_properties", {}),
+        ("P9-011", "list_properties", {"map": "mcp_smoke_tags"}),
+        ("P9-012", "remove_property", {"map": "mcp_smoke_tags", "address": "entry"}),
+        ("P9-013", "delete_property_map", {"name": "mcp_smoke_tags"}),
+        ("P9-014", "create_memory_block", {"name": "mcp_smoke", "address": "0x200000000",
+                                           "bytes_hex": "deadbeef", "execute": True}),
+        ("P9-015", "set_memory_block", {"block": "mcp_smoke", "write": True, "execute": False}),
+        ("P9-016", "analysis_status", {}),
+        ("P9-017", "configure_analyzer", {"name": "Decompiler Parameter ID", "enabled": True}),
+        ("P9-018", "set_bookmark", {"address": "0x1400be504", "category": "mcp_smoke", "comment": "x"}),
+        ("P9-019", "delete_bookmark", {"address": "entry", "category": "mcp_smoke"}),
+        ("P9-020", "list_calling_conventions", {}),
+        ("P9-021", "get_external_location", {}),
+        ("P9-022", "get_external_location", {"dll_name": "KERNEL32.DLL"}),
+        ("P9-023", "set_image_base", {"address": "0x150000000"}),
+        ("P9-024", "set_image_base", {"address": "0x140000000"}),
+        ("P9-025", "convert_number", {"text": "0xFFFFFFFE", "size": 4}),
+        ("P9-026", "check_connection", {}),
+        ("P9-027", "mcp_health", {}),
+        ("P9-028", "mcp_schema", {"tool": "get_address_spaces"}),
+    ]),
+    10: ("Advanced Data Types", [
+        ("P10-001", "create_union", {"name": "McpU1", "fields": [{"name": "i", "type": "int"},
+                                                                 {"name": "q", "type": "longlong"}]}),
+        ("P10-002", "create_function_signature", {"name": "mcp_cb_t", "prototype": "int mcp_cb_t(void *ctx, int n)"}),
+        ("P10-003", "create_function_signature", {"name": "mcp_cb2_t", "return_type": "void",
+                                                  "parameters": [{"name": "p", "type": "char *"}]}),
+        ("P10-004", "create_derived_type", {"kind": "array", "base_type": "int", "length": 4, "name": "mcp_int4_t"}),
+        ("P10-005", "create_derived_type", {"kind": "pointer", "base_type": "McpU1"}),
+        ("P10-006", "create_derived_type", {"kind": "typedef", "base_type": "McpU1", "name": "McpU1_t"}),
+        ("P10-007", "create_data_type_category", {"category_path": "/mcp_smoke/pk"}),
+        ("P10-008", "clone_data_type", {"source_type": "McpU1", "new_name": "McpU2"}),
+        ("P10-009", "move_data_type_to_category", {"type_name": "McpU2", "category_path": "/mcp_smoke/pk"}),
+        ("P10-010", "rename_data_type", {"old_name": "McpU2", "new_name": "McpU3"}),
+        ("P10-011", "recreate_struct", {"name": "McpS1", "fields": [{"name": "a", "type": "int"},
+                                                                    {"name": "b", "type": "char *", "offset": 8}]}),
+        ("P10-012", "resize_struct", {"name": "McpS1", "new_size": 32}),
+        ("P10-013", "resize_struct", {"name": "McpS1", "new_size": 12, "force": True}),
+        ("P10-014", "resolve_duplicate_type", {"type_name": "McpS1"}),
+        ("P10-015", "validate_data_type", {"type_name": "McpS1 *"}),
+        ("P10-016", "validate_data_type", {"type_name": "char[16]", "address": "entry"}),
+        ("P10-017", "validate_function_prototype", {"prototype": "int foo(char *s, int n)"}),
+        ("P10-018", "validate_function_prototype", {"prototype": "int foo(char *s, int n)",
+                                                    "calling_convention": "__fastcall"}),
+        ("P10-019", "get_valid_data_types", {"filter": "dword", "limit": 20}),
+        ("P10-020", "suggest_field_names", {"struct_address": "0x140132000", "struct_size": 32}),
+        ("P10-021", "analyze_data_region", {"address": "0x140132000", "max_scan_bytes": 128}),
+        ("P10-022", "detect_array_bounds", {"address": "0x140132000"}),
+        ("P10-023", "get_field_access_context", {"struct_address": "0x140132000", "field_offset": 0}),
+        ("P10-024", "apply_data_classification", {"address": "0x200000000", "classification": "STRUCTURE",
+                                                  "type_definition": {"name": "McpBlk", "fields": [
+                                                      {"name": "magic", "type": "uint"}]},
+                                                  "name": "g_mcpBlk", "comment": "smoke"}),
+        ("P10-025", "analyze_struct_field_usage", {"address": "0x200000000", "max_functions": 5}),
+        ("P10-026", "import_data_types", {"source": str(FIXTURES / "mcp_smoke_types.h")}),
+    ]),
+}

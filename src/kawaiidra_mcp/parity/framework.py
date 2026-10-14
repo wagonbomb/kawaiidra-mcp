@@ -53,6 +53,8 @@ class JTool:
     timeout: Optional[int] = None
     local: Optional[Callable[[dict], Any]] = None
     needs_binary: Optional[bool] = None
+    # Module-level Jython (helper defs) inserted before the body function
+    helpers: str = ""
     # Gate for tools that execute arbitrary code or touch remote services
     phase: str = ""
 
@@ -99,6 +101,7 @@ def build_script(tool: JTool, args: dict) -> str:
         "# @category MCP\n# @runtime Jython\n"
         + prelude
         + f"\nARGS = json.loads(base64.b64decode('{payload}').decode('utf-8'))\n\n"
+        + textwrap.dedent(tool.helpers).strip("\n") + "\n\n"
         + "def _mcp_main():\n"
         + body
         + "\n\n_mcp_emit(_mcp_main)\n"
@@ -134,7 +137,7 @@ def _run(cmd_args: list[str], executable: Path, timeout: int) -> tuple[str, str,
             cmd = [str(executable)] + cmd_args
             shell = False
         srv.log(f"Running: {cmd}")
-        r = subprocess.run(cmd, capture_output=True, timeout=timeout, shell=shell,
+        r = subprocess.run(cmd, capture_output=True, timeout=timeout, shell=shell, stdin=subprocess.DEVNULL,
                            cwd=str(config.project_dir), encoding="utf-8", errors="replace")
         return r.stdout or "", r.stderr or "", r.returncode
     except subprocess.TimeoutExpired:

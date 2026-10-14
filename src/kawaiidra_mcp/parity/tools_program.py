@@ -96,7 +96,7 @@ register(
                 item["default"] = _s(opts.getDefaultValueAsString(n))
                 item["description"] = _s(opts.getDescription(n))
                 item["is_default"] = opts.isDefaultValue(n)
-            except Exception as e:
+            except (Exception, Throwable) as e:
                 item["error"] = _s(e)
             out.append(item)
         return {"group": group, "options": out, "count": len(out)}
@@ -229,7 +229,7 @@ register(
         if has:
             try:
                 val = m.get(a)
-            except Exception:
+            except (Exception, Throwable):
                 val = True
         if val is not None and not isinstance(val, (int, long, float, bool)):
             val = _s(val)
@@ -282,7 +282,7 @@ register(
             a = it.next()
             try:
                 v = m.get(a)
-            except Exception:
+            except (Exception, Throwable):
                 v = True
             if v is not None and not isinstance(v, (int, long, float, bool)):
                 v = _s(v)
@@ -400,7 +400,7 @@ register(
         try:
             from ghidra.program.util import GhidraProgramUtilities
             res["analyzed"] = GhidraProgramUtilities.isAnalyzed(p)
-        except Exception:
+        except (Exception, Throwable):
             res["analyzed"] = info.getBoolean("Analyzed", False) if info.contains("Analyzed") else None
         for k in ("Date Created", "Executable Format", "Created With Ghidra Version"):
             if info.contains(k):
@@ -413,7 +413,7 @@ register(
             try:
                 if an.getBoolean(n, False): enabled += 1
                 else: disabled += 1
-            except Exception:
+            except (Exception, Throwable):
                 pass
         res["analyzers_enabled"] = enabled
         res["analyzers_disabled"] = disabled
