@@ -239,6 +239,83 @@ PARITY_TESTS = {
     ]),
 }
 
+# Phase 18: one asserted test for every competitor endpoint whose kawaiidra
+# equivalent is a core (pre-parity) tool, so each endpoint has direct evidence.
+# Comments name the bethington endpoint covered.
+PARITY_TESTS[18] = ("Endpoint Coverage (core-tool equivalents)", [
+    # program / listing
+    ("P18-001", "get_binary_info", {}, "x86"),                                          # get_metadata
+    ("P18-002", "get_entry_points", {}, "1400be504"),                                   # get_entry_points
+    ("P18-003", "get_function_count", {}, "unction"),                                   # get_function_count
+    ("P18-004", "find_functions", {"pattern": "McpParse"}, "McpParseBuffer"),          # find_functions
+    ("P18-005", "list_strings", {"min_length": 6, "limit": 10}, "SSH-2 private key"),   # list_strings
+    ("P18-006", "search_strings", {"pattern": "PuTTY"}, "PuTTY"),                       # search_strings
+    ("P18-007", "read_memory", {"address": ENTRY, "length": 16}, "48 83 EC 28"),        # read_memory
+    ("P18-008", "search_bytes", {"pattern": "48 83 EC 28 E8", "limit": 200}, "1400be504"),  # search_byte_patterns
+    ("P18-009", "list_projects", {"_raw": True}, "parity_smoke"),                       # list_projects
+    ("P18-010", "list_scripts", {"_raw": True}),                                        # list_scripts
+    # analysis
+    ("P18-011", "list_analyzers", {}, "Decompiler Parameter ID"),                       # list_analyzers
+    ("P18-012", "run_analysis", {}),                                                    # run_analysis / reanalyze
+    ("P18-013", "get_control_flow_graph", {"function_name": "entry"}, "1400be504"),     # analyze_control_flow
+    ("P18-014", "get_call_graph", {"function_name": "entry", "depth": 2},
+     "__scrt_common_main_seh"),                                                         # get_function_call_graph
+    ("P18-015", "get_xrefs_from", {"address": ENTRY}, "1400"),                          # get_xrefs_from
+    ("P18-016", "find_similar_functions", {"function_name": "FUN_140006220", "threshold": 0.5}),  # find_similar_functions
+    ("P18-017", "find_dead_code", {"limit": 5}),                                        # find_dead_code
+    ("P18-018", "diff_functions", {"function_a": "FUN_140006220", "function_b": "FUN_140006260"},
+     "FUN_140006260"),                                                                  # diff_functions
+    ("P18-019", "get_function_disassembly", {"function_name": "entry"}, "SUB RSP"),     # disassemble_function
+    ("P18-020", "disassemble_bytes", {"address": ENTRY, "count": 3}, "SUB"),            # disassemble_bytes
+    # functions
+    ("P18-021", "rename_function", {"old_name": "FUN_1400062f0", "new_name": "McpRenamed"}, "McpRenamed"),  # rename_function
+    ("P18-022", "set_function_prototype", {"function_name": "McpRenamed",
+                                           "prototype": "int McpRenamed(void *ctx, int n)"}, "McpRenamed"),  # set_function_prototype
+    ("P18-023", "get_functions", {"function": "McpRenamed", "fields": "signature,variables"}, "ctx"),
+    ("P18-024", "set_function_no_return", {"function_name": "FUN_140007550", "no_return": True}),  # set_function_no_return
+    ("P18-025", "get_functions", {"function": "0x140007550", "fields": "signature"}, '"no_return": true'),
+    ("P18-026", "delete_function", {"address_or_name": "0x140007550"}),                 # delete_function
+    ("P18-027", "get_functions", {"functions": "0x140007550"}, "Function not found"),
+    ("P18-028", "create_function", {"address": "0x140007550", "name": "McpTmpFn"}),
+    ("P18-029", "run_script", {"code": "print('MCP_INLINE_OK %d' % currentProgram.getFunctionManager().getFunctionCount())"},
+     "MCP_INLINE_OK"),                                                                  # run_script_inline
+    # labels, comments, bookmarks
+    ("P18-030", "create_label", {"address": "0x140132030", "name": "g_mcpCoverLabel"}),  # create_label
+    ("P18-031", "rename_symbol", {"target": "g_mcpCoverLabel", "new_name": "g_mcpCoverLabel2"}, "g_mcpCoverLabel2"),
+    ("P18-032", "can_rename_at_address", {"address": "0x140132030"}, "g_mcpCoverLabel2"),
+    ("P18-033", "delete_label", {"address": "0x140132030", "name": "g_mcpCoverLabel2"}),  # delete_label
+    ("P18-034", "batch_set_comments", {"comments": [
+        {"address": "0x1400be504", "comment": "mcp batch eol", "comment_type": "EOL"},
+        {"address": "0x1400be508", "comment": "mcp batch pre", "comment_type": "PRE"}]}),  # batch_set_comments
+    ("P18-035", "get_comment", {"addresses": "0x1400be504,0x1400be508", "only_with_comments": True},
+     ["mcp batch eol", "mcp batch pre"]),
+    ("P18-036", "clear_comments", {"function_name": "entry"}),                           # clear_function_comments
+    ("P18-037", "get_comment", {"addresses": "0x1400be504,0x1400be508", "only_with_comments": True}, '"count": 0'),
+    ("P18-038", "set_bookmark", {"address": "0x1400be504", "category": "mcp_cover", "comment": "c"}),
+    ("P18-039", "list_bookmarks", {"category": "mcp_cover"}, "mcp_cover"),               # list_bookmarks
+    ("P18-040", "delete_bookmark", {"address": "entry", "category": "mcp_cover"}),
+    # data types
+    ("P18-041", "create_struct", {"name": "McpCoverS", "fields": [{"name": "a", "type": "int"},
+                                                                   {"name": "b", "type": "short"}]}),  # create_struct
+    ("P18-042", "add_struct_field", {"struct_name": "McpCoverS", "field_name": "c", "field_type": "char *"}),  # add_struct_field
+    ("P18-043", "modify_struct_field", {"struct_name": "McpCoverS", "field_index": 1, "new_name": "b2"}),  # modify_struct_field
+    ("P18-044", "remove_struct_field", {"struct_name": "McpCoverS", "field_index": 0}),  # remove_struct_field
+    ("P18-045", "get_data_type_details", {"type_name": "McpCoverS"}, ["b2", "char *"]),  # get_struct_layout / get_type_size
+    ("P18-046", "create_enum", {"name": "McpCoverE", "values": {"MC_A": 1, "MC_B": 7}}),  # create_enum
+    ("P18-047", "get_data_type_details", {"type_name": "McpCoverE"}, ["MC_A", "MC_B"]),  # get_enum_values
+    ("P18-048", "apply_data_type", {"address": "0x140132040", "type_name": "McpCoverS"}),  # apply_data_type
+    ("P18-049", "audit_global", {"address": "0x140132040"}, "McpCoverS"),
+    ("P18-050", "list_data_types", {"filter": "McpCover"}, "McpCoverE"),                 # find_data_types
+    ("P18-051", "delete_data_type", {"type_name": "McpCoverE"}),                         # delete_data_type
+    ("P18-052", "get_valid_data_types", {"filter": "McpCoverE"}, '"total": 0'),
+    # malware / security (bethington "malware" category)
+    ("P18-053", "detect_malware_behaviors", {}),                                         # detect_malware_behaviors
+    ("P18-054", "find_anti_analysis", {}),                                               # find_anti_analysis_techniques
+    ("P18-055", "extract_iocs", {}),                                                     # extract_iocs_with_context
+    ("P18-056", "analyze_api_chains", {}),                                               # analyze_api_call_chains
+    ("P18-057", "find_crypto_constants", {}),                                            # detect_crypto_constants
+])
+
 # ---------------------------------------------------------------------------
 # Environment-gated phases
 # ---------------------------------------------------------------------------
@@ -327,6 +404,12 @@ if os.environ.get("KAWAIIDRA_SMOKE_GHIDRA_SERVER"):
          '"checked_out": false'),
         ("P17-021", "server_version_control_checkout", {"_raw": True, "project_name": _proj, "path": "putty.exe"},
          '"checked_out": true'),
+        ("P17-021b", "server_admin_terminate_checkout", {"_raw": True, "repo": _repo, "path": "/putty.exe"},
+         '"terminated": ['),
+        ("P17-021c", "import_program", {"_raw": True, "project_name": _proj, "gzf_path": str(EXPORTS / "vcs_smoke.gzf"),
+                                        "target_name": "putty2.exe"}, "/putty2.exe"),
+        ("P17-021d", "server_version_control_add", {"_raw": True, "project_name": _proj, "path": "putty2.exe",
+                                                    "keep_checked_out": True}, '"checked_out": true'),
         ("P17-022", "server_admin_terminate_all_checkouts", {"_raw": True, "repo": _repo}, '"count": 1'),
         ("P17-023", "server_admin_set_permissions", {"_raw": True, "repo": _repo,
                                                      "user": os.environ.get("KAWAIIDRA_SMOKE_GHIDRA_USER", ""),

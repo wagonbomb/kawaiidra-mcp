@@ -63,14 +63,22 @@ def kawaiidra_name(endpoint: str) -> list[str]:
 
 
 def main() -> int:
-    src = sys.argv[1] if len(sys.argv) > 1 else str(ROOT / "tools" / "data" / "bethington_endpoints.json")
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    require_verified = "--require-verified" in sys.argv
+    src = args[0] if args else str(ROOT / "tools" / "data" / "bethington_endpoints.json")
+    results_file = ROOT / "tests" / "results" / "parity_results.json"
+    results = json.loads(results_file.read_text(encoding="utf-8")) if results_file.exists() else {}
+    passing_by_tool: dict[str, list[str]] = {}
+    for tid, r in results.items():
+        if r.get("success"):
+            passing_by_tool.setdefault(r["tool"], []).append(tid)
     os.environ.setdefault("GHIDRA_INSTALL_DIR", str(ROOT.parent / "ghidra_12.0.3_PUBLIC"))
     from kawaiidra_mcp.parity import REGISTRY
     from kawaiidra_mcp.server import TOOLS
 
     tools = {t.name for t in TOOLS}
     data = json.loads(Path(src).read_text(encoding="utf-8"))
-    rows, missing, used = [], [], set()
+    rows, missing, used, unverified = [], [], set(), []
     for e in sorted(data["endpoints"], key=lambda e: (e["category"], e["path"])):
         ep = e["path"].lstrip("/")
         targets = kawaiidra_name(ep)
@@ -80,7 +88,11 @@ def main() -> int:
         used.update(targets)
         how = "same name" if targets == [ep] else ("renamed" if len(targets) == 1 and targets[0] == ep.replace("/", "_") else "equivalent")
         mode = "GUI bridge" if "gui" in e["servers"] and "headless" not in e["servers"] else "headless"
-        rows.append(f"| `{ep}` | {e['category']} | {', '.join(f'`{t}`' for t in targets)} | {how} | {mode} |")
+        proof = sorted({tid for t in targets for tid in passing_by_tool.get(t, [])})
+        if not proof:
+            unverified.append(ep)
+        shown = ", ".join(proof[:3]) + (f" (+{len(proof) - 3})" if len(proof) > 3 else "") if proof else "**none**"
+        rows.append(f"| `{ep}` | {e['category']} | {', '.join(f'`{t}`' for t in targets)} | {how} | {mode} | {shown} |")
 
     extras = sorted(tools - used)
     apple = [t for t in extras if any(k in t for k in ("mach", "kpp", "pac_", "iokit", "sandbox", "entitlement", "kernel", "jni"))]
@@ -96,6 +108,8 @@ def main() -> int:
         "|--------|-------|",
         f"| Competitor endpoints | {len(data['endpoints'])} |",
         f"| Covered by kawaiidra | {len(data['endpoints']) - len(missing)} |",
+        f"| Verified by a passing smoke test | {len(data['endpoints']) - len(unverified)} "
+        f"(from `tests/results/parity_results.json`, {sum(1 for r in results.values() if r.get('success'))} passing tests) |",
         f"| Kawaiidra tools total | {len(tools)} ({len(tools) - len(REGISTRY)} core + {len(REGISTRY)} parity) |",
         f"| Kawaiidra-only tools | {len(extras)} (incl. {len(apple)} Apple/iOS/kernel/JNI) |",
         "",
@@ -104,8 +118,11 @@ def main() -> int:
         "",
         "## Endpoint mapping",
         "",
-        "| Competitor endpoint | Category | Kawaiidra tool(s) | Mapping | Mode |",
-        "|---------------------|----------|-------------------|---------|------|",
+        "\"Verified by\" lists passing test IDs (`parity_smoke_tests.py`, run by",
+        "`run_comprehensive_tests.py --parity ...`) that exercised one of the mapped tools.",
+        "",
+        "| Competitor endpoint | Category | Kawaiidra tool(s) | Mapping | Mode | Verified by |",
+        "|---------------------|----------|-------------------|---------|------|-------------|",
         *rows,
         "",
         "## Kawaiidra-only tools",
@@ -122,9 +139,12 @@ def main() -> int:
     (ROOT / "PARITY.md").write_text("\n".join(out), encoding="utf-8")
     print(f"endpoints={len(data['endpoints'])} covered={len(data['endpoints']) - len(missing)} "
           f"tools={len(tools)} extras={len(extras)} apple={len(apple)}")
+    print(f"verified={len(data['endpoints']) - len(unverified)}/{len(data['endpoints'])}")
     for ep, absent in missing:
         print(f"MISSING: {ep} -> {absent}")
-    return 1 if missing else 0
+    for ep in unverified:
+        print(f"UNVERIFIED: {ep}")
+    return 1 if missing or (require_verified and unverified) else 0
 
 
 if __name__ == "__main__":

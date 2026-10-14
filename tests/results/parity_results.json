@@ -1,0 +1,1892 @@
+{
+ "P10-001": {
+  "tool": "create_union",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:01:53"
+ },
+ "P10-002": {
+  "tool": "create_function_signature",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:02:05"
+ },
+ "P10-003": {
+  "tool": "create_function_signature",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:02:16"
+ },
+ "P10-004": {
+  "tool": "create_derived_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:02:27"
+ },
+ "P10-005": {
+  "tool": "create_derived_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:02:38"
+ },
+ "P10-006": {
+  "tool": "create_derived_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:02:49"
+ },
+ "P10-007": {
+  "tool": "create_data_type_category",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:03:00"
+ },
+ "P10-008": {
+  "tool": "clone_data_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:03:12"
+ },
+ "P10-009": {
+  "tool": "move_data_type_to_category",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:03:23"
+ },
+ "P10-010": {
+  "tool": "rename_data_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:03:35"
+ },
+ "P10-011": {
+  "tool": "recreate_struct",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:03:47"
+ },
+ "P10-012": {
+  "tool": "resize_struct",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:03:58"
+ },
+ "P10-013": {
+  "tool": "resize_struct",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:04:09"
+ },
+ "P10-014": {
+  "tool": "resolve_duplicate_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:04:21"
+ },
+ "P10-015": {
+  "tool": "validate_data_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:04:32"
+ },
+ "P10-016": {
+  "tool": "validate_data_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:04:44"
+ },
+ "P10-017": {
+  "tool": "validate_function_prototype",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:04:55"
+ },
+ "P10-018": {
+  "tool": "validate_function_prototype",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:05:06"
+ },
+ "P10-019": {
+  "tool": "get_valid_data_types",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:05:17"
+ },
+ "P10-020": {
+  "tool": "suggest_field_names",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:05:28"
+ },
+ "P10-021": {
+  "tool": "analyze_data_region",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:05:39"
+ },
+ "P10-022": {
+  "tool": "detect_array_bounds",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:05:50"
+ },
+ "P10-023": {
+  "tool": "get_field_access_context",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:06:01"
+ },
+ "P10-024": {
+  "tool": "apply_data_classification",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:06:13"
+ },
+ "P10-025": {
+  "tool": "analyze_struct_field_usage",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:06:25"
+ },
+ "P10-026": {
+  "tool": "import_data_types",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 10: Advanced Data Types",
+  "time": "2026-10-14T12:06:37"
+ },
+ "P11-001": {
+  "tool": "list_globals",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:06:50"
+ },
+ "P11-002": {
+  "tool": "list_globals",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:07:04"
+ },
+ "P11-003": {
+  "tool": "list_shadowed_globals",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:07:16"
+ },
+ "P11-004": {
+  "tool": "list_data_items_by_xrefs",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:07:29"
+ },
+ "P11-005": {
+  "tool": "list_program_items",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:07:40"
+ },
+ "P11-006": {
+  "tool": "list_program_items",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:07:52"
+ },
+ "P11-007": {
+  "tool": "list_program_items",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:08:04"
+ },
+ "P11-008": {
+  "tool": "list_program_items",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:08:15"
+ },
+ "P11-009": {
+  "tool": "list_program_items",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:08:28"
+ },
+ "P11-010": {
+  "tool": "audit_global",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:08:42"
+ },
+ "P11-011": {
+  "tool": "set_global",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:08:56"
+ },
+ "P11-012": {
+  "tool": "analyze_global_completeness",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:09:09"
+ },
+ "P11-013": {
+  "tool": "audit_globals_in_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:09:25"
+ },
+ "P11-014": {
+  "tool": "can_rename_at_address",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:09:41"
+ },
+ "P11-015": {
+  "tool": "rename_symbol",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:09:56"
+ },
+ "P11-016": {
+  "tool": "rename_symbol",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:10:11"
+ },
+ "P11-017": {
+  "tool": "set_repeatable_comment",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:10:24"
+ },
+ "P11-018": {
+  "tool": "get_comment",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:10:38"
+ },
+ "P11-019": {
+  "tool": "get_comment",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:10:51"
+ },
+ "P11-020": {
+  "tool": "add_memory_reference",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:11:02"
+ },
+ "P11-021": {
+  "tool": "get_xrefs_to",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:11:13"
+ },
+ "P11-022": {
+  "tool": "remove_reference",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:11:25"
+ },
+ "P11-023": {
+  "tool": "get_assembly_context",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:11:36"
+ },
+ "P11-024": {
+  "tool": "get_full_call_graph",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:11:47"
+ },
+ "P11-025": {
+  "tool": "analyze_call_graph",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:11:59"
+ },
+ "P11-026": {
+  "tool": "analyze_call_graph",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:12:11"
+ },
+ "P11-027": {
+  "tool": "analyze_call_graph",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:12:24"
+ },
+ "P11-028": {
+  "tool": "search_instructions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:12:35"
+ },
+ "P11-029": {
+  "tool": "search_instructions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:12:44"
+ },
+ "P11-030": {
+  "tool": "find_code_gaps",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:12:56"
+ },
+ "P11-031": {
+  "tool": "find_next_undefined_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:13:07"
+ },
+ "P11-032": {
+  "tool": "list_class_members",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 11: Globals, Listings, Symbols, Comments & Xrefs",
+  "time": "2026-10-14T12:13:19"
+ },
+ "P12-001": {
+  "tool": "add_function_tag",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:13:30"
+ },
+ "P12-002": {
+  "tool": "add_function_tag",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:13:41"
+ },
+ "P12-003": {
+  "tool": "list_function_tags",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:13:52"
+ },
+ "P12-004": {
+  "tool": "list_function_tags",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:14:03"
+ },
+ "P12-005": {
+  "tool": "set_function_tag_comment",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:14:14"
+ },
+ "P12-006": {
+  "tool": "remove_function_tag",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:14:25"
+ },
+ "P12-007": {
+  "tool": "delete_function_tag",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:14:36"
+ },
+ "P12-008": {
+  "tool": "rename_variables",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:14:47"
+ },
+ "P12-009": {
+  "tool": "set_variable_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:14:58"
+ },
+ "P12-010": {
+  "tool": "set_variables",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:15:10"
+ },
+ "P12-011": {
+  "tool": "batch_rename_function_components",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:15:22"
+ },
+ "P12-012": {
+  "tool": "get_functions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:15:32"
+ },
+ "P12-013": {
+  "tool": "force_decompile",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:15:44"
+ },
+ "P12-014": {
+  "tool": "get_function_pcode",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:15:55"
+ },
+ "P12-015": {
+  "tool": "get_function_pcode",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:16:06"
+ },
+ "P12-016": {
+  "tool": "analyze_dataflow",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:16:17"
+ },
+ "P12-017": {
+  "tool": "analyze_dataflow",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:16:28"
+ },
+ "P12-018": {
+  "tool": "set_variable_storage",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:16:40"
+ },
+ "P12-019": {
+  "tool": "set_function_this_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:16:51"
+ },
+ "P12-020": {
+  "tool": "list_class_members",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:17:02"
+ },
+ "P12-021": {
+  "tool": "list_program_items",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:17:13"
+ },
+ "P12-022": {
+  "tool": "clear_instruction_flow_override",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:17:24"
+ },
+ "P12-023": {
+  "tool": "clear_instruction_flow_override",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:17:37"
+ },
+ "P12-024": {
+  "tool": "clear_flow_and_repair",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 12: Function Editing, P-code & Dataflow",
+  "time": "2026-10-14T12:17:49"
+ },
+ "P13-000": {
+  "tool": "analyze_binary",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:19:35"
+ },
+ "P13-001": {
+  "tool": "analyze_function_completeness",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:19:46"
+ },
+ "P13-002": {
+  "tool": "analyze_function_completeness",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:19:57"
+ },
+ "P13-003": {
+  "tool": "analyze_for_documentation",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:20:09"
+ },
+ "P13-004": {
+  "tool": "analyze_function_complete",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:20:21"
+ },
+ "P13-005": {
+  "tool": "apply_documentation",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:20:32"
+ },
+ "P13-006": {
+  "tool": "get_function_documentation",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:20:43"
+ },
+ "P13-007": {
+  "tool": "apply_documentation",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:20:55"
+ },
+ "P13-008": {
+  "tool": "get_function_hashes",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:21:07"
+ },
+ "P13-009": {
+  "tool": "get_function_hashes",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:21:18"
+ },
+ "P13-010": {
+  "tool": "batch_string_anchor_report",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:21:30"
+ },
+ "P13-011": {
+  "tool": "find_undocumented_by_string",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:21:41"
+ },
+ "P13-012": {
+  "tool": "find_similar_functions_fuzzy",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:21:57"
+ },
+ "P13-013": {
+  "tool": "bulk_fuzzy_match",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:22:11"
+ },
+ "P13-014": {
+  "tool": "merge_program_documentation",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:22:22"
+ },
+ "P13-015": {
+  "tool": "merge_program_documentation",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:22:37"
+ },
+ "P13-016": {
+  "tool": "compare_programs_documentation",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:22:47"
+ },
+ "P13-017": {
+  "tool": "archive_ingest_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:22:59"
+ },
+ "P13-018": {
+  "tool": "archive_ingest_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 13: Documentation Workflow & Cross-Binary",
+  "time": "2026-10-14T12:23:10"
+ },
+ "P14-001": {
+  "tool": "create_memory_block",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 14: P-code Emulation",
+  "time": "2026-10-14T12:23:22"
+ },
+ "P14-002": {
+  "tool": "create_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 14: P-code Emulation",
+  "time": "2026-10-14T12:23:33"
+ },
+ "P14-003": {
+  "tool": "emulate_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 14: P-code Emulation",
+  "time": "2026-10-14T12:23:44"
+ },
+ "P14-004": {
+  "tool": "emulate_hash_batch",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 14: P-code Emulation",
+  "time": "2026-10-14T12:23:55"
+ },
+ "P14-005": {
+  "tool": "emulate_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 14: P-code Emulation",
+  "time": "2026-10-14T12:24:07"
+ },
+ "P15-001": {
+  "tool": "create_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:24:13"
+ },
+ "P15-002": {
+  "tool": "export_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:24:21"
+ },
+ "P15-003": {
+  "tool": "import_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:24:28"
+ },
+ "P15-004": {
+  "tool": "create_folder",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:24:34"
+ },
+ "P15-005": {
+  "tool": "move_file",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:24:41"
+ },
+ "P15-006": {
+  "tool": "move_folder",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:24:48"
+ },
+ "P15-007": {
+  "tool": "list_project_files",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:24:54"
+ },
+ "P15-008": {
+  "tool": "get_project_info",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:01"
+ },
+ "P15-009": {
+  "tool": "archive_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:09"
+ },
+ "P15-010": {
+  "tool": "restore_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:17"
+ },
+ "P15-011": {
+  "tool": "delete_file",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:24"
+ },
+ "P15-012": {
+  "tool": "open_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:24"
+ },
+ "P15-013": {
+  "tool": "open_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:24"
+ },
+ "P15-014": {
+  "tool": "analysis_status",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:35"
+ },
+ "P15-015": {
+  "tool": "switch_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:35"
+ },
+ "P15-016": {
+  "tool": "list_open_programs",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:35"
+ },
+ "P15-017": {
+  "tool": "close_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:35"
+ },
+ "P15-018": {
+  "tool": "save_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:35"
+ },
+ "P15-019": {
+  "tool": "save_all_programs",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:35"
+ },
+ "P15-020": {
+  "tool": "close_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:35"
+ },
+ "P15-021": {
+  "tool": "run_ghidra_script",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:43"
+ },
+ "P15-022": {
+  "tool": "delete_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:43"
+ },
+ "P15-023": {
+  "tool": "delete_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:43"
+ },
+ "P15-024": {
+  "tool": "exit_ghidra",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 15: Project & Program Lifecycle",
+  "time": "2026-10-14T12:25:43"
+ },
+ "P16-001": {
+  "tool": "get_ui_cursor",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:02"
+ },
+ "P16-002": {
+  "tool": "get_ui_cursor",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:02"
+ },
+ "P16-003": {
+  "tool": "goto_address",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:02"
+ },
+ "P16-004": {
+  "tool": "prompt_policy",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:02"
+ },
+ "P16-005": {
+  "tool": "prompt_policy",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:02"
+ },
+ "P16-006": {
+  "tool": "debugger_status",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:02"
+ },
+ "P16-010": {
+  "tool": "running_tools",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:02"
+ },
+ "P16-011": {
+  "tool": "debugger_launch_offers",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:02"
+ },
+ "P16-012": {
+  "tool": "debugger_launch",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:07"
+ },
+ "P16-013": {
+  "tool": "debugger_traces",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:08"
+ },
+ "P16-014": {
+  "tool": "debugger_status",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:08"
+ },
+ "P16-015": {
+  "tool": "debugger_modules",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:08"
+ },
+ "P16-016": {
+  "tool": "debugger_registers",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:08"
+ },
+ "P16-017": {
+  "tool": "debugger_static_to_dynamic",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:08"
+ },
+ "P16-018": {
+  "tool": "debugger_set_breakpoint",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:08"
+ },
+ "P16-019": {
+  "tool": "debugger_list_breakpoints",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:08"
+ },
+ "P16-020": {
+  "tool": "debugger_resume",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:08"
+ },
+ "P16-021": {
+  "tool": "debugger_stack_trace",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:09"
+ },
+ "P16-022": {
+  "tool": "debugger_registers",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:09"
+ },
+ "P16-023": {
+  "tool": "debugger_read_memory",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:09"
+ },
+ "P16-023b": {
+  "tool": "debugger_dynamic_to_static",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:09"
+ },
+ "P16-024": {
+  "tool": "debugger_step",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:10"
+ },
+ "P16-025": {
+  "tool": "debugger_step",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:11"
+ },
+ "P16-026": {
+  "tool": "debugger_remove_breakpoint",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:11"
+ },
+ "P16-027": {
+  "tool": "debugger_resume",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:11"
+ },
+ "P16-028": {
+  "tool": "debugger_interrupt",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:11"
+ },
+ "P16-029": {
+  "tool": "debugger_status",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 16: GUI Bridge & Debugger",
+  "time": "2026-10-14T13:04:11"
+ },
+ "P17-001": {
+  "tool": "server_authenticate",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:37:30"
+ },
+ "P17-002": {
+  "tool": "server_connect",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:37:37"
+ },
+ "P17-003": {
+  "tool": "server_status",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:37:44"
+ },
+ "P17-004": {
+  "tool": "server_repository_create",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:37:52"
+ },
+ "P17-005": {
+  "tool": "server_repositories",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:37:58"
+ },
+ "P17-006": {
+  "tool": "server_admin_users",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:38:05"
+ },
+ "P17-007": {
+  "tool": "create_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:38:12"
+ },
+ "P17-008": {
+  "tool": "export_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:38:19"
+ },
+ "P17-009": {
+  "tool": "import_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:38:26"
+ },
+ "P17-010": {
+  "tool": "server_share_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:38:33"
+ },
+ "P17-011": {
+  "tool": "server_version_control_add",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:38:41"
+ },
+ "P17-012": {
+  "tool": "server_repository_files",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:38:48"
+ },
+ "P17-013": {
+  "tool": "server_version_control_checkout",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:38:56"
+ },
+ "P17-014": {
+  "tool": "set_program_option",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:39:07"
+ },
+ "P17-015": {
+  "tool": "checkin_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:39:14"
+ },
+ "P17-016": {
+  "tool": "checkin_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:39:22"
+ },
+ "P17-017": {
+  "tool": "server_version_history",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:39:29"
+ },
+ "P17-018": {
+  "tool": "server_repository_file",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:39:37"
+ },
+ "P17-019": {
+  "tool": "server_checkouts",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:39:44"
+ },
+ "P17-020": {
+  "tool": "server_version_control_undo_checkout",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:39:51"
+ },
+ "P17-021": {
+  "tool": "server_version_control_checkout",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:39:59"
+ },
+ "P17-021b": {
+  "tool": "server_admin_terminate_checkout",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:40:06"
+ },
+ "P17-021c": {
+  "tool": "import_program",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:40:13"
+ },
+ "P17-021d": {
+  "tool": "server_version_control_add",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:40:21"
+ },
+ "P17-022": {
+  "tool": "server_admin_terminate_all_checkouts",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:40:28"
+ },
+ "P17-023": {
+  "tool": "server_admin_set_permissions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:40:35"
+ },
+ "P17-024": {
+  "tool": "server_disconnect",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:40:35"
+ },
+ "P17-025": {
+  "tool": "delete_project",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 17: Ghidra Server & Version Control",
+  "time": "2026-10-14T12:40:35"
+ },
+ "P18-001": {
+  "tool": "get_binary_info",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:25:54"
+ },
+ "P18-002": {
+  "tool": "get_entry_points",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:26:06"
+ },
+ "P18-003": {
+  "tool": "get_function_count",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:26:17"
+ },
+ "P18-004": {
+  "tool": "find_functions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:26:29"
+ },
+ "P18-005": {
+  "tool": "list_strings",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:37:10"
+ },
+ "P18-006": {
+  "tool": "search_strings",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:26:51"
+ },
+ "P18-007": {
+  "tool": "read_memory",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:27:02"
+ },
+ "P18-008": {
+  "tool": "search_bytes",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:37:21"
+ },
+ "P18-009": {
+  "tool": "list_projects",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:27:13"
+ },
+ "P18-010": {
+  "tool": "list_scripts",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:27:13"
+ },
+ "P18-011": {
+  "tool": "list_analyzers",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:27:23"
+ },
+ "P18-012": {
+  "tool": "run_analysis",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:27:27"
+ },
+ "P18-013": {
+  "tool": "get_control_flow_graph",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:27:38"
+ },
+ "P18-014": {
+  "tool": "get_call_graph",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:27:48"
+ },
+ "P18-015": {
+  "tool": "get_xrefs_from",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:28:00"
+ },
+ "P18-016": {
+  "tool": "find_similar_functions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:28:14"
+ },
+ "P18-017": {
+  "tool": "find_dead_code",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:28:26"
+ },
+ "P18-018": {
+  "tool": "diff_functions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:28:48"
+ },
+ "P18-019": {
+  "tool": "get_function_disassembly",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:28:59"
+ },
+ "P18-020": {
+  "tool": "disassemble_bytes",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:29:10"
+ },
+ "P18-021": {
+  "tool": "rename_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:29:21"
+ },
+ "P18-022": {
+  "tool": "set_function_prototype",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:29:33"
+ },
+ "P18-023": {
+  "tool": "get_functions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:29:44"
+ },
+ "P18-024": {
+  "tool": "set_function_no_return",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:29:56"
+ },
+ "P18-025": {
+  "tool": "get_functions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:30:07"
+ },
+ "P18-026": {
+  "tool": "delete_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:30:18"
+ },
+ "P18-027": {
+  "tool": "get_functions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:30:30"
+ },
+ "P18-028": {
+  "tool": "create_function",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:30:41"
+ },
+ "P18-029": {
+  "tool": "run_script",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:30:52"
+ },
+ "P18-030": {
+  "tool": "create_label",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:31:03"
+ },
+ "P18-031": {
+  "tool": "rename_symbol",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:31:15"
+ },
+ "P18-032": {
+  "tool": "can_rename_at_address",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:31:26"
+ },
+ "P18-033": {
+  "tool": "delete_label",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:31:37"
+ },
+ "P18-034": {
+  "tool": "batch_set_comments",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:31:49"
+ },
+ "P18-035": {
+  "tool": "get_comment",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:32:00"
+ },
+ "P18-036": {
+  "tool": "clear_comments",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:32:11"
+ },
+ "P18-037": {
+  "tool": "get_comment",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:32:22"
+ },
+ "P18-038": {
+  "tool": "set_bookmark",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:32:33"
+ },
+ "P18-039": {
+  "tool": "list_bookmarks",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:32:44"
+ },
+ "P18-040": {
+  "tool": "delete_bookmark",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:32:55"
+ },
+ "P18-041": {
+  "tool": "create_struct",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:33:06"
+ },
+ "P18-042": {
+  "tool": "add_struct_field",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:33:17"
+ },
+ "P18-043": {
+  "tool": "modify_struct_field",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:33:28"
+ },
+ "P18-044": {
+  "tool": "remove_struct_field",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:33:39"
+ },
+ "P18-045": {
+  "tool": "get_data_type_details",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:33:50"
+ },
+ "P18-046": {
+  "tool": "create_enum",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:34:01"
+ },
+ "P18-047": {
+  "tool": "get_data_type_details",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:34:12"
+ },
+ "P18-048": {
+  "tool": "apply_data_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:34:23"
+ },
+ "P18-049": {
+  "tool": "audit_global",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:34:34"
+ },
+ "P18-050": {
+  "tool": "list_data_types",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:34:45"
+ },
+ "P18-051": {
+  "tool": "delete_data_type",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:34:56"
+ },
+ "P18-052": {
+  "tool": "get_valid_data_types",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:35:07"
+ },
+ "P18-053": {
+  "tool": "detect_malware_behaviors",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:35:26"
+ },
+ "P18-054": {
+  "tool": "find_anti_analysis",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:35:42"
+ },
+ "P18-055": {
+  "tool": "extract_iocs",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:35:54"
+ },
+ "P18-056": {
+  "tool": "analyze_api_chains",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:36:07"
+ },
+ "P18-057": {
+  "tool": "find_crypto_constants",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 18: Endpoint Coverage (core-tool equivalents)",
+  "time": "2026-10-14T12:36:24"
+ },
+ "P9-001": {
+  "tool": "get_address_spaces",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:57:20"
+ },
+ "P9-002": {
+  "tool": "get_language_metadata",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:57:31"
+ },
+ "P9-003": {
+  "tool": "get_program_options",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:57:42"
+ },
+ "P9-004": {
+  "tool": "get_program_options",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:57:54"
+ },
+ "P9-005": {
+  "tool": "set_program_option",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:58:05"
+ },
+ "P9-006": {
+  "tool": "remove_program_option",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:58:17"
+ },
+ "P9-007": {
+  "tool": "create_property_map",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:58:28"
+ },
+ "P9-008": {
+  "tool": "set_property",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:58:39"
+ },
+ "P9-009": {
+  "tool": "get_property",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:58:51"
+ },
+ "P9-010": {
+  "tool": "list_properties",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:59:03"
+ },
+ "P9-011": {
+  "tool": "list_properties",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:59:15"
+ },
+ "P9-012": {
+  "tool": "remove_property",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:59:27"
+ },
+ "P9-013": {
+  "tool": "delete_property_map",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:59:38"
+ },
+ "P9-014": {
+  "tool": "create_memory_block",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T11:59:50"
+ },
+ "P9-015": {
+  "tool": "set_memory_block",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:00:02"
+ },
+ "P9-016": {
+  "tool": "analysis_status",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:00:13"
+ },
+ "P9-017": {
+  "tool": "configure_analyzer",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:00:24"
+ },
+ "P9-018": {
+  "tool": "set_bookmark",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:00:34"
+ },
+ "P9-019": {
+  "tool": "delete_bookmark",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:00:45"
+ },
+ "P9-020": {
+  "tool": "list_calling_conventions",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:00:56"
+ },
+ "P9-021": {
+  "tool": "get_external_location",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:01:07"
+ },
+ "P9-022": {
+  "tool": "get_external_location",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:01:19"
+ },
+ "P9-023": {
+  "tool": "set_image_base",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:01:30"
+ },
+ "P9-024": {
+  "tool": "set_image_base",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:01:42"
+ },
+ "P9-025": {
+  "tool": "convert_number",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:01:42"
+ },
+ "P9-026": {
+  "tool": "check_connection",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:01:42"
+ },
+ "P9-027": {
+  "tool": "mcp_health",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:01:42"
+ },
+ "P9-028": {
+  "tool": "mcp_schema",
+  "success": true,
+  "error": null,
+  "phase": "Parity Phase 9: Program, Memory, Options & Utilities",
+  "time": "2026-10-14T12:01:42"
+ }
+}

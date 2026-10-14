@@ -65,6 +65,7 @@ class KawaiidraTestRunner:
         self.include_parity = False
         self._last_text = ""
         self.only_ids: set = set()
+        self.parity_records: dict = {}
 
         # Import after setting GHIDRA_INSTALL_DIR
         from kawaiidra_mcp.server import TOOLS
@@ -219,6 +220,7 @@ class KawaiidraTestRunner:
             # Extract text from result
             if result and len(result) > 0:
                 text = result[0].text if hasattr(result[0], 'text') else str(result[0])
+                self._last_text = text
                 preview = text[:200] + "..." if len(text) > 200 else text
 
                 # Check for error indicators
@@ -868,7 +870,24 @@ class KawaiidraTestRunner:
                         print(f"      Assertion failed: expected {needle!r}")
                         break
             suite.results.append(result)
+            self.parity_records[test_id] = {
+                "tool": tool, "success": result.success, "error": result.error or None,
+                "phase": title, "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            }
+        self.save_parity_records()
         return suite
+
+    RESULTS_FILE = Path(__file__).parent / "tests" / "results" / "parity_results.json"
+
+    def save_parity_records(self):
+        """Merge this run's parity results into tests/results/parity_results.json."""
+        import json as _json
+        self.RESULTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        data = {}
+        if self.RESULTS_FILE.exists():
+            data = _json.loads(self.RESULTS_FILE.read_text(encoding="utf-8"))
+        data.update(self.parity_records)
+        self.RESULTS_FILE.write_text(_json.dumps(dict(sorted(data.items())), indent=1), encoding="utf-8")
 
     def run_parity_phase(self, phase: int) -> TestSuite:
         from parity_smoke_tests import PARITY_TESTS

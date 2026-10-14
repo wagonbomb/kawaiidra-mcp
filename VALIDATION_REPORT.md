@@ -522,3 +522,35 @@ retried briefly); stop detection used one thread's possibly-stale state
 (now process-wide, all-stop semantics, gated on a new snapshot); `cwd` was
 mapped onto `WINDBG_DIR`. Addresses may also be given as a register name
 (e.g. `RIP`).
+
+## Full Parity Verification (clean run, 2026-10-14)
+
+Every competitor endpoint is now backed by a **passing, asserted smoke test**,
+not only by a name mapping. `run_comprehensive_tests.py` records each parity
+test to `tests/results/parity_results.json`, and
+`python tools/gen_parity.py --require-verified` fails unless every one of the
+209 bethington/ghidra-mcp endpoints maps to a tool with a passing test. The
+"Verified by" column of `PARITY.md` lists the test IDs per endpoint.
+
+Phase 18 adds 57 tests for the endpoints whose kawaiidra equivalent is a
+core (pre-parity) tool; Phase 17 gained `server_admin_terminate_checkout`.
+
+Clean run from a freshly created `parity_smoke` project:
+
+| Phase | Passed | Total |
+|-------|--------|-------|
+| 9–15 | 158 | 158 |
+| 18 Endpoint coverage | 57 | 57 |
+| 17 Ghidra Server (local 12.0.3 server) | 28 | 28 |
+| 16 GUI bridge + live dbgeng debugger | 27 | 27 |
+| **Total** | **270** | **270** |
+
+**Result: 209/209 endpoints verified.**
+
+Notes on the run: a first attempt was interrupted by the machine sleeping
+overnight (P13-014 timed out; repeated cleanly with keep-awake) and exposed a
+runner bug (assertions on core tools read an empty string because the
+direct-handler path never captured output — fixed). In the clean run two
+Phase 18 assertions were wrong, not the tools (PuTTY strings start at
+`0x1400ed…`, and `search_bytes` returned the first 5 of many matches); the
+expectations were corrected and P18-005/P18-008 re-run by ID and passed.
